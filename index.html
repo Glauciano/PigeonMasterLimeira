@@ -6215,6 +6215,124 @@ h1,h2{text-align:center;color:#008080}
   console.log("Patch de Importação PMR na Categoria Correta Ativo.");
 })();
 </script>
+<script>
+(function(){
+  if(window.__PATCH_PMR_IMPORTAR_CATEGORIA_NATIVA__) return;
+  window.__PATCH_PMR_IMPORTAR_CATEGORIA_NATIVA__ = true;
+
+  function el(id){ return document.getElementById(id); }
+
+  function obterCategoriaAtivaDaTela(){
+    // Lê o texto em vermelho exibido na tela de Lançamento de Provas
+    const textoTela = (el("lancTipoTexto")?.textContent || "").trim().toUpperCase();
+    
+    if (textoTela.includes("FILHOTES") || textoTela === "J") {
+      return "Filhotes";
+    }
+    if (textoTela.includes("VELOCIDADE") || textoTela === "V") {
+      return "Velocidade Adulto";
+    }
+    if (textoTela.includes("MEIO-FUNDO") || textoTela.includes("MEIO") || textoTela === "M") {
+      return "Meio-fundo";
+    }
+    if (textoTela.includes("FUNDO") || textoTela === "F") {
+      return "Fundo";
+    }
+    return "Velocidade Adulto"; // Categoria padrão caso não identifique
+  }
+
+  /* Sobrescreve a importação do PMR associando corretamente ao concurso ativo */
+  window.importarParaLancamentoProvisorio = function(){
+    if(!pmrDadosImportadosAtual || !pmrDadosImportadosAtual.pombos.length) return;
+
+    const ano = el("lancAno")?.value || el("pmrAno")?.value || "2026";
+    const num = el("lancNum")?.value || el("pmrNum")?.value || "1";
+    const nomeConcurso = (el("lancNomeConcurso")?.value || el("pmrNomeConcurso")?.value || "").trim();
+    const categoriaAlvo = obterCategoriaAtivaDaTela();
+
+    // Busca o concurso na lista de cursos salvos de forma altamente tolerante
+    let curso = (window.cursosSalvos || []).find(c => 
+      String(c.ano) === String(ano) && 
+      String(c.num) === String(num) && 
+      String(c.tipo || "").toUpperCase() === categoriaAlvo.toUpperCase()
+    );
+
+    // Segunda tentativa de busca por redundância, caso o nome do concurso coincida
+    if(!curso && nomeConcurso){
+      curso = (window.cursosSalvos || []).find(c => 
+        String(c.ano) === String(ano) && 
+        String(c.num) === String(num) &&
+        String(c.nome || "").trim().toUpperCase() === nomeConcurso.toUpperCase()
+      );
+    }
+
+    // Terceira tentativa (fallback de segurança): Pega o primeiro concurso correspondente a ano e número
+    if(!curso){
+      curso = (window.cursosSalvos || []).find(c => 
+        String(c.ano) === String(ano) && 
+        String(c.num) === String(num)
+      );
+    }
+
+    if(!curso){
+      return alert(`Erro: Não foi possível localizar nenhum concurso cadastrado para ${ano}/${num} na Tabela de Concursos.`);
+    }
+
+    // Sincroniza a prova ativa com o concurso localizado
+    window.provaAtual = { ano: curso.ano, num: curso.num, nome: curso.nome, tipo: curso.tipo, curso };
+    
+    if(el("lancAno")) el("lancAno").value = curso.ano;
+    if(el("lancNum")) el("lancNum").value = curso.num;
+    if(el("lancNomeConcurso")) el("lancNomeConcurso").value = curso.nome;
+    if(el("lancTipoTexto")) el("lancTipoTexto").textContent = (curso.tipo || "").toUpperCase();
+
+    // Define a chave de armazenamento para garantir que caia na tabela da categoria certa
+    const chaveUnica = `${curso.ano}/${curso.num}`;
+    window.lancamentos = window.todosLancamentos[chaveUnica] || [];
+
+    let importadosCont = 0;
+
+    pmrDadosImportadosAtual.pombos.forEach(p => {
+      if(!window.lancamentos.some(l => l.anilha === p.anilha)){
+        const pCad = window.pombosSalvos.find(x => x.anilha === p.anilha);
+
+        const novo = {
+          anilha: p.anilha,
+          assoc: pCad ? pCad.assoc : (el("lancAssoc")?.value || "11"),
+          colec: pCad ? pCad.colec : (el("lancColec")?.value || "33"),
+          concNum: pmrDadosImportadosAtual.socioID || el("lancNumConc")?.value || "81",
+          sexo: pCad ? pCad.sexo : "Macho",
+          chegada: p.hora,
+          distancia: "0,0",
+          media: "0,0000",
+          tempoVoo: "",
+          pmrProvisorio: true
+        };
+
+        if(typeof completarDadosRelogio === "function") {
+          completarDadosRelogio(novo);
+        }
+
+        window.lancamentos.push(novo);
+        importadosCont++;
+      }
+    });
+
+    window.todosLancamentos[chaveUnica] = window.lancamentos;
+    if(typeof salvarLancamentos === "function") window.salvarLancamentos();
+
+    window.atualizarListaLancamentos();
+    if(typeof atualizarTabelaAuditoriaPMR === "function") window.atualizarTabelaAuditoriaPMR();
+
+    alert(`⚡ SUCESSO!\n\n${importadosCont} constatação(ões) provisória(s) foram importada(s) para a prova de [${curso.nome}] - Categoria [${curso.tipo}].`);
+    
+    closeWin("winRemoteClock");
+    openWin("winLancamento");
+  };
+
+  console.log("Patch final de Importação PMR por Categoria Nativa Ativo.");
+})();
+</script>
 </body>
 </html>
 
