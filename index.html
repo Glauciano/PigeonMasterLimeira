@@ -3905,5 +3905,2215 @@ window.addEventListener("load",function(){
 
 })();
 </script>
+<script>
+window.addEventListener("load", function () {
+  try {
+    if (typeof pmrAnilhasMobile !== "undefined") {
+      pmrAnilhasMobile = [];
+    }
+
+    const anilha = document.getElementById("mobAnilhaInput");
+    const hora = document.getElementById("mobHoraInput");
+    const obs = document.getElementById("mobObsInput");
+    const cont = document.getElementById("mobCountAnilhas");
+    const lista = document.getElementById("mobListaAnilhas");
+
+    if (anilha) anilha.value = "";
+    if (hora) hora.value = "";
+    if (obs) obs.value = "";
+    if (cont) cont.textContent = "0";
+    if (lista) lista.innerHTML = "";
+  } catch (e) {
+    console.log("Patch mobile limpo:", e);
+  }
+});
+</script>
+(function(){
+  if(window.__PATCH_RELOGIO_SO_APOS_PRIMEIRO__) return;
+  window.__PATCH_RELOGIO_SO_APOS_PRIMEIRO__ = true;
+
+  function el(id){ return document.getElementById(id); }
+
+  function travarCamposRelogioAposPrimeiro(){
+    ["lancDataIni","lancHoraIni","lancDataFim","lancHoraFim"].forEach(id=>{
+      const campo = el(id);
+      if(campo) campo.readOnly = true;
+    });
+  }
+
+  function destravarCamposRelogioAntesPrimeiro(){
+    ["lancDataIni","lancHoraIni","lancDataFim","lancHoraFim"].forEach(id=>{
+      const campo = el(id);
+      if(campo) campo.readOnly = false;
+    });
+  }
+
+  function temPrimeiroPomboLancado(){
+    return Array.isArray(window.lancamentos) && window.lancamentos.length > 0;
+  }
+
+  function atualizarEstadoTravamentoRelogio(){
+    setTimeout(()=>{
+      if(temPrimeiroPomboLancado()){
+        travarCamposRelogioAposPrimeiro();
+      }else{
+        destravarCamposRelogioAntesPrimeiro();
+      }
+    }, 30);
+  }
+
+  const _carregarLancamentosProva_patch2 = window.carregarLancamentosProva;
+  if(typeof _carregarLancamentosProva_patch2 === "function"){
+    window.carregarLancamentosProva = function(){
+      _carregarLancamentosProva_patch2.apply(this, arguments);
+      atualizarEstadoTravamentoRelogio();
+    };
+  }
+
+  const _guardarLancamento_patch2 = window.guardarLancamento;
+  if(typeof _guardarLancamento_patch2 === "function"){
+    window.guardarLancamento = function(){
+      _guardarLancamento_patch2.apply(this, arguments);
+      atualizarEstadoTravamentoRelogio();
+    };
+  }
+
+  const _importarPMR_patch2 = window.importarParaLancamentoProvisorio;
+  if(typeof _importarPMR_patch2 === "function"){
+    window.importarParaLancamentoProvisorio = function(){
+      _importarPMR_patch2.apply(this, arguments);
+      atualizarEstadoTravamentoRelogio();
+    };
+  }
+
+  const _homologar1_patch2 = window.homologarConstatacaoIndividual;
+  if(typeof _homologar1_patch2 === "function"){
+    window.homologarConstatacaoIndividual = function(){
+      _homologar1_patch2.apply(this, arguments);
+      atualizarEstadoTravamentoRelogio();
+    };
+  }
+
+  const _homologarTodos_patch2 = window.homologarTodosExatos;
+  if(typeof _homologarTodos_patch2 === "function"){
+    window.homologarTodosExatos = function(){
+      _homologarTodos_patch2.apply(this, arguments);
+      atualizarEstadoTravamentoRelogio();
+    };
+  }
+
+  const _excluirLancamento_patch2 = window.excluirLancamento;
+  if(typeof _excluirLancamento_patch2 === "function"){
+    window.excluirLancamento = function(){
+      _excluirLancamento_patch2.apply(this, arguments);
+      atualizarEstadoTravamentoRelogio();
+    };
+  }
+
+  const _desfazerLancamento_patch2 = window.desfazerLancamento;
+  if(typeof _desfazerLancamento_patch2 === "function"){
+    window.desfazerLancamento = function(){
+      _desfazerLancamento_patch2.apply(this, arguments);
+      atualizarEstadoTravamentoRelogio();
+    };
+  }
+
+  const _limparLancamento_patch2 = window.limparLancamento;
+  if(typeof _limparLancamento_patch2 === "function"){
+    window.limparLancamento = function(){
+      _limparLancamento_patch2.apply(this, arguments);
+      atualizarEstadoTravamentoRelogio();
+    };
+  }
+
+  const _openWin_patch2 = window.openWin;
+  if(typeof _openWin_patch2 === "function"){
+    window.openWin = function(id){
+      _openWin_patch2.apply(this, arguments);
+      if(id === "winLancamento"){
+        atualizarEstadoTravamentoRelogio();
+      }
+    };
+  }
+
+  window.addEventListener("load", function(){
+    atualizarEstadoTravamentoRelogio();
+  });
+
+  console.log("Patch relógio: travar só após primeiro pombo ativo.");
+})();
+</script>
+<script>
+(function(){
+  if(window.__PATCH_FINAL_CONTROLE_GERAL__) return;
+  window.__PATCH_FINAL_CONTROLE_GERAL__ = true;
+
+  function el(id){ return document.getElementById(id); }
+
+  const estadoRelogio = {
+    dataIni: "",
+    horaIni: "",
+    dataFim: "",
+    horaFim: "",
+    partida: "",
+    tMorto: "00:00:00"
+  };
+
+  function temPomboLancado(){
+    return Array.isArray(window.lancamentos) && window.lancamentos.length > 0;
+  }
+
+  function capturarRelogioDigitado(){
+    if(el("lancDataIni") && el("lancDataIni").value) estadoRelogio.dataIni = el("lancDataIni").value;
+    if(el("lancHoraIni") && el("lancHoraIni").value) estadoRelogio.horaIni = el("lancHoraIni").value;
+    if(el("lancDataFim") && el("lancDataFim").value) estadoRelogio.dataFim = el("lancDataFim").value;
+    if(el("lancHoraFim") && el("lancHoraFim").value) estadoRelogio.horaFim = el("lancHoraFim").value;
+    if(el("lancPartida") && el("lancPartida").value) estadoRelogio.partida = el("lancPartida").value;
+    if(el("lancTMorto") && el("lancTMorto").value) estadoRelogio.tMorto = el("lancTMorto").value;
+  }
+
+  function restaurarRelogioSePrecisar(){
+    if(el("lancDataIni") && !el("lancDataIni").value && estadoRelogio.dataIni) el("lancDataIni").value = estadoRelogio.dataIni;
+    if(el("lancHoraIni") && !el("lancHoraIni").value && estadoRelogio.horaIni) el("lancHoraIni").value = estadoRelogio.horaIni;
+    if(el("lancDataFim") && !el("lancDataFim").value && estadoRelogio.dataFim) el("lancDataFim").value = estadoRelogio.dataFim;
+    if(el("lancHoraFim") && !el("lancHoraFim").value && estadoRelogio.horaFim) el("lancHoraFim").value = estadoRelogio.horaFim;
+    if(el("lancPartida") && !el("lancPartida").value && estadoRelogio.partida) el("lancPartida").value = estadoRelogio.partida;
+    if(el("lancTMorto") && !el("lancTMorto").value && estadoRelogio.tMorto) el("lancTMorto").value = estadoRelogio.tMorto;
+    if(el("lancTMortoCalc") && !el("lancTMortoCalc").value && estadoRelogio.tMorto) el("lancTMortoCalc").value = estadoRelogio.tMorto;
+  }
+
+  function aplicarModoRelogio(){
+    const ids = ["lancDataIni","lancHoraIni","lancDataFim","lancHoraFim"];
+    if(temPomboLancado()){
+      restaurarRelogioSePrecisar();
+      ids.forEach(id=>{
+        const campo = el(id);
+        if(campo) campo.readOnly = true;
+      });
+    }else{
+      ids.forEach(id=>{
+        const campo = el(id);
+        if(campo) campo.readOnly = false;
+      });
+    }
+  }
+
+  function fecharJanelaPombosNaAbertura(){
+    const w = el("winPombos");
+    if(w) w.classList.remove("active");
+  }
+
+  function esconderJanelaPombosSeAbrirSozinha(){
+    const w = el("winPombos");
+    const wl = el("winLancamento");
+    if(w && w.classList.contains("active")){
+      if(!wl || !wl.classList.contains("active")){
+        w.classList.remove("active");
+      }
+    }
+  }
+
+  function vigiarSistema(){
+    capturarRelogioDigitado();
+    aplicarModoRelogio();
+    esconderJanelaPombosSeAbrirSozinha();
+  }
+
+  window.addEventListener("load", function(){
+    setTimeout(function(){
+      fecharJanelaPombosNaAbertura();
+      vigiarSistema();
+    }, 50);
+
+    setTimeout(function(){
+      fecharJanelaPombosNaAbertura();
+      vigiarSistema();
+    }, 300);
+
+    setTimeout(function(){
+      fecharJanelaPombosNaAbertura();
+      vigiarSistema();
+    }, 1000);
+
+    ["lancDataIni","lancHoraIni","lancDataFim","lancHoraFim","lancPartida","lancTMorto"].forEach(id=>{
+      const campo = el(id);
+      if(campo){
+        campo.addEventListener("input", capturarRelogioDigitado);
+        campo.addEventListener("change", capturarRelogioDigitado);
+        campo.addEventListener("blur", capturarRelogioDigitado);
+      }
+    });
+
+    setInterval(vigiarSistema, 400);
+  });
+
+  console.log("PATCH FINAL CONTROLE GERAL ativo.");
+})();
+</script>
+<script>
+(function(){
+  if(window.__PATCH_FINAL_RELOGIO_SEM_TRAVA__) return;
+  window.__PATCH_FINAL_RELOGIO_SEM_TRAVA__ = true;
+
+  function el(id){ return document.getElementById(id); }
+
+  const memoriaRelogio = {
+    dataIni: "",
+    horaIni: "",
+    dataFim: "",
+    horaFim: "",
+    partida: "",
+    tMorto: "00:00:00",
+    correcao: "0",
+    dias: "1"
+  };
+
+  function capturarRelogioTela(){
+    if(el("lancDataIni") && el("lancDataIni").value) memoriaRelogio.dataIni = el("lancDataIni").value;
+    if(el("lancHoraIni") && el("lancHoraIni").value) memoriaRelogio.horaIni = el("lancHoraIni").value;
+    if(el("lancDataFim") && el("lancDataFim").value) memoriaRelogio.dataFim = el("lancDataFim").value;
+    if(el("lancHoraFim") && el("lancHoraFim").value) memoriaRelogio.horaFim = el("lancHoraFim").value;
+    if(el("lancPartida") && el("lancPartida").value) memoriaRelogio.partida = el("lancPartida").value;
+    if(el("lancTMorto") && el("lancTMorto").value) memoriaRelogio.tMorto = el("lancTMorto").value;
+    if(el("lancCorrecao") && el("lancCorrecao").value !== "") memoriaRelogio.correcao = el("lancCorrecao").value;
+    if(el("lancDias") && el("lancDias").value) memoriaRelogio.dias = el("lancDias").value;
+  }
+
+  function restaurarRelogioTela(){
+    if(el("lancDataIni") && !el("lancDataIni").value && memoriaRelogio.dataIni) el("lancDataIni").value = memoriaRelogio.dataIni;
+    if(el("lancHoraIni") && !el("lancHoraIni").value && memoriaRelogio.horaIni) el("lancHoraIni").value = memoriaRelogio.horaIni;
+    if(el("lancDataFim") && !el("lancDataFim").value && memoriaRelogio.dataFim) el("lancDataFim").value = memoriaRelogio.dataFim;
+    if(el("lancHoraFim") && !el("lancHoraFim").value && memoriaRelogio.horaFim) el("lancHoraFim").value = memoriaRelogio.horaFim;
+    if(el("lancPartida") && !el("lancPartida").value && memoriaRelogio.partida) el("lancPartida").value = memoriaRelogio.partida;
+    if(el("lancTMorto") && !el("lancTMorto").value && memoriaRelogio.tMorto) el("lancTMorto").value = memoriaRelogio.tMorto;
+    if(el("lancTMortoCalc") && !el("lancTMortoCalc").value && memoriaRelogio.tMorto) el("lancTMortoCalc").value = memoriaRelogio.tMorto;
+    if(el("lancCorrecao") && (el("lancCorrecao").value === "" || el("lancCorrecao").value == null)) el("lancCorrecao").value = memoriaRelogio.correcao;
+    if(el("lancDias") && !el("lancDias").value) el("lancDias").value = memoriaRelogio.dias;
+  }
+
+  function destravarCamposRelogioSempre(){
+    ["lancDataIni","lancHoraIni","lancDataFim","lancHoraFim"].forEach(id=>{
+      const campo = el(id);
+      if(campo) campo.readOnly = false;
+    });
+  }
+
+  function aplicarMemoriaCompleta(){
+    destravarCamposRelogioSempre();
+    restaurarRelogioTela();
+    if(typeof calcularTempoVoo === "function") calcularTempoVoo();
+  }
+
+  /* Ao carregar prova, memoriza os dados do concurso */
+  const _carregarLancamentosProvaFinal = window.carregarLancamentosProva;
+  if(typeof _carregarLancamentosProvaFinal === "function"){
+    window.carregarLancamentosProva = function(){
+      _carregarLancamentosProvaFinal.apply(this, arguments);
+      setTimeout(()=>{
+        capturarRelogioTela();
+        aplicarMemoriaCompleta();
+      }, 30);
+    };
+  }
+
+  /* Ao limpar lançamento, mantém relógio */
+  const _limparLancamentoFinal = window.limparLancamento;
+  if(typeof _limparLancamentoFinal === "function"){
+    window.limparLancamento = function(limparConcurso=false, manterSocio=false){
+      capturarRelogioTela();
+      _limparLancamentoFinal.call(this, limparConcurso, manterSocio);
+
+      setTimeout(()=>{
+        if(!limparConcurso){
+          aplicarMemoriaCompleta();
+        }else{
+          destravarCamposRelogioSempre();
+        }
+      }, 20);
+    };
+  }
+
+  /* Ao guardar pombo manual */
+  const _guardarLancamentoFinal = window.guardarLancamento;
+  if(typeof _guardarLancamentoFinal === "function"){
+    window.guardarLancamento = function(){
+      capturarRelogioTela();
+      _guardarLancamentoFinal.apply(this, arguments);
+      setTimeout(()=>{
+        aplicarMemoriaCompleta();
+      }, 20);
+    };
+  }
+
+  /* Ao editar pombo */
+  const _editarLancamentoFinal = window.editarLancamento;
+  if(typeof _editarLancamentoFinal === "function"){
+    window.editarLancamento = function(){
+      capturarRelogioTela();
+      _editarLancamentoFinal.apply(this, arguments);
+      setTimeout(()=>{
+        aplicarMemoriaCompleta();
+      }, 20);
+    };
+  }
+
+  /* Ao importar PMR */
+  const _importarPMRFinal = window.importarParaLancamentoProvisorio;
+  if(typeof _importarPMRFinal === "function"){
+    window.importarParaLancamentoProvisorio = function(){
+      capturarRelogioTela();
+      _importarPMRFinal.apply(this, arguments);
+
+      setTimeout(()=>{
+        /* garante que os lançamentos PMR também recebam os dados do relógio */
+        if(Array.isArray(window.lancamentos)){
+          window.lancamentos.forEach(l=>{
+            if(!l.dataIni && memoriaRelogio.dataIni) l.dataIni = memoriaRelogio.dataIni;
+            if(!l.horaIni && memoriaRelogio.horaIni) l.horaIni = memoriaRelogio.horaIni;
+            if(!l.dataFim && memoriaRelogio.dataFim) l.dataFim = memoriaRelogio.dataFim;
+            if(!l.horaFim && memoriaRelogio.horaFim) l.horaFim = memoriaRelogio.horaFim;
+            if(!l.partida && memoriaRelogio.partida) l.partida = memoriaRelogio.partida;
+            if(!l.tMorto && memoriaRelogio.tMorto) l.tMorto = memoriaRelogio.tMorto;
+            if((l.correcao === undefined || l.correcao === null || l.correcao === "") && memoriaRelogio.correcao !== "") l.correcao = memoriaRelogio.correcao;
+            if(!l.dias && memoriaRelogio.dias) l.dias = memoriaRelogio.dias;
+          });
+          if(typeof salvarLancamentosProvaAtual === "function") salvarLancamentosProvaAtual();
+        }
+
+        aplicarMemoriaCompleta();
+      }, 40);
+    };
+  }
+
+  /* Ao homologar 1 pombo */
+  const _homologar1Final = window.homologarConstatacaoIndividual;
+  if(typeof _homologar1Final === "function"){
+    window.homologarConstatacaoIndividual = function(){
+      capturarRelogioTela();
+      _homologar1Final.apply(this, arguments);
+      setTimeout(()=>{
+        aplicarMemoriaCompleta();
+      }, 20);
+    };
+  }
+
+  /* Ao homologar todos */
+  const _homologarTodosFinal = window.homologarTodosExatos;
+  if(typeof _homologarTodosFinal === "function"){
+    window.homologarTodosExatos = function(){
+      capturarRelogioTela();
+      _homologarTodosFinal.apply(this, arguments);
+      setTimeout(()=>{
+        aplicarMemoriaCompleta();
+      }, 20);
+    };
+  }
+
+  /* Ao excluir / desfazer */
+  const _excluirLancamentoFinal = window.excluirLancamento;
+  if(typeof _excluirLancamentoFinal === "function"){
+    window.excluirLancamento = function(){
+      capturarRelogioTela();
+      _excluirLancamentoFinal.apply(this, arguments);
+      setTimeout(aplicarMemoriaCompleta, 20);
+    };
+  }
+
+  const _desfazerLancamentoFinal = window.desfazerLancamento;
+  if(typeof _desfazerLancamentoFinal === "function"){
+    window.desfazerLancamento = function(){
+      capturarRelogioTela();
+      _desfazerLancamentoFinal.apply(this, arguments);
+      setTimeout(aplicarMemoriaCompleta, 20);
+    };
+  }
+
+  /* Fecha a manutenção de pombos se abrir sozinha */
+  function fecharJanelaPombosSeSozinha(){
+    const wp = el("winPombos");
+    const wl = el("winLancamento");
+    if(wp && wp.classList.contains("active")){
+      if(!wl || !wl.classList.contains("active")){
+        wp.classList.remove("active");
+      }
+    }
+  }
+
+  /* Ao abrir janelas */
+  const _openWinFinal = window.openWin;
+  if(typeof _openWinFinal === "function"){
+    window.openWin = function(id){
+      _openWinFinal.apply(this, arguments);
+
+      setTimeout(()=>{
+        fecharJanelaPombosSeSozinha();
+        if(id === "winLancamento"){
+          aplicarMemoriaCompleta();
+        }
+      }, 20);
+    };
+  }
+
+  window.addEventListener("load", function(){
+    ["lancDataIni","lancHoraIni","lancDataFim","lancHoraFim","lancPartida","lancTMorto","lancCorrecao","lancDias"].forEach(id=>{
+      const campo = el(id);
+      if(campo){
+        campo.addEventListener("input", capturarRelogioTela);
+        campo.addEventListener("change", capturarRelogioTela);
+        campo.addEventListener("blur", capturarRelogioTela);
+      }
+    });
+
+    setTimeout(()=>{
+      fecharJanelaPombosSeSozinha();
+      capturarRelogioTela();
+      aplicarMemoriaCompleta();
+    }, 80);
+
+    /* força o comportamento correto por cima dos patches antigos */
+    setInterval(()=>{
+      fecharJanelaPombosSeSozinha();
+      destravarCamposRelogioSempre();
+      restaurarRelogioTela();
+    }, 500);
+  });
+
+})();
+</script>
+<script>
+(function(){
+  if(window.__PATCH_PMR_SO_ONLINE__) return;
+  window.__PATCH_PMR_SO_ONLINE__ = true;
+
+  const _gerarLinkPMROriginal = window.gerarLinkPMR;
+  if(typeof _gerarLinkPMROriginal === "function"){
+    window.gerarLinkPMR = async function(){
+      if(window.location.protocol === "file:"){
+        alert(
+          "⚠ Você está usando o sistema local no computador.\n\n" +
+          "Para o link do sócio funcionar no celular, abra o sistema pelo site online:\n\n" +
+          "https://glauciano.github.io/PigeonMasterLimeira/\n\n" +
+          "Depois gere o link novamente."
+        );
+        return;
+      }
+      return await _gerarLinkPMROriginal.apply(this, arguments);
+    };
+  }
+
+  console.log("Patch PMR só online ativo.");
+})();
+</script>
+<script>
+(function(){
+  if(window.__PATCH_HOME_CLUBE_FINAL__) return;
+  window.__PATCH_HOME_CLUBE_FINAL__ = true;
+
+  const css = document.createElement("style");
+  css.textContent = `
+    #homeScreenPMFinal{
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:#bfbfbf;
+      z-index:2;
+    }
+    #homeCardPMFinal{
+      width:580px;
+      min-height:340px;
+      background:#d4d0c8;
+      border:2px outset #d0d0d0;
+      box-shadow:1px 1px 0 #fff inset,-1px -1px 0 #808080 inset;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      padding:30px 25px;
+      text-align:center;
+    }
+    #homeLogoPMFinal{
+      max-width:180px;
+      max-height:180px;
+      margin-bottom:18px;
+      object-fit:contain;
+    }
+    #homeFallbackPMFinal{
+      width:140px;
+      height:140px;
+      border-radius:50%;
+      background:linear-gradient(135deg,#008080,#25d366);
+      color:#fff;
+      font-size:70px;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      margin-bottom:18px;
+      box-shadow:0 2px 8px rgba(0,0,0,.2);
+    }
+    #homeTitlePMFinal{
+      font-size:24px;
+      font-weight:bold;
+      color:#008080;
+      margin-bottom:8px;
+      font-family:Arial,sans-serif;
+    }
+    #homeSubPMFinal{
+      font-size:15px;
+      color:#000080;
+      font-style:italic;
+      margin-bottom:18px;
+      font-family:Arial,sans-serif;
+    }
+    #homeInfoPMFinal{
+      font-size:12px;
+      color:#333;
+      line-height:1.6;
+      max-width:430px;
+    }
+  `;
+  document.head.appendChild(css);
+
+  function criarTelaInicialFinal(){
+    const ws = document.getElementById("workspace");
+    if(!ws) return;
+    if(document.getElementById("homeScreenPMFinal")) return;
+
+    const div = document.createElement("div");
+    div.id = "homeScreenPMFinal";
+    div.innerHTML = `
+      <div id="homeCardPMFinal">
+        <img id="homeLogoPMFinal" src="logo-clube.png" alt="Logo Clube Columbófilo Limeirense"
+             onerror="this.style.display='none';document.getElementById('homeFallbackPMFinal').style.display='flex';">
+        <div id="homeFallbackPMFinal">🕊️</div>
+        <div id="homeTitlePMFinal">CLUBE COLUMBÓFILO LIMEIRENSE</div>
+        <div id="homeSubPMFinal">S.G.C-S.P v2.1 - PigeonMaster</div>
+        <div id="homeInfoPMFinal">
+          Bem-vindo ao sistema.<br>
+          Selecione uma opção no menu superior para iniciar.
+        </div>
+      </div>
+    `;
+    ws.appendChild(div);
+  }
+
+  function atualizarTelaInicialFinal(){
+    const home = document.getElementById("homeScreenPMFinal");
+    if(!home) return;
+    const abertas = document.querySelectorAll("#workspace > .child-window.active").length;
+    home.style.display = abertas > 0 ? "none" : "flex";
+  }
+
+  function fecharJanelaPombosAoAbrir(){
+    const wp = document.getElementById("winPombos");
+    if(wp) wp.classList.remove("active");
+  }
+
+  const _openWinHomeFinal = window.openWin;
+  if(typeof _openWinHomeFinal === "function"){
+    window.openWin = function(id){
+      _openWinHomeFinal.apply(this, arguments);
+      atualizarTelaInicialFinal();
+    };
+  }
+
+  const _closeWinHomeFinal = window.closeWin;
+  if(typeof _closeWinHomeFinal === "function"){
+    window.closeWin = function(id){
+      _closeWinHomeFinal.apply(this, arguments);
+      setTimeout(atualizarTelaInicialFinal, 20);
+    };
+  }
+
+  window.addEventListener("load", function(){
+    criarTelaInicialFinal();
+
+    setTimeout(()=>{
+      fecharJanelaPombosAoAbrir();
+      document.querySelectorAll("#workspace > .child-window.active").forEach(w => {
+        if(w.id === "winPombos") w.classList.remove("active");
+      });
+      atualizarTelaInicialFinal();
+    }, 80);
+
+    setTimeout(()=>{
+      fecharJanelaPombosAoAbrir();
+      atualizarTelaInicialFinal();
+    }, 500);
+  });
+
+  console.log("Patch tela inicial com logo ativo.");
+})();
+</script>
+<script>
+(function(){
+  if(window.__PATCH_HTML_TOTAIS__) return;
+  window.__PATCH_HTML_TOTAIS__ = true;
+
+  function baixarArquivo(nome, conteudo, tipo){
+    const blob = new Blob([conteudo], {type: tipo || "text/html;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = nome;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function htmlCompleto(titulo, conteudo){
+    return `<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${titulo}</title>
+<style>
+body{font-family:Arial,sans-serif;background:#fff;color:#000;margin:20px}
+table{width:100%;border-collapse:collapse}
+th,td{padding:6px;border-bottom:1px solid #ccc;text-align:left}
+h1,h2{text-align:center;color:#008080}
+.gpc-highlight{background:#ffff99;font-weight:bold}
+</style>
+</head>
+<body>${conteudo}</body>
+</html>`;
+  }
+
+  window.baixarHtmlConcorrentes = function(){
+    const area = document.getElementById("areaClassConc");
+    if(!area || !area.innerHTML.trim()){
+      gerarClassConc();
+    }
+    const html = htmlCompleto("Classificação de Concorrentes", document.getElementById("areaClassConc").innerHTML);
+    baixarArquivo("classificacao-concorrentes.html", html, "text/html;charset=utf-8");
+    alert("HTML dos concorrentes gerado com sucesso.");
+  };
+
+  window.baixarHtmlTop20Pombos = function(){
+    const campo = document.getElementById("cpMelhores");
+    const antigo = campo ? campo.value : "999999";
+
+    if(campo) campo.value = "20";
+    gerarClassPombos();
+
+    const html = htmlCompleto("TOP 20 Pombos", document.getElementById("areaClassPombos").innerHTML);
+    baixarArquivo("top20-pombos.html", html, "text/html;charset=utf-8");
+
+    if(campo) campo.value = antigo;
+    alert("HTML dos 20 melhores pombos gerado com sucesso.");
+  };
+
+  function criarBotoesHtmlTotais(){
+    const winConc = document.getElementById("winClassConc");
+    const winPomb = document.getElementById("winClassPombos");
+
+    if(winConc && !document.getElementById("btnHtmlConcorrentes")){
+      const barra = winConc.querySelector(".btn-bar");
+      if(barra){
+        const btn = document.createElement("button");
+        btn.id = "btnHtmlConcorrentes";
+        btn.className = "classic-btn";
+        btn.innerHTML = "🌐<br>HTML";
+        btn.onclick = baixarHtmlConcorrentes;
+        barra.insertBefore(btn, barra.children[1] || null);
+      }
+    }
+
+    if(winPomb && !document.getElementById("btnHtmlTop20Pombos")){
+      const barra = winPomb.querySelector(".btn-bar");
+      if(barra){
+        const btn = document.createElement("button");
+        btn.id = "btnHtmlTop20Pombos";
+        btn.className = "classic-btn";
+        btn.innerHTML = "🌐<br>TOP 20";
+        btn.onclick = baixarHtmlTop20Pombos;
+        barra.insertBefore(btn, barra.children[1] || null);
+      }
+    }
+  }
+
+  window.addEventListener("load", function(){
+    setTimeout(criarBotoesHtmlTotais, 300);
+  });
+
+  console.log("Patch HTML concorrentes e top 20 ativo.");
+})();
+</script>
+<script>
+(function(){
+  if(window.__PATCH_HTML_TOTAIS_BONITO__) return;
+  window.__PATCH_HTML_TOTAIS_BONITO__ = true;
+
+  function baixarArquivo(nome, conteudo, tipo){
+    const blob = new Blob([conteudo], {type: tipo || "text/html;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = nome;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function montarHtmlBonito(titulo, subtitulo, conteudo){
+    return `<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${titulo}</title>
+<style>
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    padding:30px 20px;
+    font-family:Arial, Helvetica, sans-serif;
+    background:linear-gradient(180deg,#eef4f7 0%, #dde7ec 100%);
+    color:#1f2937;
+  }
+  .sheet{
+    max-width:1100px;
+    margin:0 auto;
+    background:#fff;
+    border-radius:16px;
+    overflow:hidden;
+    box-shadow:0 12px 35px rgba(0,0,0,.15);
+    border:1px solid #d7e0e6;
+  }
+  .topbar{
+    background:linear-gradient(135deg,#0b7a7a,#0ea5a5);
+    color:#fff;
+    padding:28px 30px 22px;
+    text-align:center;
+  }
+  .topbar h1{
+    margin:0;
+    font-size:28px;
+    font-weight:800;
+    letter-spacing:.5px;
+  }
+  .topbar .sub{
+    margin-top:8px;
+    font-size:16px;
+    opacity:.95;
+    font-style:italic;
+  }
+  .content{
+    padding:28px 28px 34px;
+  }
+
+  .gpc-header{
+    color:#0b7a7a;
+    font-weight:bold;
+    font-family:Arial,sans-serif;
+  }
+  .gpc-h1{
+    font-size:30px;
+    text-align:center;
+    margin:0 0 8px;
+    font-style:italic;
+  }
+  .gpc-h2{
+    font-size:20px;
+    text-align:center;
+    margin:0 0 22px;
+    font-style:italic;
+    color:#334155;
+  }
+
+  .gpc-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:15px;
+    overflow:hidden;
+    border-radius:10px;
+    border:1px solid #d9e2e8;
+  }
+  .gpc-table thead th{
+    background:#0b7a7a;
+    color:#fff;
+    text-align:left;
+    padding:12px 10px;
+    font-weight:700;
+    border-bottom:2px solid #096666;
+  }
+  .gpc-table tbody tr:nth-child(odd){
+    background:#f8fbfc;
+  }
+  .gpc-table tbody tr:nth-child(even){
+    background:#ffffff;
+  }
+  .gpc-table td{
+    padding:11px 10px;
+    border-bottom:1px solid #e5edf1;
+    vertical-align:middle;
+  }
+  .gpc-table tbody tr:hover{
+    background:#eef8f8;
+  }
+
+  .gpc-highlight{
+    background:#fff7c2 !important;
+    font-weight:bold;
+  }
+
+  .gpc-footer{
+    margin-top:18px;
+    text-align:center;
+    font-size:13px;
+    color:#475569;
+    font-style:italic;
+    padding:10px 14px;
+    background:#f8fafc;
+    border:1px solid #e2e8f0;
+    border-radius:10px;
+  }
+
+  .pontos{
+    color:#0b4fd6;
+    font-weight:800;
+  }
+
+  .lugar{
+    color:#c1121f;
+    font-weight:800;
+  }
+
+  .report-note{
+    margin-top:18px;
+    text-align:center;
+    font-size:12px;
+    color:#64748b;
+  }
+
+  @media print{
+    body{
+      background:#fff;
+      padding:0;
+    }
+    .sheet{
+      box-shadow:none;
+      border:none;
+      border-radius:0;
+      max-width:none;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="sheet">
+    <div class="topbar">
+      <h1>CLUBE COLUMBÓFILO LIMEIRENSE</h1>
+      <div class="sub">${subtitulo}</div>
+    </div>
+    <div class="content">
+      ${conteudo}
+      <div class="report-note">Gerado automaticamente pelo S.G.C-S.P / PigeonMaster</div>
+    </div>
+  </div>
+</body>
+</html>`;
+  }
+
+  window.baixarHtmlConcorrentes = function(){
+    const area = document.getElementById("areaClassConc");
+    if(!area || !area.innerHTML.trim()){
+      gerarClassConc();
+    }
+
+    const titulo = "Classificação de Concorrentes";
+    const subtitulo = document.getElementById("ccTitulo")?.value || "Classificação de Concorrentes";
+    const conteudo = document.getElementById("areaClassConc").innerHTML;
+
+    const html = montarHtmlBonito(titulo, subtitulo, conteudo);
+    baixarArquivo("classificacao-concorrentes.html", html, "text/html;charset=utf-8");
+    alert("HTML dos concorrentes gerado com sucesso.");
+  };
+
+  window.baixarHtmlTop20Pombos = function(){
+    const campo = document.getElementById("cpMelhores");
+    const antigo = campo ? campo.value : "999999";
+    if(campo) campo.value = "20";
+
+    gerarClassPombos();
+
+    const tipo = document.querySelector('input[name="cpTipo"]:checked')?.value || "Geral";
+    const subtitulo = "TOP 20 Pombos - " + tipo;
+    const conteudo = document.getElementById("areaClassPombos").innerHTML;
+
+    const html = montarHtmlBonito("TOP 20 Pombos", subtitulo, conteudo);
+    baixarArquivo("top20-pombos.html", html, "text/html;charset=utf-8");
+
+    if(campo) campo.value = antigo;
+    alert("HTML dos 20 melhores pombos gerado com sucesso.");
+  };
+
+  function criarBotoesHtmlTotais(){
+    const winConc = document.getElementById("winClassConc");
+    const winPomb = document.getElementById("winClassPombos");
+
+    if(winConc && !document.getElementById("btnHtmlConcorrentes")){
+      const barra = winConc.querySelector(".btn-bar");
+      if(barra){
+        const btn = document.createElement("button");
+        btn.id = "btnHtmlConcorrentes";
+        btn.className = "classic-btn";
+        btn.innerHTML = "🌐<br>HTML";
+        btn.onclick = baixarHtmlConcorrentes;
+        barra.insertBefore(btn, barra.children[1] || null);
+      }
+    }
+
+    if(winPomb && !document.getElementById("btnHtmlTop20Pombos")){
+      const barra = winPomb.querySelector(".btn-bar");
+      if(barra){
+        const btn = document.createElement("button");
+        btn.id = "btnHtmlTop20Pombos";
+        btn.className = "classic-btn";
+        btn.innerHTML = "🌐<br>TOP 20";
+        btn.onclick = baixarHtmlTop20Pombos;
+        barra.insertBefore(btn, barra.children[1] || null);
+      }
+    }
+  }
+
+  window.addEventListener("load", function(){
+    setTimeout(criarBotoesHtmlTotais, 300);
+  });
+
+  console.log("Patch HTML bonito dos totais ativo.");
+})();
+</script>
+<script>
+(function(){
+  if(window.__PATCH_POMBO_AS_TOTAL__) return;
+  window.__PATCH_POMBO_AS_TOTAL__ = true;
+
+  const css = document.createElement("style");
+  css.textContent = `
+    .anel-premio{
+      display:inline-block;
+      padding:3px 8px;
+      border-radius:12px;
+      font-size:11px;
+      font-weight:bold;
+      color:#000;
+      border:1px solid rgba(0,0,0,.2);
+      white-space:nowrap;
+    }
+    .anel-ouro{
+      background:linear-gradient(180deg,#ffe78a,#d4a100);
+      color:#3b2a00;
+    }
+    .anel-prata{
+      background:linear-gradient(180deg,#f4f4f4,#b9c0c8);
+      color:#2f3740;
+    }
+    .anel-bronze{
+      background:linear-gradient(180deg,#e8b18d,#a95f2b);
+      color:#3f1c00;
+    }
+    .as-campeao{
+      background:#fff8d6;
+      border:1px solid #e6d289;
+      padding:10px 12px;
+      margin-top:12px;
+      border-radius:8px;
+      font-size:12px;
+      font-weight:bold;
+      color:#6b4f00;
+      text-align:center;
+    }
+  `;
+  document.head.appendChild(css);
+
+  function obterDadosPomboAs(){
+    const tipo = getRadio("asTipo","Velocidade Adulto");
+    const provas = getRadio("asProvas","oficiais");
+    const chaves = filtrarProvasPorFiltros(tipo,provas);
+
+    if(!chaves.length){
+      return { erro: "Nenhuma prova encontrada.", tipo, totalProvas: 0, aces: [] };
+    }
+
+    const totalProvas = chaves.length;
+    const contagem = {};
+
+    chaves.forEach(chave=>{
+      (classificacoesSalvas[chave] || []).forEach(item=>{
+        if(!contagem[item.anilha]){
+          contagem[item.anilha] = {
+            anilha:item.anilha,
+            numero:item.concNum,
+            nome:item.nome||"",
+            colec:"33",
+            sexo:"M",
+            pontos:0,
+            provasFeitas:0
+          };
+        }
+        contagem[item.anilha].provasFeitas++;
+        contagem[item.anilha].pontos += brN(item.pontos);
+      });
+    });
+
+    Object.keys(contagem).forEach(an=>{
+      const p = pombosSalvos.find(x=>x.anilha===an);
+      if(p) contagem[an].sexo = (p.sexo||"M").charAt(0);
+
+      const c = concorrentesSalvos.find(x=>x.numero===contagem[an].numero);
+      if(c){
+        contagem[an].colec = c.colec;
+        if(!contagem[an].nome) contagem[an].nome = c.nome;
+      }
+    });
+
+    const aces = Object.values(contagem)
+      .filter(x=>x.provasFeitas===totalProvas)
+      .sort((a,b)=>b.pontos-a.pontos);
+
+    return { tipo, totalProvas, aces, erro: null };
+  }
+
+  function nomeTipoPomboAs(tipo){
+    const mapaTit = {
+      "Velocidade Adulto":"Velocidade Adulto",
+      "Meio-fundo":"Meio-fundo",
+      "Fundo":"Fundo",
+      "Filhotes":"Filhotes"
+    };
+    return mapaTit[tipo] || tipo;
+  }
+
+  function htmlAnel(idx){
+    if(idx===0) return '<span class="anel-premio anel-ouro">ANEL DE OURO</span>';
+    if(idx===1) return '<span class="anel-premio anel-prata">ANEL DE PRATA</span>';
+    if(idx===2) return '<span class="anel-premio anel-bronze">ANEL DE BRONZE</span>';
+    return '<span style="color:#666;">—</span>';
+  }
+
+  function medalha(idx){
+    if(idx===0) return "🥇";
+    if(idx===1) return "🥈";
+    if(idx===2) return "🥉";
+    return "";
+  }
+
+  window.gerarPomboAs = function(){
+    const dados = obterDadosPomboAs();
+    const tipoLabel = nomeTipoPomboAs(dados.tipo);
+
+    let html = `<div class="tabPombo">
+      <div class="as-header">🏆 POMBO ÁS - ${esc(tipoLabel)} - ${dados.totalProvas} prova(s)</div>`;
+
+    if(dados.erro){
+      html += `<div style="text-align:center;padding:20px;color:#a00;font-weight:bold;">${esc(dados.erro)}</div>`;
+      html += `</div>`;
+      document.getElementById("areaPomboAs").innerHTML = html;
+      setStatus("Pombo Ás: 0");
+      return;
+    }
+
+    if(!dados.aces.length){
+      html += `<div style="text-align:center;padding:20px;color:#a00;font-weight:bold;">
+        Nenhum pombo classificou em TODAS as ${dados.totalProvas} provas.
+      </div>`;
+    }else{
+      html += `
+      <table class="gpc-table" style="margin-top:10px;">
+        <thead>
+          <tr>
+            <th style="width:70px">Lugar</th>
+            <th style="width:150px">Anel</th>
+            <th style="width:100px">Anilha</th>
+            <th style="width:24px">S</th>
+            <th>Concorrente</th>
+            <th style="text-align:center;width:70px">Provas</th>
+            <th style="text-align:right;width:80px">Pontos</th>
+          </tr>
+        </thead>
+        <tbody>`;
+
+      dados.aces.forEach((r,i)=>{
+        const destaque = i < 3 ? 'class="gpc-highlight"' : "";
+        html += `
+          <tr ${destaque}>
+            <td class="lugar">${medalha(i)} ${i+1}</td>
+            <td>${htmlAnel(i)}</td>
+            <td><b>${esc(r.anilha)}</b></td>
+            <td>${esc(r.sexo)}</td>
+            <td>${esc(r.colec)} / ${esc(padNum(r.numero,4))} &nbsp;&nbsp;${esc(r.nome)}</td>
+            <td style="text-align:center">${r.provasFeitas}/${dados.totalProvas}</td>
+            <td class="pontos" style="text-align:right">${r.pontos}</td>
+          </tr>`;
+      });
+
+      html += `</tbody></table>`;
+
+      if(dados.aces[0]){
+        html += `
+          <div class="as-campeao">
+            🏆 CAMPEÃO POMBO ÁS: <b>${esc(dados.aces[0].anilha)}</b> —
+            ${esc(dados.aces[0].nome)} —
+            <span class="anel-premio anel-ouro">ANEL DE OURO</span>
+          </div>`;
+      }
+    }
+
+    html += `</div>`;
+    document.getElementById("areaPomboAs").innerHTML = html;
+    setStatus("Pombo Ás: " + dados.aces.length);
+  };
+
+  function htmlCompletoPomboAs(){
+    const dados = obterDadosPomboAs();
+    const tipoLabel = nomeTipoPomboAs(dados.tipo);
+
+    let tabela = "";
+    if(!dados.aces.length){
+      tabela = `<div style="text-align:center;padding:30px;color:#a00;font-weight:bold;font-size:18px;">
+        Nenhum pombo classificou em TODAS as ${dados.totalProvas} provas.
+      </div>`;
+    }else{
+      tabela = `
+      <table class="ranking">
+        <thead>
+          <tr>
+            <th style="width:80px">Lugar</th>
+            <th style="width:170px">Anel</th>
+            <th style="width:120px">Anilha</th>
+            <th style="width:40px">S</th>
+            <th>Concorrente</th>
+            <th style="width:90px">Provas</th>
+            <th style="width:100px">Pontos</th>
+          </tr>
+        </thead>
+        <tbody>`;
+
+      dados.aces.forEach((r,i)=>{
+        tabela += `
+          <tr class="${i<3 ? 'top3' : ''}">
+            <td class="lugar">${medalha(i)} ${i+1}</td>
+            <td>${htmlAnel(i)}</td>
+            <td><b>${esc(r.anilha)}</b></td>
+            <td>${esc(r.sexo)}</td>
+            <td>${esc(r.colec)} / ${esc(padNum(r.numero,4))} &nbsp;&nbsp;${esc(r.nome)}</td>
+            <td style="text-align:center">${r.provasFeitas}/${dados.totalProvas}</td>
+            <td class="pontos">${r.pontos}</td>
+          </tr>`;
+      });
+
+      tabela += `</tbody></table>`;
+
+      if(dados.aces[0]){
+        tabela += `
+          <div class="campeao">
+            🏆 CAMPEÃO POMBO ÁS: <b>${esc(dados.aces[0].anilha)}</b> —
+            ${esc(dados.aces[0].nome)} —
+            <span class="anel-premio anel-ouro">ANEL DE OURO</span>
+          </div>`;
+      }
+    }
+
+    return `<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pombo Ás - ${tipoLabel}</title>
+<style>
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    padding:30px 20px;
+    font-family:Arial, Helvetica, sans-serif;
+    background:linear-gradient(180deg,#eef4f7 0%, #dde7ec 100%);
+    color:#1f2937;
+  }
+  .sheet{
+    max-width:1200px;
+    margin:0 auto;
+    background:#fff;
+    border-radius:16px;
+    overflow:hidden;
+    box-shadow:0 12px 35px rgba(0,0,0,.15);
+    border:1px solid #d7e0e6;
+  }
+  .topbar{
+    background:linear-gradient(135deg,#0b7a7a,#0ea5a5);
+    color:#fff;
+    padding:26px 30px 22px;
+    text-align:center;
+  }
+  .logo{
+    max-height:90px;
+    margin-bottom:10px;
+  }
+  .fallback{
+    display:none;
+    font-size:52px;
+    margin-bottom:10px;
+  }
+  .topbar h1{
+    margin:0;
+    font-size:28px;
+    font-weight:800;
+    letter-spacing:.5px;
+  }
+  .topbar .sub{
+    margin-top:8px;
+    font-size:17px;
+    opacity:.95;
+    font-style:italic;
+  }
+  .content{
+    padding:28px;
+  }
+  .ranking{
+    width:100%;
+    border-collapse:collapse;
+    font-size:15px;
+    border:1px solid #d9e2e8;
+    border-radius:10px;
+    overflow:hidden;
+  }
+  .ranking thead th{
+    background:#0b7a7a;
+    color:#fff;
+    text-align:left;
+    padding:12px 10px;
+    font-weight:700;
+  }
+  .ranking tbody tr:nth-child(odd){
+    background:#f8fbfc;
+  }
+  .ranking tbody tr:nth-child(even){
+    background:#fff;
+  }
+  .ranking td{
+    padding:11px 10px;
+    border-bottom:1px solid #e5edf1;
+  }
+  .ranking .top3{
+    background:#fff7c2 !important;
+    font-weight:bold;
+  }
+  .pontos{
+    text-align:right;
+    color:#0b4fd6;
+    font-weight:800;
+  }
+  .lugar{
+    color:#c1121f;
+    font-weight:800;
+  }
+  .anel-premio{
+    display:inline-block;
+    padding:4px 10px;
+    border-radius:12px;
+    font-size:11px;
+    font-weight:bold;
+    color:#000;
+    border:1px solid rgba(0,0,0,.2);
+    white-space:nowrap;
+  }
+  .anel-ouro{
+    background:linear-gradient(180deg,#ffe78a,#d4a100);
+    color:#3b2a00;
+  }
+  .anel-prata{
+    background:linear-gradient(180deg,#f4f4f4,#b9c0c8);
+    color:#2f3740;
+  }
+  .anel-bronze{
+    background:linear-gradient(180deg,#e8b18d,#a95f2b);
+    color:#3f1c00;
+  }
+  .campeao{
+    margin-top:18px;
+    background:#fff8d6;
+    border:1px solid #e6d289;
+    padding:14px 16px;
+    border-radius:10px;
+    font-size:15px;
+    font-weight:bold;
+    color:#6b4f00;
+    text-align:center;
+  }
+  .rodape{
+    margin-top:18px;
+    text-align:center;
+    font-size:12px;
+    color:#64748b;
+  }
+</style>
+</head>
+<body>
+  <div class="sheet">
+    <div class="topbar">
+      <img class="logo" src="logo-clube.png"
+           onerror="this.style.display='none';document.getElementById('fallbackLogoPomboAs').style.display='block';"
+           alt="Logo Clube Columbófilo Limeirense">
+      <div id="fallbackLogoPomboAs" class="fallback">🕊️</div>
+      <h1>CLUBE COLUMBÓFILO LIMEIRENSE</h1>
+      <div class="sub">🏆 Pombo Ás - ${tipoLabel}</div>
+    </div>
+    <div class="content">
+      ${tabela}
+      <div class="rodape">Gerado automaticamente pelo S.G.C-S.P / PigeonMaster</div>
+    </div>
+  </div>
+</body>
+</html>`;
+  }
+
+  window.baixarHtmlPomboAs = function(){
+    gerarPomboAs();
+    const tipo = document.querySelector('input[name="asTipo"]:checked')?.value || "pombo-as";
+    const nomeArq = "pombo-as-" + tipo.toLowerCase().replace(/\s+/g,"-") + ".html";
+    const html = htmlCompletoPomboAs();
+    const blob = new Blob([html], {type:"text/html;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = nomeArq;
+    a.click();
+    URL.revokeObjectURL(url);
+    alert("HTML do Pombo Ás gerado com sucesso.");
+  };
+
+  window.copiarHtmlPomboAs = function(){
+    gerarPomboAs();
+    const html = htmlCompletoPomboAs();
+    navigator.clipboard.writeText(html).then(()=>{
+      alert("HTML do Pombo Ás copiado com sucesso.");
+    }).catch(()=>{
+      alert("Não foi possível copiar automaticamente.");
+    });
+  };
+
+  function criarBotoesPomboAs(){
+    const win = document.getElementById("winPomboAs");
+    if(!win) return;
+    const barra = win.querySelector(".btn-bar");
+    if(!barra) return;
+
+    if(!document.getElementById("btnHtmlPomboAs")){
+      const btn1 = document.createElement("button");
+      btn1.id = "btnHtmlPomboAs";
+      btn1.className = "classic-btn";
+      btn1.innerHTML = "🌐<br>HTML";
+      btn1.onclick = baixarHtmlPomboAs;
+      barra.insertBefore(btn1, barra.children[1] || null);
+    }
+
+    if(!document.getElementById("btnCopiarHtmlPomboAs")){
+      const btn2 = document.createElement("button");
+      btn2.id = "btnCopiarHtmlPomboAs";
+      btn2.className = "classic-btn";
+      btn2.innerHTML = "📋<br>Copiar";
+      btn2.onclick = copiarHtmlPomboAs;
+      barra.insertBefore(btn2, barra.children[2] || null);
+    }
+  }
+
+  window.addEventListener("load", function(){
+    setTimeout(criarBotoesPomboAs, 300);
+  });
+
+  console.log("Patch completo Pombo Ás com anéis e HTML ativo.");
+})();
+</script>
+<script>
+(function(){
+  if(window.__PATCH_AREA_PUBLICAR__) return;
+  window.__PATCH_AREA_PUBLICAR__ = true;
+
+  const css = document.createElement("style");
+  css.textContent = `
+    .pub-box{
+      background:#f7f7f7;
+      border:1px solid #9a9a9a;
+      padding:12px;
+      margin-top:8px;
+    }
+    .pub-grid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(180px,1fr));
+      gap:10px;
+      margin-top:12px;
+    }
+    .pub-btn{
+      min-height:58px;
+      background:#e5e5e5;
+      border:2px outset #d0d0d0;
+      cursor:pointer;
+      font-size:12px;
+      font-weight:bold;
+      padding:8px;
+    }
+    .pub-btn:active{
+      border:2px inset #d0d0d0;
+    }
+    .pub-desc{
+      font-size:11px;
+      color:#333;
+      margin-top:8px;
+      line-height:1.5;
+    }
+  `;
+  document.head.appendChild(css);
+
+  function el(id){ return document.getElementById(id); }
+
+  function criarJanelaPublicar(){
+    if(el("winPublicar")) return;
+
+    const ws = el("workspace");
+    if(!ws) return;
+
+    const div = document.createElement("div");
+    div.className = "child-window";
+    div.id = "winPublicar";
+    div.style.cssText = "left:60px;top:40px;width:760px;height:470px;";
+
+    div.innerHTML = `
+      <div class="win-title">
+        <div class="win-title-left"><span class="small-icon"></span> 🌐 Publicar Relatórios</div>
+        <button class="win-close" onclick="closeWin('winPublicar')">X</button>
+      </div>
+      <div class="win-body">
+        <div class="row">
+          <span class="lbl-left">Concurso :</span>
+          <input class="inp sm blue" id="pubAno" value="0" readonly>
+          <span>/</span>
+          <input class="inp xs blue" id="pubNum" value="0" readonly>
+          <button class="small-btn" id="btnBuscarConcursoPub">🔍</button>
+          <input class="inp lg italic-blue" id="pubNome" readonly>
+        </div>
+
+        <div class="pub-box">
+          <div style="font-weight:bold;color:#008080;font-size:13px;">Publicação de Resultados</div>
+          <div class="pub-desc">
+            Escolha o concurso e depois gere os arquivos HTML separados para publicar no site do clube ou compartilhar.
+          </div>
+
+          <div class="pub-grid">
+            <button class="pub-btn" onclick="baixarHtmlResultadoProvaPublicar()">🏁<br>Resultado da Prova</button>
+            <button class="pub-btn" onclick="baixarHtmlConcorrentesPublicar()">👥<br>Classificação de Concorrentes</button>
+            <button class="pub-btn" onclick="baixarHtmlTop20Publicar()">🕊️<br>TOP 20 Pombos</button>
+            <button class="pub-btn" onclick="baixarHtmlPomboAsPublicar()">🏆<br>Pombo Ás</button>
+          </div>
+        </div>
+
+        <div class="pub-box">
+          <div style="font-weight:bold;color:#804000;">Observação</div>
+          <div class="pub-desc">
+            • Resultado da Prova usa o concurso selecionado acima.<br>
+            • Concorrentes, TOP 20 e Pombo Ás respeitam os filtros já escolhidos nas telas correspondentes.<br>
+            • Os arquivos são gerados em HTML pronto para abrir no navegador.
+          </div>
+        </div>
+
+        <div class="btn-bar">
+          <button class="classic-btn" onclick="sincronizarConcursoAtualPublicar()">↻<br>Usar Atual</button>
+          <button class="classic-btn" onclick="closeWin('winPublicar')">▣<br>Sair</button>
+        </div>
+      </div>
+    `;
+    ws.appendChild(div);
+  }
+
+  function sincronizarConcursoAtualPublicar(){
+    const ano = el("lancAno")?.value || el("calcResAno")?.value || el("shrAno")?.value || "0";
+    const num = el("lancNum")?.value || el("calcResNum")?.value || el("shrNum")?.value || "0";
+    const nome = el("lancNomeConcurso")?.value || el("calcResNome")?.value || el("shrNome")?.value || "";
+
+    if(el("pubAno")) el("pubAno").value = ano || "0";
+    if(el("pubNum")) el("pubNum").value = num || "0";
+    if(el("pubNome")) el("pubNome").value = nome || "";
+  }
+
+  function prepararShrDoPublicar(){
+    const ano = el("pubAno")?.value || "0";
+    const num = el("pubNum")?.value || "0";
+    const nome = el("pubNome")?.value || "";
+
+    if(!ano || ano==="0" || !num || num==="0"){
+      alert("Selecione um concurso na área Publicar.");
+      return false;
+    }
+
+    if(el("shrAno")) el("shrAno").value = ano;
+    if(el("shrNum")) el("shrNum").value = num;
+    if(el("shrNome")) el("shrNome").value = nome;
+    return true;
+  }
+
+  window.baixarHtmlResultadoProvaPublicar = function(){
+    if(!prepararShrDoPublicar()) return;
+
+    if(typeof gerarSite === "function"){
+      gerarSite();
+      if(window._siteHtml){
+        const ano = el("pubAno").value;
+        const num = el("pubNum").value;
+        const nome = "resultado-prova-" + ano + "-" + num + ".html";
+        const html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Resultado da Prova</title></head><body>' + window._siteHtml + '</body></html>';
+        const blob = new Blob([html], {type:"text/html;charset=utf-8"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = nome;
+        a.click();
+        URL.revokeObjectURL(url);
+        alert("HTML do resultado da prova gerado com sucesso.");
+      }
+    }
+  };
+
+  window.baixarHtmlConcorrentesPublicar = function(){
+    if(typeof baixarHtmlConcorrentes === "function"){
+      baixarHtmlConcorrentes();
+    } else {
+      alert("A função de HTML dos concorrentes não foi encontrada.");
+    }
+  };
+
+  window.baixarHtmlTop20Publicar = function(){
+    if(typeof baixarHtmlTop20Pombos === "function"){
+      baixarHtmlTop20Pombos();
+    } else {
+      alert("A função de HTML dos 20 melhores pombos não foi encontrada.");
+    }
+  };
+
+  window.baixarHtmlPomboAsPublicar = function(){
+    if(typeof baixarHtmlPomboAs === "function"){
+      baixarHtmlPomboAs();
+    } else {
+      alert("A função de HTML do Pombo Ás não foi encontrada.");
+    }
+  };
+
+  function adicionarMenuPublicar(){
+    const menu = el("menuStrip");
+    if(!menu) return;
+    if(el("menuPublicarBtn")) return;
+
+    const btn = document.createElement("div");
+    btn.id = "menuPublicarBtn";
+    btn.className = "menu-title";
+    btn.style.color = "#006699";
+    btn.style.fontWeight = "bold";
+    btn.textContent = "🌐 Publicar";
+    btn.onclick = function(){
+      openWin("winPublicar");
+      sincronizarConcursoAtualPublicar();
+    };
+
+    const antesDe = Array.from(menu.querySelectorAll(".menu-title")).find(x => x.textContent.includes("Sobre"));
+    if(antesDe) menu.insertBefore(btn, antesDe);
+    else menu.appendChild(btn);
+  }
+
+  const _openWinPublicarOriginal = window.openWin;
+  if(typeof _openWinPublicarOriginal === "function"){
+    window.openWin = function(id){
+      _openWinPublicarOriginal.apply(this, arguments);
+      if(id === "winPublicar"){
+        setTimeout(sincronizarConcursoAtualPublicar, 30);
+      }
+    };
+  }
+
+  const _selecionarConcursoModalPublicarOriginal = window.selecionarConcursoModal;
+  if(typeof _selecionarConcursoModalPublicarOriginal === "function"){
+    window.selecionarConcursoModal = function(){
+      const sel = document.querySelector('#tabelaConcursos tbody tr[data-sel="1"]');
+      if(!sel) return alert("Selecione um concurso.");
+
+      if(window.destinoModalConcurso === "pub"){
+        const tds = sel.querySelectorAll("td");
+        const ano = tds[0].textContent;
+        const num = tds[1].textContent;
+        const nome = tds[2].textContent;
+
+        if(el("pubAno")) el("pubAno").value = ano;
+        if(el("pubNum")) el("pubNum").value = num;
+        if(el("pubNome")) el("pubNome").value = nome;
+
+        fecharModalConcurso();
+        return;
+      }
+
+      return _selecionarConcursoModalPublicarOriginal.apply(this, arguments);
+    };
+  }
+
+  window.addEventListener("load", function(){
+    setTimeout(function(){
+      criarJanelaPublicar();
+      adicionarMenuPublicar();
+
+      if(el("btnBuscarConcursoPub")){
+        el("btnBuscarConcursoPub").onclick = function(){
+          abrirModalConcurso("pub");
+        };
+      }
+    }, 300);
+  });
+
+  console.log("Patch área Publicar ativo.");
+})();
+</script>
+<script>
+(function(){
+  if(window.__PATCH_PUBLICAR_FIXO_VISIVEL__) return;
+  window.__PATCH_PUBLICAR_FIXO_VISIVEL__ = true;
+
+  const css = document.createElement("style");
+  css.textContent = `
+    .pub-box-fixo{
+      background:#f7f7f7;
+      border:1px solid #9a9a9a;
+      padding:12px;
+      margin-top:8px;
+    }
+    .pub-grid-fixo{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(180px,1fr));
+      gap:10px;
+      margin-top:12px;
+    }
+    .pub-btn-fixo{
+      min-height:58px;
+      background:#e5e5e5;
+      border:2px outset #d0d0d0;
+      cursor:pointer;
+      font-size:12px;
+      font-weight:bold;
+      padding:8px;
+    }
+    .pub-btn-fixo:active{
+      border:2px inset #d0d0d0;
+    }
+  `;
+  document.head.appendChild(css);
+
+  function el(id){ return document.getElementById(id); }
+
+  function criarJanelaPublicarFixa(){
+    if(el("winPublicar")) return;
+
+    const ws = el("workspace");
+    if(!ws) return;
+
+    const div = document.createElement("div");
+    div.className = "child-window";
+    div.id = "winPublicar";
+    div.style.cssText = "left:70px;top:50px;width:760px;height:430px;";
+    div.innerHTML = `
+      <div class="win-title">
+        <div class="win-title-left"><span class="small-icon"></span> 🌐 Publicar Relatórios</div>
+        <button class="win-close" onclick="closeWin('winPublicar')">X</button>
+      </div>
+      <div class="win-body">
+        <div class="row">
+          <span class="lbl-left">Concurso :</span>
+          <input class="inp sm blue" id="pubAno" value="0" readonly>
+          <span>/</span>
+          <input class="inp xs blue" id="pubNum" value="0" readonly>
+          <input class="inp lg italic-blue" id="pubNome" readonly>
+          <button class="small-btn" id="btnUsarAtualPub">↻ Atual</button>
+        </div>
+
+        <div class="pub-box-fixo">
+          <div style="font-weight:bold;color:#008080;font-size:13px;">Publicação de Resultados</div>
+          <div style="font-size:11px;color:#333;margin-top:8px;line-height:1.5;">
+            Esta área gera arquivos HTML prontos para publicar ou abrir no navegador.
+          </div>
+
+          <div class="pub-grid-fixo">
+            <button class="pub-btn-fixo" onclick="baixarHtmlResultadoProvaPublicarFixo()">🏁<br>Resultado da Prova</button>
+            <button class="pub-btn-fixo" onclick="baixarHtmlConcorrentesPublicarFixo()">👥<br>Classificação de Concorrentes</button>
+            <button class="pub-btn-fixo" onclick="baixarHtmlTop20PublicarFixo()">🕊️<br>TOP 20 Pombos</button>
+            <button class="pub-btn-fixo" onclick="baixarHtmlPomboAsPublicarFixo()">🏆<br>Pombo Ás</button>
+          </div>
+        </div>
+
+        <div class="pub-box-fixo">
+          <div style="font-weight:bold;color:#804000;">Observação</div>
+          <div style="font-size:11px;color:#333;margin-top:8px;line-height:1.5;">
+            • Resultado da Prova usa o concurso atual.<br>
+            • Concorrentes usa os filtros já escolhidos na tela Classificação de Concorrentes.<br>
+            • TOP 20 usa a tela Classificação de Pombos.<br>
+            • Pombo Ás usa os filtros da tela Pombo Ás.
+          </div>
+        </div>
+
+        <div class="btn-bar">
+          <button class="classic-btn" onclick="sincronizarConcursoAtualPublicarFixo()">↻<br>Usar Atual</button>
+          <button class="classic-btn" onclick="closeWin('winPublicar')">▣<br>Sair</button>
+        </div>
+      </div>
+    `;
+    ws.appendChild(div);
+
+    setTimeout(()=>{
+      if(el("btnUsarAtualPub")){
+        el("btnUsarAtualPub").onclick = sincronizarConcursoAtualPublicarFixo;
+      }
+    },50);
+  }
+
+  function inserirBotaoMenuPublicarFixo(){
+    const menu = el("menuStrip");
+    if(!menu) return;
+    if(el("menuPublicarBtnFixo")) return;
+
+    const btn = document.createElement("div");
+    btn.id = "menuPublicarBtnFixo";
+    btn.className = "menu-title";
+    btn.style.color = "#006699";
+    btn.style.fontWeight = "bold";
+    btn.textContent = "🌐 Publicar";
+    btn.onclick = function(){
+      if(!el("winPublicar")) criarJanelaPublicarFixa();
+      openWin("winPublicar");
+      sincronizarConcursoAtualPublicarFixo();
+    };
+
+    const backup = Array.from(menu.querySelectorAll(".menu-title")).find(x => x.textContent.includes("Backup"));
+    if(backup) menu.insertBefore(btn, backup);
+    else menu.appendChild(btn);
+  }
+
+  window.sincronizarConcursoAtualPublicarFixo = function(){
+    const ano = el("lancAno")?.value || el("calcResAno")?.value || el("shrAno")?.value || "0";
+    const num = el("lancNum")?.value || el("calcResNum")?.value || el("shrNum")?.value || "0";
+    const nome = el("lancNomeConcurso")?.value || el("calcResNome")?.value || el("shrNome")?.value || "";
+
+    if(el("pubAno")) el("pubAno").value = ano || "0";
+    if(el("pubNum")) el("pubNum").value = num || "0";
+    if(el("pubNome")) el("pubNome").value = nome || "";
+  };
+
+  function prepararCompartilharDoPublicar(){
+    const ano = el("pubAno")?.value || "0";
+    const num = el("pubNum")?.value || "0";
+    const nome = el("pubNome")?.value || "";
+
+    if(!ano || ano==="0" || !num || num==="0"){
+      alert("Abra ou selecione um concurso primeiro.");
+      return false;
+    }
+
+    if(el("shrAno")) el("shrAno").value = ano;
+    if(el("shrNum")) el("shrNum").value = num;
+    if(el("shrNome")) el("shrNome").value = nome;
+
+    return true;
+  }
+
+  window.baixarHtmlResultadoProvaPublicarFixo = function(){
+    if(!prepararCompartilharDoPublicar()) return;
+
+    if(typeof gerarSite === "function"){
+      gerarSite();
+      if(window._siteHtml){
+        const ano = el("pubAno").value;
+        const num = el("pubNum").value;
+        const nome = "resultado-prova-" + ano + "-" + num + ".html";
+        const html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Resultado da Prova</title></head><body>' + window._siteHtml + '</body></html>';
+        const blob = new Blob([html], {type:"text/html;charset=utf-8"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = nome;
+        a.click();
+        URL.revokeObjectURL(url);
+        alert("HTML do resultado da prova gerado com sucesso.");
+      }
+    } else {
+      alert("Função gerarSite não encontrada.");
+    }
+  };
+
+  window.baixarHtmlConcorrentesPublicarFixo = function(){
+    if(typeof baixarHtmlConcorrentes === "function"){
+      baixarHtmlConcorrentes();
+    } else {
+      alert("Função de HTML dos concorrentes não encontrada.");
+    }
+  };
+
+  window.baixarHtmlTop20PublicarFixo = function(){
+    if(typeof baixarHtmlTop20Pombos === "function"){
+      baixarHtmlTop20Pombos();
+    } else {
+      alert("Função de HTML do TOP 20 não encontrada.");
+    }
+  };
+
+  window.baixarHtmlPomboAsPublicarFixo = function(){
+    if(typeof baixarHtmlPomboAs === "function"){
+      baixarHtmlPomboAs();
+    } else {
+      alert("Função de HTML do Pombo Ás não encontrada.");
+    }
+  };
+
+  document.addEventListener("keydown", function(e){
+    if(e.ctrlKey && (e.key==="u" || e.key==="U")){
+      e.preventDefault();
+      if(!el("winPublicar")) criarJanelaPublicarFixa();
+      openWin("winPublicar");
+      sincronizarConcursoAtualPublicarFixo();
+    }
+  });
+
+  window.addEventListener("load", function(){
+    setTimeout(()=>{
+      criarJanelaPublicarFixa();
+      inserirBotaoMenuPublicarFixo();
+    }, 400);
+  });
+
+  console.log("Patch Publicar fixo e visível ativo.");
+})();
+</script>
+<script>
+(function(){
+  if(window.__PATCH_PUBLICAR_SELECIONAR_CONCURSO__) return;
+  window.__PATCH_PUBLICAR_SELECIONAR_CONCURSO__ = true;
+
+  function el(id){ return document.getElementById(id); }
+
+  function garantirBotaoBuscaPublicar(){
+    const row = el("pubNome")?.closest(".row");
+    if(!row) return;
+
+    if(!el("btnBuscarConcursoPubFix")){
+      const btn = document.createElement("button");
+      btn.id = "btnBuscarConcursoPubFix";
+      btn.className = "small-btn";
+      btn.textContent = "🔍";
+      btn.style.marginLeft = "4px";
+      btn.onclick = function(){
+        if(typeof abrirModalConcurso === "function"){
+          abrirModalConcurso("pub");
+        }else{
+          alert("Função de seleção de concurso não encontrada.");
+        }
+      };
+      row.insertBefore(btn, el("pubNome"));
+    }
+  }
+
+  const _selecionarConcursoModalPublicarFix = window.selecionarConcursoModal;
+  if(typeof _selecionarConcursoModalPublicarFix === "function"){
+    window.selecionarConcursoModal = function(){
+      const sel = document.querySelector('#tabelaConcursos tbody tr[data-sel="1"]');
+      if(!sel) return alert("Selecione um concurso.");
+
+      if(window.destinoModalConcurso === "pub"){
+        const tds = sel.querySelectorAll("td");
+        const ano = tds[0]?.textContent || "0";
+        const num = tds[1]?.textContent || "0";
+        const nome = tds[2]?.textContent || "";
+
+        if(el("pubAno")) el("pubAno").value = ano;
+        if(el("pubNum")) el("pubNum").value = num;
+        if(el("pubNome")) el("pubNome").value = nome;
+
+        if(typeof fecharModalConcurso === "function"){
+          fecharModalConcurso();
+        }
+        return;
+      }
+
+      return _selecionarConcursoModalPublicarFix.apply(this, arguments);
+    };
+  }
+
+  const _openWinPublicarSelectFix = window.openWin;
+  if(typeof _openWinPublicarSelectFix === "function"){
+    window.openWin = function(id){
+      _openWinPublicarSelectFix.apply(this, arguments);
+      if(id === "winPublicar"){
+        setTimeout(garantirBotaoBuscaPublicar, 50);
+      }
+    };
+  }
+
+  window.addEventListener("load", function(){
+    setTimeout(garantirBotaoBuscaPublicar, 500);
+  });
+
+  console.log("Patch seleção de concurso da área Publicar ativo.");
+})();
+</script>
+<script>
+(function(){
+  if(window.__PATCH_PUBLICAR_LUPA_FINAL__) return;
+  window.__PATCH_PUBLICAR_LUPA_FINAL__ = true;
+
+  function el(id){ return document.getElementById(id); }
+
+  function abrirSeletorConcursoPublicar(){
+    if(typeof abrirModalConcurso === "function"){
+      window.destinoModalConcurso = "pub";
+      abrirModalConcurso("pub");
+    }else{
+      alert("Função de seleção de concurso não encontrada.");
+    }
+  }
+
+  function limparLupasDuplicadasPublicar(){
+    const row = el("pubNome")?.closest(".row");
+    if(!row) return;
+
+    const botoes = Array.from(row.querySelectorAll("button"));
+    botoes.forEach(btn=>{
+      const txt = (btn.textContent || "").trim();
+      const id = btn.id || "";
+      const ehLupa = txt === "🔍" || id === "btnBuscarConcursoPub" || id === "btnBuscarConcursoPubFix" || id === "btnBuscarConcursoPubFinal";
+      if(ehLupa){
+        btn.remove();
+      }
+    });
+  }
+
+  function criarLupaPublicarUnica(){
+    const row = el("pubNome")?.closest(".row");
+    if(!row) return;
+
+    limparLupasDuplicadasPublicar();
+
+    const btn = document.createElement("button");
+    btn.id = "btnBuscarConcursoPubFinal";
+    btn.className = "small-btn";
+    btn.textContent = "🔍";
+    btn.title = "Selecionar Concurso";
+    btn.onclick = abrirSeletorConcursoPublicar;
+
+    row.insertBefore(btn, el("pubNome"));
+  }
+
+  const selecionarOriginalAtual = window.selecionarConcursoModal;
+
+  window.selecionarConcursoModal = function(){
+    const sel = document.querySelector('#tabelaConcursos tbody tr[data-sel="1"]');
+    if(!sel) return alert("Selecione um concurso.");
+
+    if(window.destinoModalConcurso === "pub"){
+      const tds = sel.querySelectorAll("td");
+      const ano  = tds[0]?.textContent?.trim() || "0";
+      const num  = tds[1]?.textContent?.trim() || "0";
+      const nome = tds[2]?.textContent?.trim() || "";
+
+      if(el("pubAno")) el("pubAno").value = ano;
+      if(el("pubNum")) el("pubNum").value = num;
+      if(el("pubNome")) el("pubNome").value = nome;
+
+      if(typeof fecharModalConcurso === "function"){
+        fecharModalConcurso();
+      }
+      return;
+    }
+
+    if(typeof selecionarOriginalAtual === "function"){
+      return selecionarOriginalAtual.apply(this, arguments);
+    }
+  };
+
+  const openWinOriginalPublicar = window.openWin;
+  if(typeof openWinOriginalPublicar === "function"){
+    window.openWin = function(id){
+      openWinOriginalPublicar.apply(this, arguments);
+      if(id === "winPublicar"){
+        setTimeout(criarLupaPublicarUnica, 50);
+      }
+    };
+  }
+
+  window.addEventListener("load", function(){
+    setTimeout(criarLupaPublicarUnica, 500);
+  });
+
+  console.log("Patch final da lupa da área Publicar ativo.");
+})();
+</script>
+<script>
+(function(){
+  if(window.__PATCH_PUBLICAR_TIPO_CATEGORIA__) return;
+  window.__PATCH_PUBLICAR_TIPO_CATEGORIA__ = true;
+
+  function el(id){ return document.getElementById(id); }
+
+  function abrevParaTipo(abrev){
+    const mapa = {
+      "J":"Filhotes",
+      "V":"Velocidade Adulto",
+      "M":"Meio-fundo",
+      "F":"Fundo",
+      "G":"Geral"
+    };
+    return mapa[String(abrev||"").trim()] || "Velocidade Adulto";
+  }
+
+  function garantirCampoTipoPublicar(){
+    const row = el("pubNome")?.closest(".row");
+    if(!row) return;
+
+    if(!el("pubTipo")){
+      const lbl = document.createElement("span");
+      lbl.id = "pubTipoLbl";
+      lbl.textContent = "Tipo :";
+      lbl.style.marginLeft = "10px";
+
+      const inp = document.createElement("input");
+      inp.id = "pubTipo";
+      inp.className = "inp md italic-blue";
+      inp.readOnly = true;
+
+      row.appendChild(lbl);
+      row.appendChild(inp);
+    }
+  }
+
+  function aplicarTipoNosFiltrosPublicar(){
+    const tipo = el("pubTipo")?.value || "Velocidade Adulto";
+
+    const cc = document.querySelector(`input[name="ccTipo"][value="${tipo}"]`);
+    if(cc) cc.checked = true;
+    if(typeof ccAtualizaTitulo === "function") ccAtualizaTitulo();
+
+    const cp = document.querySelector(`input[name="cpTipo"][value="${tipo}"]`);
+    if(cp) cp.checked = true;
+
+    const as = document.querySelector(`input[name="asTipo"][value="${tipo}"]`);
+    if(as) as.checked = true;
+  }
+
+  const _selecionarConcursoModalTipoOriginal = window.selecionarConcursoModal;
+  if(typeof _selecionarConcursoModalTipoOriginal === "function"){
+    window.selecionarConcursoModal = function(){
+      const sel = document.querySelector('#tabelaConcursos tbody tr[data-sel="1"]');
+      if(!sel) return alert("Selecione um concurso.");
+
+      if(window.destinoModalConcurso === "pub"){
+        const tds = sel.querySelectorAll("td");
+        const ano   = tds[0]?.textContent?.trim() || "0";
+        const num   = tds[1]?.textContent?.trim() || "0";
+        const nome  = tds[2]?.textContent?.trim() || "";
+        const abrev = tds[3]?.textContent?.trim() || "";
+        const tipo  = abrevParaTipo(abrev);
+
+        if(el("pubAno")) el("pubAno").value = ano;
+        if(el("pubNum")) el("pubNum").value = num;
+        if(el("pubNome")) el("pubNome").value = nome;
+        if(el("pubTipo")) el("pubTipo").value = tipo;
+
+        aplicarTipoNosFiltrosPublicar();
+
+        if(typeof fecharModalConcurso === "function"){
+          fecharModalConcurso();
+        }
+        return;
+      }
+
+      return _selecionarConcursoModalTipoOriginal.apply(this, arguments);
+    };
+  }
+
+  const _syncAtualPublicarOriginal = window.sincronizarConcursoAtualPublicarFixo;
+  window.sincronizarConcursoAtualPublicarFixo = function(){
+    if(typeof _syncAtualPublicarOriginal === "function"){
+      _syncAtualPublicarOriginal();
+    }
+
+    let tipo = "";
+
+    if(el("lancTipoTexto") && el("lancTipoTexto").textContent.trim()){
+      tipo = el("lancTipoTexto").textContent.trim();
+    }
+
+    if(!tipo){
+      const cursoNome = el("pubNome")?.value || "";
+      const ano = el("pubAno")?.value || "";
+      const num = el("pubNum")?.value || "";
+      const curso = (window.cursosSalvos || []).find(c =>
+        String(c.ano) === String(ano) &&
+        String(c.num) === String(num) &&
+        String(c.nome || "") === String(cursoNome)
+      );
+      if(curso) tipo = curso.tipo || "";
+    }
+
+    if(el("pubTipo")) el("pubTipo").value = tipo || "Velocidade Adulto";
+    aplicarTipoNosFiltrosPublicar();
+  };
+
+  const _baixarHtmlConcPublicarOriginal = window.baixarHtmlConcorrentesPublicarFixo;
+  window.baixarHtmlConcorrentesPublicarFixo = function(){
+    aplicarTipoNosFiltrosPublicar();
+    if(typeof _baixarHtmlConcPublicarOriginal === "function"){
+      return _baixarHtmlConcPublicarOriginal();
+    }
+    if(typeof baixarHtmlConcorrentes === "function"){
+      return baixarHtmlConcorrentes();
+    }
+  };
+
+  const _baixarHtmlTop20PublicarOriginal = window.baixarHtmlTop20PublicarFixo;
+  window.baixarHtmlTop20PublicarFixo = function(){
+    aplicarTipoNosFiltrosPublicar();
+    if(typeof _baixarHtmlTop20PublicarOriginal === "function"){
+      return _baixarHtmlTop20PublicarOriginal();
+    }
+    if(typeof baixarHtmlTop20Pombos === "function"){
+      return baixarHtmlTop20Pombos();
+    }
+  };
+
+  const _baixarHtmlPomboAsPublicarOriginal = window.baixarHtmlPomboAsPublicarFixo;
+  window.baixarHtmlPomboAsPublicarFixo = function(){
+    aplicarTipoNosFiltrosPublicar();
+    if(typeof _baixarHtmlPomboAsPublicarOriginal === "function"){
+      return _baixarHtmlPomboAsPublicarOriginal();
+    }
+    if(typeof baixarHtmlPomboAs === "function"){
+      return baixarHtmlPomboAs();
+    }
+  };
+
+  const _openWinTipoPublicarOriginal = window.openWin;
+  if(typeof _openWinTipoPublicarOriginal === "function"){
+    window.openWin = function(id){
+      _openWinTipoPublicarOriginal.apply(this, arguments);
+      if(id === "winPublicar"){
+        setTimeout(function(){
+          garantirCampoTipoPublicar();
+          if(!el("pubTipo")?.value){
+            window.sincronizarConcursoAtualPublicarFixo();
+          }
+        }, 50);
+      }
+    };
+  }
+
+  window.addEventListener("load", function(){
+    setTimeout(function(){
+      garantirCampoTipoPublicar();
+    }, 500);
+  });
+
+  console.log("Patch Publicar por tipo/categoria ativo.");
+})();
+</script>
 </body>
 </html>
+
+
