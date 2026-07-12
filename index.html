@@ -6113,6 +6113,108 @@ h1,h2{text-align:center;color:#008080}
   console.log("Patch Publicar por tipo/categoria ativo.");
 })();
 </script>
+<script>
+(function(){
+  if(window.__PATCH_PMR_IMPORTAR_CATEGORIA_CORRETA__) return;
+  window.__PATCH_PMR_IMPORTAR_CATEGORIA_CORRETA__ = true;
+
+  function el(id){ return document.getElementById(id); }
+
+  function getTipoConcursoAtivoNaTela(){
+    // Puxa o tipo exato que está ativo na tela de Lançamento de Prova
+    const tipoTexto = el("lancTipoTexto")?.textContent?.trim() || "";
+    if (tipoTexto.toUpperCase() === "FILHOTES") return "Filhotes";
+    if (tipoTexto.toUpperCase() === "VELOCIDADE ADULTO") return "Velocidade Adulto";
+    if (tipoTexto.toUpperCase() === "MEIO-FUNDO") return "Meio-fundo";
+    if (tipoTexto.toUpperCase() === "FUNDO") return "Fundo";
+    
+    // Fallback para o tipo selecionado na parametrização ou concurso ativo
+    if (window.provaAtual && window.provaAtual.tipo) return window.provaAtual.tipo;
+    if (window.provaAtual && window.provaAtual.curso && window.provaAtual.curso.tipo) return window.provaAtual.curso.tipo;
+    return "Velocidade Adulto";
+  }
+
+  /* Sobrescreve a função de importação provisória do PMR garantindo a chave correta por categoria */
+  window.importarParaLancamentoProvisorio = function(){
+    if(!pmrDadosImportadosAtual || !pmrDadosImportadosAtual.pombos.length) return;
+
+    // Identifica ano, número e o tipo ativo na tela do operador
+    const ano = document.getElementById("lancAno")?.value || document.getElementById("pmrAno")?.value || "2026";
+    const num = document.getElementById("lancNum")?.value || document.getElementById("pmrNum")?.value || "1";
+    const nome = document.getElementById("lancNomeConcurso")?.value || document.getElementById("pmrNomeConcurso")?.value || "";
+    const tipoAtivo = getTipoConcursoAtivoNaTela();
+
+    // Busca o concurso exato correspondente ao tipo que você está trabalhando
+    const curso = (window.cursosSalvos || []).find(c => 
+      String(c.ano) === String(ano) && 
+      String(c.num) === String(num) && 
+      String(c.tipo || "").toUpperCase() === tipoAtivo.toUpperCase()
+    );
+
+    if(!curso){
+      return alert(`Erro: Não foi possível localizar o concurso cadastrado para ${ano}/${num} na categoria [${tipoAtivo}].\n\nPor favor, certifique-se de que o concurso de [${tipoAtivo}] está cadastrado corretamente na Tabela de Concursos.`);
+    }
+
+    // Alinha a prova atual para o concurso e tipo corretos
+    window.provaAtual = { ano: curso.ano, num: curso.num, nome: curso.nome, tipo: curso.tipo, curso };
+    
+    // Atualiza os campos visuais da tela de lançamento
+    if(el("lancAno")) el("lancAno").value = curso.ano;
+    if(el("lancNum")) el("lancNum").value = curso.num;
+    if(el("lancNomeConcurso")) el("lancNomeConcurso").value = curso.nome;
+    if(el("lancTipoTexto")) el("lancTipoTexto").textContent = (curso.tipo || "").toUpperCase();
+
+    // Define a chave de armazenamento única por tipo de concurso
+    const chaveUnica = `${curso.ano}/${curso.num}|${curso.tipo}`;
+    
+    // Carrega os lançamentos existentes para este concurso/tipo específico
+    window.lancamentos = window.todosLancamentos[chaveUnica] || [];
+
+    let importadosCont = 0;
+
+    pmrDadosImportadosAtual.pombos.forEach(p => {
+      if(!window.lancamentos.some(l => l.anilha === p.anilha)){
+        const pCad = window.pombosSalvos.find(x => x.anilha === p.anilha);
+
+        const novo = {
+          anilha: p.anilha,
+          assoc: pCad ? pCad.assoc : (el("lancAssoc")?.value || "11"),
+          colec: pCad ? pCad.colec : (el("lancColec")?.value || "33"),
+          concNum: pmrDadosImportadosAtual.socioID || el("lancNumConc")?.value || "81",
+          sexo: pCad ? pCad.sexo : "Macho",
+          chegada: p.hora,
+          distancia: "0,0",
+          media: "0,0000",
+          tempoVoo: "",
+          pmrProvisorio: true
+        };
+
+        // Aplica os dados do relógio fixo para não perder as datas de início/fim
+        if(typeof completarDadosRelogio === "function") {
+          completarDadosRelogio(novo);
+        }
+
+        window.lancamentos.push(novo);
+        importadosCont++;
+      }
+    });
+
+    // Salva na chave única do concurso/tipo para não misturar com as outras categorias
+    window.todosLancamentos[chaveUnica] = window.lancamentos;
+    if(typeof salvarLancamentos === "function") window.salvarLancamentos();
+
+    window.atualizarListaLancamentos();
+    if(typeof atualizarTabelaAuditoriaPMR === "function") window.atualizarTabelaAuditoriaPMR();
+
+    alert(`⚡ SUCESSO!\n\n${importadosCont} constatação(ões) provisória(s) foram lançadas com sucesso na categoria [${curso.tipo}].`);
+    
+    closeWin("winRemoteClock");
+    openWin("winLancamento");
+  };
+
+  console.log("Patch de Importação PMR na Categoria Correta Ativo.");
+})();
+</script>
 </body>
 </html>
 
