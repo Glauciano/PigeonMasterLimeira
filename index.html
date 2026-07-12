@@ -462,8 +462,7 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
         <div id="conteudoRelatorio" class="report"></div>
       </div>
     </div>
-
-    <div class="child-window" id="winClassConc" style="left:30px;top:20px;width:680px;height:600px;">
+ <div class="child-window" id="winClassConc" style="left:30px;top:20px;width:680px;height:600px;">
       <div class="win-title"><div class="win-title-left"><span class="small-icon"></span> Classificação de Concorrentes (Totais)</div><button class="win-close" onclick="closeWin('winClassConc')">X</button></div>
       <div class="win-body">
         <div class="row"><span class="lbl">Provas :</span>
@@ -779,11 +778,11 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
 
             <div class="mobile-card">
               <label style="font-weight:bold;color:#333;">Número da Anilha:</label>
-              <input type="text" class="mobile-input" id="mobAnilhaInput" placeholder="Ex: 2335027/23" value="2335027/23">
+              <input type="text" class="mobile-input" id="mobAnilhaInput" placeholder="Ex: 2335027/23" value="">
               
               <label style="font-weight:bold;color:#333;margin-top:8px;display:block;">Hora da Constatação:</label>
               <div style="display:flex;gap:4px;">
-                <input type="text" class="mobile-input" id="mobHoraInput" placeholder="HH:MM:SS" style="font-family:Consolas;text-align:center;font-weight:bold;font-size:15px;" value="11:34:58">
+                <input type="text" class="mobile-input" id="mobHoraInput" placeholder="HH:MM:SS" style="font-family:Consolas;text-align:center;font-weight:bold;font-size:15px;" value="">
                 <button class="small-btn" style="margin-top:4px;height:34px;background:#d4edda;" onclick="capturarHoraAtualCelular()" title="Hora Exata Agora">⏰ Exata</button>
               </div>
 
@@ -794,13 +793,8 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
             </div>
 
             <div class="mobile-card" style="flex:1;display:flex;flex-direction:column;">
-              <b style="color:#008080;">Pombos Registrados (<span id="mobCountAnilhas">1</span>):</b>
-              <div style="flex:1;max-height:140px;overflow-y:auto;margin-top:6px;border-top:1px solid #eee;" id="mobListaAnilhas">
-                <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f0f0;font-size:12px;">
-                  <span>🕊️ <b>2335027/23</b></span>
-                  <span style="font-family:Consolas;font-weight:bold;color:#008000;">11:34:58</span>
-                </div>
-              </div>
+              <b style="color:#008080;">Pombos Registrados (<span id="mobCountAnilhas">0</span>):</b>
+              <div style="flex:1;max-height:140px;overflow-y:auto;margin-top:6px;border-top:1px solid #eee;" id="mobListaAnilhas"></div>
 
               <button class="mobile-btn" style="background:#006699;margin-top:10px;" onclick="gerarEBaixarArquivoPMR()">🔒 GERAR E BAIXAR (.PMR)</button>
               <button class="mobile-btn mobile-btn-wpp" style="margin-top:6px;" onclick="enviarPmrDiretoWhatsApp()">💬 Enviar Resumo p/ WhatsApp</button>
@@ -842,2908 +836,377 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
         </div>
       </div>
     </div>
-
-  </div>
-
-  <div class="status" id="statusBar">S.G.C-S.P v2.1 | Importa GPC | Pombo Ás | Distância nos relatórios | PM Remote Clock Ativado</div>
-</div>
-
-<script>
-const STORE={pombos:"sgc_pombos",concorrentes:"sgc_concorrentes",cursos:"sgc_cursos",lancamentos:"sgc_lancamentos",classificacoes:"sgc_classificacoes",param:"sgc_param"};
-let pombosSalvos=[],concorrentesSalvos=[],cursosSalvos=[],todosLancamentos={},classificacoesSalvas={},param={max:25,top:6,p:3,e:3};
-let edtPomboIndex=null,edtConcIndex=null,edtCursoIndex=null,historicoPombos=[],historicoConc=[],historicoCursos=[],historicoLanc=[];
-let provaAtual=null,lancamentos=[],editandoLancIndex=null,zCounter=100,currentMenuKey=null,destinoModalConcurso="lanc",callbackSelConcorrente=null;
-let socioFixoPombos=null,socioFixoLanc=null;
-
-const concorrentesPadrao=[
-{numero:"77",nome:"RENATO SOARES",latGrau:"022",latMin:"34",latSeg:"44.7",lonGrau:"047",lonMin:"23",lonSeg:"20.4"},
-{numero:"81",nome:"VILMAR ALMEIDA PORTA DO SOL",latGrau:"022",latMin:"36",latSeg:"37.7",lonGrau:"047",lonMin:"25",lonSeg:"16.9"},
-{numero:"85",nome:"VALTER CARNEVALLI",latGrau:"022",latMin:"34",latSeg:"49.9",lonGrau:"047",lonMin:"41",lonSeg:"55.7"},
-{numero:"91",nome:"EDSON ROBERTO DA SILVA",latGrau:"022",latMin:"34",latSeg:"51.0",lonGrau:"047",lonMin:"22",lonSeg:"35.3"},
-{numero:"114",nome:"VALDIR DIAS",latGrau:"022",latMin:"34",latSeg:"54.9",lonGrau:"047",lonMin:"23",lonSeg:"51.7"},
-{numero:"283",nome:"GLAUCIANO CLAITON SILVA",latGrau:"022",latMin:"33",latSeg:"46.4",lonGrau:"047",lonMin:"22",lonSeg:"55.1"},
-{numero:"1503",nome:"PASCHOAL LOVADINI",latGrau:"022",latMin:"36",latSeg:"38.3",lonGrau:"047",lonMin:"51",lonSeg:"32.0"},
-{numero:"1508",nome:"MARQUINHO&FERNANDO",latGrau:"022",latMin:"35",latSeg:"28.3",lonGrau:"047",lonMin:"16",lonSeg:"48.4"},
-{numero:"1512",nome:"FRANCISCO TOLEDO RODOVALHO",latGrau:"022",latMin:"35",latSeg:"24.8",lonGrau:"047",lonMin:"24",lonSeg:"35.7"},
-{numero:"1515",nome:"CARLOS ALBERTO DA SILVA",latGrau:"022",latMin:"43",latSeg:"12.0",lonGrau:"047",lonMin:"22",lonSeg:"06.0"}
-];
-const cursosPadrao=[{ano:"2026",num:"1",nome:"Prova Vel. Adultos Igarapava S.P",data:"10/05/2026",tipo:"Velocidade Adulto",oficial:"Sim",ini:"1000",dec:"1",tm1:"00:00:00",tm2:"00:00:00",tm3:"00:00:00",horaSolta:"07:00:00",obs:"",latGrau:"020",latMin:"02",latSeg:"28.0",lonGrau:"047",lonMin:"44",lonSeg:"25.0"}];
-
-function brN(v){if(typeof v==="number")return v;let s=String(v??"").trim();if(!s)return 0;if(s.includes(".")&&s.includes(","))s=s.replace(/\./g,"").replace(",",".");else if(s.includes(","))s=s.replace(",",".");return parseFloat(s)||0}
-function fmtBR(v,c=1){return brN(v).toFixed(c).replace(".",",")}
-function dmsDec(g,m,s){g=brN(g);m=brN(m);s=brN(s);const sig=g<0?-1:1;return sig*(Math.abs(g)+m/60+s/3600)}
-function distM(lat1_dec,lon1_dec,lat2_dec,lon2_dec){
-  const a=6378137.0,b=6356752.314245,f=1/298.257223563,toRad=x=>x*Math.PI/180;
-  const L=toRad(lon2_dec-lon1_dec);
-  const U1=Math.atan((1-f)*Math.tan(toRad(lat1_dec)));
-  const U2=Math.atan((1-f)*Math.tan(toRad(lat2_dec)));
-  const sinU1=Math.sin(U1),cosU1=Math.cos(U1),sinU2=Math.sin(U2),cosU2=Math.cos(U2);
-  let lambda=L,lambdaP,iterLimit=100;
-  let sinLambda,cosLambda,sinSigma,cosSigma,sigma,sinAlpha,cosSqAlpha,cos2SigmaM,C;
-  do{
-    sinLambda=Math.sin(lambda);cosLambda=Math.cos(lambda);
-    sinSigma=Math.sqrt((cosU2*sinLambda)*(cosU2*sinLambda)+(cosU1*sinU2-sinU1*cosU2*cosLambda)*(cosU1*sinU2-sinU1*cosU2*cosLambda));
-    if(sinSigma===0)return 0;
-    cosSigma=sinU1*sinU2+cosU1*cosU2*cosLambda;sigma=Math.atan2(sinSigma,cosSigma);
-    sinAlpha=cosU1*cosU2*sinLambda/sinSigma;cosSqAlpha=1-sinAlpha*sinAlpha;
-    cos2SigmaM=cosSqAlpha!==0?cosSigma-2*sinU1*sinU2/cosSqAlpha:0;
-    C=f/16*cosSqAlpha*(4+f*(4-3*cosSqAlpha));lambdaP=lambda;
-    lambda=L+(1-C)*f*sinAlpha*(sigma+C*sinSigma*(cos2SigmaM+C*cosSigma*(-1+2*cos2SigmaM*cos2SigmaM)));
-  }while(Math.abs(lambda-lambdaP)>1e-12&&--iterLimit>0);
-  if(iterLimit===0)return NaN;
-  const uSq=cosSqAlpha*(a*a-b*b)/(b*b);
-  const A=1+uSq/16384*(4096+uSq*(-768+uSq*(320-175*uSq)));
-  const B=uSq/1024*(256+uSq*(-128+uSq*(74-47*uSq)));
-  const deltaSigma=B*sinSigma*(cos2SigmaM+B/4*(cosSigma*(-1+2*cos2SigmaM*cos2SigmaM)-B/6*cos2SigmaM*(-3+4*sinSigma*sinSigma)*(-3+4*cos2SigmaM*cos2SigmaM)));
-  return b*A*(sigma-deltaSigma);
-}
-function esc(t){return String(t??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
-function setRadio(n,v){const el=document.querySelector(`input[name="${n}"][value="${v}"]`);if(el)el.checked=true}
-function getRadio(n,f=""){return document.querySelector(`input[name="${n}"]:checked`)?.value||f}
-function setStatus(t){document.getElementById("statusBar").textContent="S.G.C-S.P v2.1 | "+t}
-function calcPts(pos,ini,dec,min){return Math.max(min,Math.round(ini-(pos-1)*dec))}
-function setPtsMod(tipo){const ini=document.getElementById("cursoIni"),dec=document.getElementById("cursoDec");if(tipo==="Filhotes"||tipo==="Velocidade Adulto"){ini.value="1000";dec.value="1"}else{ini.value="1000";dec.value="5"}}
-function padNum(n,w){return String(n||"").padStart(w," ")}
-function tipoAbrev(tipo){const m={"Velocidade Adulto":"V","Meio-fundo":"M","Fundo":"F","Filhotes":"J"};return m[tipo]||"G"}
-
-/* ===== NOVA REGRA: PROVISÓRIO NÃO ENTRA NO CÁLCULO ===== */
-function lancamentoValidoParaCalculo(l){
-  return !l.pmrProvisorio || l.homologado===true;
-}
-
-const menuData={
-  movimentos:[{t:"Lançamento da Prova",win:"winLancamento"},{t:"Cálculo de Prova",win:"winCalculo"},"sep",{t:"📱 Compartilhar (WhatsApp/Site)",win:"winCompartilhar"}],
-  pombos:[{t:"Pombos",win:"winPombos"},"sep",{t:"📋 Palmarés do Pombo",win:"winPalmares"}],
-  concorrente:[{t:"Concorrentes",win:"winConcorrentes"}],
-  listarProvas:[{t:"Pombos na Prova",win:"winReportPombos"}],
-  listarTotais:[{t:"Colectividades",action:()=>alert("Em breve")},{t:"Concorrentes",win:"winClassConc"},{t:"Pombos",win:"winClassPombos"},"sep",{t:"🏆 Pombo Ás",win:"winPomboAs"}],
-  importar:[{t:"📥 Importar Concorrentes (GPC)",win:"winImportar",tab:"conc"},{t:"📥 Importar Pombos (GPC)",win:"winImportar",tab:"pomb"},{t:"📥 Importar Movimentos (ZDWMOV_T.TXT)",win:"winImportar",tab:"mov"},"sep",{t:"📤 Exportar Movimentos pro GPC",win:"winExportar"}],
-  backup:[{t:"💾 Exportar tudo (backup)",action:exportarBackup},{t:"📂 Importar backup",action:importarBackup},"sep",{t:"📊 Exportar Concorrentes (CSV)",action:()=>exportCSV("concorrentes")},{t:"📊 Exportar Pombos (CSV)",action:()=>exportCSV("pombos")},"sep",{t:"⚠️ APAGAR TUDO",action:limparTudo}]
-};
-
-function toggleMenu(e,key){
-  e.stopPropagation();
-  const dd=document.getElementById("dropdown");
-  if(currentMenuKey===key&&dd.style.display==="block"){hideMenu();return}
-  document.querySelectorAll(".menu-title").forEach(m=>m.classList.remove("active"));
-  e.currentTarget.classList.add("active");
-  dd.innerHTML="";
-  (menuData[key]||[]).forEach(item=>{
-    if(item==="sep"){
-      const s=document.createElement("div");
-      s.className="dropdown-separator";
-      dd.appendChild(s);
-      return;
-    }
-    const d=document.createElement("div");
-    d.className="dropdown-item";
-    d.textContent=item.t;
-    d.onclick=ev=>{
-      ev.stopPropagation();
-      if(item.win){
-        openWin(item.win);
-        if(item.tab)setTimeout(()=>impTab(item.tab),100);
-      }
-      if(item.action)item.action();
-      hideMenu();
-    };
-    dd.appendChild(d);
-  });
-  const r=e.currentTarget.getBoundingClientRect();
-  dd.style.left=r.left+"px";
-  dd.style.top=r.bottom+"px";
-  dd.style.display="block";
-  currentMenuKey=key;
-}
-function hideMenu(){
-  document.getElementById("dropdown").style.display="none";
-  document.querySelectorAll(".menu-title").forEach(m=>m.classList.remove("active"));
-  currentMenuKey=null;
-}
-document.addEventListener("click",hideMenu);
-
-function openWin(id){
-  const w=document.getElementById(id);if(!w)return;
-  document.querySelectorAll("#workspace>.child-window.active").forEach(x=>x.classList.remove("active"));
-  w.classList.add("active");
-  w.style.zIndex=++zCounter;
-
-  if(id==="winPombos")atualizarTabelaPombos();
-  if(id==="winConcorrentes")atualizarTabelaConcorrentes();
-  if(id==="winConcursos")atualizarTabelaCursos();
-  if(id==="winLancamento")atualizarListaLancamentos();
-  if(id==="winCalculo")resetarCalculo();
-  if(id==="winReportPombos")resetarRelatorio();
-  if(id==="winClassConc"){document.getElementById("areaClassConc").innerHTML="";ccAtualizaTitulo()}
-  if(id==="winClassPombos"){document.getElementById("areaClassPombos").innerHTML=""}
-  if(id==="winPomboAs")document.getElementById("areaPomboAs").innerHTML="Selecione a modalidade e clique em Gerar Ranking";
-  if(id==="winPalmares"){document.getElementById("palmAnilha").value="";document.getElementById("areaPalmares").innerHTML="Digite a anilha e clique em Buscar"}
-  if(id==="winImportar"){["Conc","Pomb","Mov"].forEach(t=>{document.getElementById("impLog"+t).innerHTML="Selecione o arquivo e clique em Importar..."})}
-  if(id==="winExportar"){document.getElementById("expAno").value="0";document.getElementById("expNum").value="0";document.getElementById("expNome").value="";document.getElementById("expLog").innerHTML="Aguardando..."}
-  if(id==="winParam"){
-    document.getElementById("paramMax").value=param.max;
-    document.getElementById("paramTop").value=param.top;
-    document.getElementById("paramP").value=param.p;
-    document.getElementById("paramE").value=param.e;
-  }
-  if(id==="winCompartilhar")resetarCompartilhar();
-  if(id==="winRemoteClock"){
-    document.getElementById("pmrAno").value=document.getElementById("lancAno").value||"2026";
-    document.getElementById("pmrNum").value=document.getElementById("lancNum").value||"1";
-    document.getElementById("pmrNomeConcurso").value=document.getElementById("lancNomeConcurso").value||"Prova Vel. Adultos Igarapava S.P";
-    atualizarTabelaAuditoriaPMR();
-  }
-  setStatus("Janela: "+id.replace("win",""));
-}
-function closeWin(id){const w=document.getElementById(id);if(w)w.classList.remove("active")}
-function showInnerTab(tab,pageId){
-  const win=tab.closest(".child-window");
-  win.querySelectorAll(".inner-tab").forEach(t=>t.classList.remove("active"));
-  win.querySelectorAll(".inner-page").forEach(p=>p.classList.remove("active"));
-  tab.classList.add("active");
-  document.getElementById(pageId).classList.add("active");
-  if(pageId==="pombosConsultar")atualizarTabelaPombos();
-  if(pageId==="concorrentesConsultar")atualizarTabelaConcorrentes();
-  if(pageId==="cursoConsultar")atualizarTabelaCursos();
-}
-
-function saveLS(k,v){localStorage.setItem(k,JSON.stringify(v))}
-function loadLS(k,fb){try{const d=localStorage.getItem(k);return d?JSON.parse(d):fb}catch(e){return fb}}
-function salvarPombos(){saveLS(STORE.pombos,pombosSalvos)}
-function salvarConcorrentes(){saveLS(STORE.concorrentes,concorrentesSalvos)}
-function salvarCursos(){saveLS(STORE.cursos,cursosSalvos)}
-function salvarLancamentos(){saveLS(STORE.lancamentos,todosLancamentos)}
-function salvarClassificacoes(){saveLS(STORE.classificacoes,classificacoesSalvas)}
-function salvarParam(){
-  param.max=parseInt(document.getElementById("paramMax").value)||25;
-  param.top=parseInt(document.getElementById("paramTop").value)||6;
-  param.p=parseInt(document.getElementById("paramP").value)||3;
-  param.e=parseInt(document.getElementById("paramE").value)||3;
-  saveLS(STORE.param,param);
-  alert("Parâmetros salvos!");
-  setStatus("Parâmetros salvos");
-}
-function carregarConcorrentesIniciais(){
-  concorrentesSalvos=concorrentesPadrao.map(c=>({
-    assoc:"11",colec:"33",numero:c.numero,nome:c.nome,morada:"",localidade:"",telefone:"",email:"",
-    latGrau:c.latGrau,latMin:c.latMin,latSeg:c.latSeg,lonGrau:c.lonGrau,lonMin:c.lonMin,lonSeg:c.lonSeg
-  }));
-  salvarConcorrentes();
-}
-function carregarStorage(){
-  pombosSalvos=loadLS(STORE.pombos,[]);if(!Array.isArray(pombosSalvos))pombosSalvos=[];
-  concorrentesSalvos=loadLS(STORE.concorrentes,[]);if(!Array.isArray(concorrentesSalvos)||!concorrentesSalvos.length)carregarConcorrentesIniciais();
-  cursosSalvos=loadLS(STORE.cursos,[]);if(!Array.isArray(cursosSalvos)||!cursosSalvos.length){cursosSalvos=JSON.parse(JSON.stringify(cursosPadrao));salvarCursos()}
-  todosLancamentos=loadLS(STORE.lancamentos,{});if(!todosLancamentos||typeof todosLancamentos!=="object")todosLancamentos={};
-  classificacoesSalvas=loadLS(STORE.classificacoes,{});if(!classificacoesSalvas||typeof classificacoesSalvas!=="object")classificacoesSalvas={};
-  param=Object.assign({max:25,top:6,p:3,e:3},loadLS(STORE.param,{}));
-}
-
-function exportarBackup(){
-  const backup={
-    versao:"2.1",
-    dataBackup:new Date().toISOString(),
-    clube:"CLUBE COLUMBÓFILO LIMEIRENSE",
-    concorrentes:concorrentesSalvos,pombos:pombosSalvos,cursos:cursosSalvos,lancamentos:todosLancamentos,classificacoes:classificacoesSalvas,param:param
-  };
-  const blob=new Blob([JSON.stringify(backup,null,2)],{type:"application/json"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  const d=new Date();
-  const nome="backup-sgc-"+d.getFullYear()+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0")+"-"+String(d.getHours()).padStart(2,"0")+String(d.getMinutes()).padStart(2,"0")+".json";
-  a.href=url;a.download=nome;a.click();URL.revokeObjectURL(url);
-  setStatus("Backup: "+nome);
-  alert("Backup criado!\n\n"+nome);
-}
-function importarBackup(){
-  const input=document.createElement("input");
-  input.type="file";
-  input.accept=".json,application/json";
-  input.onchange=e=>{
-    const file=e.target.files[0];
-    if(!file)return;
-    const reader=new FileReader();
-    reader.onload=ev=>{
-      try{
-        const d=JSON.parse(ev.target.result);
-        if(!d.concorrentes&&!d.pombos&&!d.cursos)return alert("Arquivo inválido.");
-        const info="Backup:\n\nData: "+(d.dataBackup?new Date(d.dataBackup).toLocaleString():"?")+"\nConcorrentes: "+((d.concorrentes||[]).length)+"\nPombos: "+((d.pombos||[]).length)+"\n\n⚠️ Substituir tudo?";
-        if(!confirm(info))return;
-        if(d.concorrentes)concorrentesSalvos=d.concorrentes;
-        if(d.pombos)pombosSalvos=d.pombos;
-        if(d.cursos)cursosSalvos=d.cursos;
-        if(d.lancamentos)todosLancamentos=d.lancamentos;
-        if(d.classificacoes)classificacoesSalvas=d.classificacoes;
-        if(d.param)param=Object.assign(param,d.param);
-        salvarConcorrentes();salvarPombos();salvarCursos();salvarLancamentos();salvarClassificacoes();saveLS(STORE.param,param);
-        atualizarTabelaConcorrentes();atualizarTabelaPombos();atualizarTabelaCursos();
-        alert("Backup restaurado!");
-        setStatus("Restaurado");
-      }catch(err){alert("Erro:\n"+err.message)}
-    };
-    reader.readAsText(file);
-  };
-  input.click();
-}
-function exportCSV(tipo){
-  let csv="",nome="";
-  if(tipo==="concorrentes"){
-    nome="concorrentes.csv";
-    csv="Assoc;Colec;Numero;Nome;Telefone;Email\n";
-    concorrentesSalvos.forEach(c=>{csv+=c.assoc+";"+c.colec+";"+c.numero+';"'+c.nome+'";'+(c.telefone||"")+";"+(c.email||"")+"\n"});
-  }else if(tipo==="pombos"){
-    nome="pombos.csv";
-    csv="Anilha;Assoc;Colec;Numero;NomeConcorrente;Sexo\n";
-    pombosSalvos.forEach(p=>{
-      const c=concorrentesSalvos.find(x=>x.numero===p.numero);
-      csv+=p.anilha+";"+p.assoc+";"+p.colec+";"+p.numero+';"'+(c?c.nome:"")+'";'+p.sexo+"\n";
-    });
-  }
-  if(!csv||csv.split("\n").length<=1)return alert("Nada para exportar.");
-  const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url;a.download=nome;a.click();URL.revokeObjectURL(url);
-  setStatus("CSV: "+nome);
-}
-function limparTudo(){
-  if(!confirm("⚠️ APAGAR TUDO?"))return;
-  if(!confirm("⚠️ Certeza? Faça backup antes!"))return;
-  Object.keys(STORE).forEach(k=>localStorage.removeItem(STORE[k]));
-  alert("Apagado.");
-  location.reload();
-}
-
-/* =================== POMBOS =================== */
-function atualizarTabelaPombos(){
-  const tb=document.querySelector("#tabelaPombos tbody");if(!tb)return;tb.innerHTML="";
-  if(!pombosSalvos.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center">Nenhum pombo</td></tr>';return}
-  pombosSalvos.forEach((p,i)=>{
-    const tr=document.createElement("tr");
-    tr.innerHTML="<td>"+esc(p.anilha)+"</td><td>"+esc(p.assoc)+"</td><td>"+esc(p.colec)+"</td><td>"+esc(p.numero)+"</td><td>"+esc(p.sexo)+'</td><td><button class="btn-editar" data-i="'+i+'">Editar</button> <button class="btn-excluir" data-i="'+i+'">Excluir</button></td>';
-    tb.appendChild(tr);
-  });
-  document.querySelectorAll("#tabelaPombos .btn-editar").forEach(b=>b.onclick=()=>editarPombo(+b.dataset.i));
-  document.querySelectorAll("#tabelaPombos .btn-excluir").forEach(b=>b.onclick=()=>excluirPombo(+b.dataset.i));
-}
-function editarPombo(i){
-  edtPomboIndex=i;
-  const p=pombosSalvos[i];
-  document.getElementById("edtAnilha").value=p.anilha;
-  document.getElementById("edtAssoc").value=p.assoc;
-  document.getElementById("edtColec").value=p.colec;
-  document.getElementById("edtNumero").value=p.numero;
-  preencherNomeConcPombo();
-  setRadio("sexoPombo",p.sexo||"Macho");
-  document.getElementById("edtAltText").hidden=false;
-  showInnerTab(document.querySelector("#winPombos .inner-tab"),"pombosEditar");
-  setTimeout(()=>document.getElementById("edtAnilha").focus(),100);
-}
-function excluirPombo(i){
-  if(!confirm("Excluir "+pombosSalvos[i].anilha+"?"))return;
-  historicoPombos.push({acao:"excluir",dados:{i,p:pombosSalvos[i]}});
-  pombosSalvos.splice(i,1);
-  if(edtPomboIndex===i)novoPombo(false);else if(edtPomboIndex>i)edtPomboIndex--;
-  salvarPombos();atualizarTabelaPombos();
-}
-function guardarPombo(){
-  const anilha=document.getElementById("edtAnilha").value.trim();
-  if(!anilha)return alert("Preencha a anilha.");
-  if(pombosSalvos.some((p,i)=>p.anilha===anilha&&i!==edtPomboIndex))return alert("Anilha "+anilha+" já cadastrada.");
-  const numero=document.getElementById("edtNumero").value.trim();
-  if(!numero)return alert("Informe o número do concorrente.");
-  const qtd=pombosSalvos.filter((p,i)=>p.numero===numero&&i!==edtPomboIndex).length;
-  if(qtd>=param.max)return alert("Este sócio já tem "+param.max+" pombos.");
-  const pombo={anilha,assoc:document.getElementById("edtAssoc").value.trim()||"11",colec:document.getElementById("edtColec").value.trim()||"33",numero,sexo:getRadio("sexoPombo","Macho")};
-  if(edtPomboIndex!==null){
-    historicoPombos.push({acao:"editar",dados:{i:edtPomboIndex,antigo:pombosSalvos[edtPomboIndex]}});
-    pombosSalvos[edtPomboIndex]=pombo;
-    edtPomboIndex=null;
-    document.getElementById("edtAltText").hidden=true;
-    setStatus("Atualizado: "+anilha);
-  }else{
-    pombosSalvos.push(pombo);
-    historicoPombos.push({acao:"adicionar"});
-    setStatus("Salvo: "+anilha+" ("+(qtd+1)+"/"+param.max+")");
-  }
-  salvarPombos();
-  atualizarTabelaPombos();
-  socioFixoPombos={numero:pombo.numero,nome:document.getElementById("edtNomeConcPombo").value,assoc:pombo.assoc,colec:pombo.colec};
-  novoPombo(true);
-}
-function novoPombo(manterSocio=false){
-  document.getElementById("edtAnilha").value="";
-  setRadio("sexoPombo","Macho");
-  edtPomboIndex=null;
-  document.getElementById("edtAltText").hidden=true;
-  if(manterSocio&&socioFixoPombos){
-    document.getElementById("edtAssoc").value=socioFixoPombos.assoc;
-    document.getElementById("edtColec").value=socioFixoPombos.colec;
-    document.getElementById("edtNumero").value=socioFixoPombos.numero;
-    document.getElementById("edtNomeConcPombo").value=socioFixoPombos.nome;
-    document.getElementById("edtInfoFix").classList.add("on");
-    document.getElementById("edtNumero").classList.add("socio-fixo");
-    document.getElementById("edtNomeConcPombo").classList.add("socio-fixo");
-    setTimeout(()=>{document.getElementById("edtAnilha").focus();document.getElementById("edtAnilha").select()},100);
-  }else{
-    document.getElementById("edtAssoc").value="11";
-    document.getElementById("edtColec").value="33";
-    document.getElementById("edtNumero").value="";
-    document.getElementById("edtNomeConcPombo").value="";
-    socioFixoPombos=null;
-    document.getElementById("edtInfoFix").classList.remove("on");
-    document.getElementById("edtNumero").classList.remove("socio-fixo");
-    document.getElementById("edtNomeConcPombo").classList.remove("socio-fixo");
-    setTimeout(()=>document.getElementById("edtNumero").focus(),100);
-  }
-}
-function liberarSocioPombos(){socioFixoPombos=null;novoPombo(false);setStatus("Sócio liberado.")}
-function desfazerPombo(){
-  if(!historicoPombos.length)return alert("Nada a desfazer.");
-  const h=historicoPombos.pop();
-  if(h.acao==="adicionar")pombosSalvos.pop();
-  if(h.acao==="excluir")pombosSalvos.splice(h.dados.i,0,h.dados.p);
-  if(h.acao==="editar")pombosSalvos[h.dados.i]=h.dados.antigo;
-  salvarPombos();atualizarTabelaPombos();
-}
-function anularPombo(){if(edtPomboIndex!==null)editarPombo(edtPomboIndex);else novoPombo(false)}
-function preencherNomeConcPombo(){
-  const n=document.getElementById("edtNumero").value.trim();
-  const c=concorrentesSalvos.find(x=>x.numero===n);
-  document.getElementById("edtNomeConcPombo").value=c?c.nome:"";
-}
-
-/* =================== CONCORRENTES =================== */
-function atualizarTabelaConcorrentes(){
-  const tb=document.querySelector("#tabelaConcorrentes tbody");if(!tb)return;tb.innerHTML="";
-  if(!concorrentesSalvos.length){tb.innerHTML='<tr><td colspan="5" style="text-align:center">Nenhum</td></tr>';return}
-  concorrentesSalvos.forEach((c,i)=>{
-    const tr=document.createElement("tr");
-    tr.innerHTML="<td>"+esc(c.assoc)+"</td><td>"+esc(c.colec)+"</td><td>"+esc(c.numero)+"</td><td>"+esc(c.nome)+'</td><td><button class="btn-editar" data-i="'+i+'">Editar</button> <button class="btn-excluir" data-i="'+i+'">Excluir</button></td>';
-    tr.ondblclick=()=>editarConc(i);
-    tb.appendChild(tr);
-  });
-  document.querySelectorAll("#tabelaConcorrentes .btn-editar").forEach(b=>b.onclick=()=>editarConc(+b.dataset.i));
-  document.querySelectorAll("#tabelaConcorrentes .btn-excluir").forEach(b=>b.onclick=()=>excluirConc(+b.dataset.i));
-}
-function editarConc(i){
-  edtConcIndex=i;
-  const c=concorrentesSalvos[i];
-  document.getElementById("concAssoc").value=c.assoc;
-  document.getElementById("concColec").value=c.colec;
-  document.getElementById("concNumero").value=c.numero;
-  document.getElementById("concNome").value=c.nome;
-  document.getElementById("concMorada").value=c.morada||"";
-  document.getElementById("concLocalidade").value=c.localidade||"";
-  document.getElementById("concTelefone").value=c.telefone||"";
-  document.getElementById("concEmail").value=c.email||"";
-  document.getElementById("concLatGrau").value=c.latGrau||"022";
-  document.getElementById("concLatMin").value=c.latMin||"33";
-  document.getElementById("concLatSeg").value=c.latSeg||"46.4";
-  document.getElementById("concLonGrau").value=c.lonGrau||"047";
-  document.getElementById("concLonMin").value=c.lonMin||"22";
-  document.getElementById("concLonSeg").value=c.lonSeg||"55.1";
-  showInnerTab(document.querySelector("#winConcorrentes .inner-tab"),"concorrentesEditar");
-}
-function excluirConc(i){
-  if(!confirm("Excluir "+concorrentesSalvos[i].nome+"?"))return;
-  historicoConc.push({acao:"excluir",dados:{i,c:concorrentesSalvos[i]}});
-  concorrentesSalvos.splice(i,1);
-  if(edtConcIndex===i)novoConc();else if(edtConcIndex>i)edtConcIndex--;
-  salvarConcorrentes();atualizarTabelaConcorrentes();
-}
-function guardarConc(){
-  const num=document.getElementById("concNumero").value.trim();
-  const nome=document.getElementById("concNome").value.trim();
-  if(!num||!nome)return alert("Preencha número e nome.");
-  const conc={
-    assoc:document.getElementById("concAssoc").value||"11",
-    colec:document.getElementById("concColec").value||"33",
-    numero:num,nome,
-    morada:document.getElementById("concMorada").value,
-    localidade:document.getElementById("concLocalidade").value,
-    telefone:document.getElementById("concTelefone").value,
-    email:document.getElementById("concEmail").value,
-    latGrau:document.getElementById("concLatGrau").value,
-    latMin:document.getElementById("concLatMin").value,
-    latSeg:document.getElementById("concLatSeg").value,
-    lonGrau:document.getElementById("concLonGrau").value,
-    lonMin:document.getElementById("concLonMin").value,
-    lonSeg:document.getElementById("concLonSeg").value
-  };
-  if(edtConcIndex!==null){
-    historicoConc.push({acao:"editar",dados:{i:edtConcIndex,antigo:concorrentesSalvos[edtConcIndex]}});
-    concorrentesSalvos[edtConcIndex]=conc;
-    edtConcIndex=null;
-    alert("Atualizado.");
-  }else{
-    if(concorrentesSalvos.some(c=>c.numero===num))return alert("Número já existe.");
-    concorrentesSalvos.push(conc);
-    historicoConc.push({acao:"adicionar"});
-    alert("Salvo.");
-  }
-  salvarConcorrentes();atualizarTabelaConcorrentes();novoConc();
-}
-function novoConc(){
-  document.getElementById("concNumero").value="";
-  document.getElementById("concNome").value="";
-  document.getElementById("concMorada").value="";
-  document.getElementById("concLocalidade").value="";
-  document.getElementById("concTelefone").value="";
-  document.getElementById("concEmail").value="";
-  document.getElementById("concLatGrau").value="022";
-  document.getElementById("concLatMin").value="33";
-  document.getElementById("concLatSeg").value="46.4";
-  document.getElementById("concLonGrau").value="047";
-  document.getElementById("concLonMin").value="22";
-  document.getElementById("concLonSeg").value="55.1";
-  edtConcIndex=null;
-}
-function desfazerConc(){
-  if(!historicoConc.length)return alert("Nada a desfazer.");
-  const h=historicoConc.pop();
-  if(h.acao==="adicionar")concorrentesSalvos.pop();
-  if(h.acao==="excluir")concorrentesSalvos.splice(h.dados.i,0,h.dados.c);
-  if(h.acao==="editar")concorrentesSalvos[h.dados.i]=h.dados.antigo;
-  salvarConcorrentes();atualizarTabelaConcorrentes();
-}
-function anularConc(){if(edtConcIndex!==null)editarConc(edtConcIndex);else novoConc()}
-
-/* =================== CURSOS =================== */
-function cursoForm(){
-  return{
-    ano:document.getElementById("cursoAno").value.trim(),
-    num:document.getElementById("cursoNum").value.trim(),
-    nome:document.getElementById("cursoNome").value.trim(),
-    data:document.getElementById("cursoData").value.trim(),
-    tipo:getRadio("cursoTipo","Velocidade Adulto"),
-    oficial:getRadio("cursoOficial","Sim"),
-    ini:document.getElementById("cursoIni").value||"1000",
-    dec:document.getElementById("cursoDec").value||"1",
-    tm1:document.getElementById("cursoTM1").value.trim()||"00:00:00",
-    tm2:document.getElementById("cursoTM2").value.trim()||"00:00:00",
-    tm3:document.getElementById("cursoTM3").value.trim()||"00:00:00",
-    horaSolta:document.getElementById("cursoHoraSolta").value.trim(),
-    obs:document.getElementById("cursoObs").value.trim(),
-    latGrau:document.getElementById("cursoLatGrau").value.trim(),
-    latMin:document.getElementById("cursoLatMin").value.trim(),
-    latSeg:document.getElementById("cursoLatSeg").value.trim(),
-    lonGrau:document.getElementById("cursoLonGrau").value.trim(),
-    lonMin:document.getElementById("cursoLonMin").value.trim(),
-    lonSeg:document.getElementById("cursoLonSeg").value.trim()
-  };
-}
-function preencherCurso(c){
-  document.getElementById("cursoAno").value=c.ano||"";
-  document.getElementById("cursoNum").value=c.num||"";
-  document.getElementById("cursoNome").value=c.nome||"";
-  document.getElementById("cursoData").value=c.data||"";
-  document.getElementById("cursoIni").value=c.ini||"1000";
-  document.getElementById("cursoDec").value=c.dec||"1";
-  document.getElementById("cursoTM1").value=c.tm1||"00:00:00";
-  document.getElementById("cursoTM2").value=c.tm2||"00:00:00";
-  document.getElementById("cursoTM3").value=c.tm3||"00:00:00";
-  document.getElementById("cursoHoraSolta").value=c.horaSolta||"";
-  document.getElementById("cursoObs").value=c.obs||"";
-  document.getElementById("cursoLatGrau").value=c.latGrau||"";
-  document.getElementById("cursoLatMin").value=c.latMin||"";
-  document.getElementById("cursoLatSeg").value=c.latSeg||"";
-  document.getElementById("cursoLonGrau").value=c.lonGrau||"";
-  document.getElementById("cursoLonMin").value=c.lonMin||"";
-  document.getElementById("cursoLonSeg").value=c.lonSeg||"";
-  setRadio("cursoTipo",c.tipo||"Velocidade Adulto");
-  setRadio("cursoOficial",c.oficial||"Sim");
-}
-function atualizarTabelaCursos(){
-  const tb=document.querySelector("#tabelaConcursosCad tbody");if(!tb)return;tb.innerHTML="";
-  if(!cursosSalvos.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center">Nenhum</td></tr>';return}
-  cursosSalvos.slice().sort((a,b)=>(+a.ano||0)-(+b.ano||0)||(+a.num||0)-(+b.num||0)).forEach(c=>{
-    const i=cursosSalvos.indexOf(c);
-    const tr=document.createElement("tr");
-    tr.innerHTML="<td>"+esc(c.ano)+"</td><td>"+esc(c.num)+"</td><td>"+esc(c.nome)+"</td><td>"+esc(c.tipo||"")+"</td><td>"+esc(c.ini||"1000")+"(-"+esc(c.dec||"1")+")</td>"+'<td><button class="btn-editar" data-i="'+i+'">Editar</button> <button class="btn-excluir" data-i="'+i+'">Excluir</button></td>';
-    tr.ondblclick=()=>editarCurso(i);
-    tb.appendChild(tr);
-  });
-  document.querySelectorAll("#tabelaConcursosCad .btn-editar").forEach(b=>b.onclick=()=>editarCurso(+b.dataset.i));
-  document.querySelectorAll("#tabelaConcursosCad .btn-excluir").forEach(b=>b.onclick=()=>excluirCurso(+b.dataset.i));
-}
-function novoCurso(){
-  edtCursoIndex=null;
-  preencherCurso({ano:"",num:"",nome:"",data:"",tipo:"Velocidade Adulto",oficial:"Sim",ini:"1000",dec:"1",tm1:"00:00:00",tm2:"00:00:00",tm3:"00:00:00",horaSolta:"",obs:"",latGrau:"",latMin:"",latSeg:"",lonGrau:"",lonMin:"",lonSeg:""});
-  document.getElementById("cursoAlteracaoText").hidden=true;
-}
-function editarCurso(i){
-  edtCursoIndex=i;
-  preencherCurso(cursosSalvos[i]);
-  document.getElementById("cursoAlteracaoText").hidden=false;
-  showInnerTab(document.querySelector("#winConcursos .inner-tab"),"cursoEditar");
-}
-function guardarCurso(){
-  const c=cursoForm();
-  if(!c.ano||!c.num||!c.nome)return alert("Preencha Ano, Número e Nome.");
-  if(cursosSalvos.findIndex((x,i)=>x.ano===c.ano&&x.num===c.num&&i!==edtCursoIndex)>=0)return alert("Já existe.");
-  if(edtCursoIndex!==null){
-    historicoCursos.push({acao:"editar",dados:{i:edtCursoIndex,antigo:cursosSalvos[edtCursoIndex]}});
-    cursosSalvos[edtCursoIndex]=c;
-    edtCursoIndex=null;
-    alert("Atualizado.");
-  }else{
-    cursosSalvos.push(c);
-    historicoCursos.push({acao:"adicionar"});
-    alert("Salvo.");
-  }
-  salvarCursos();atualizarTabelaCursos();document.getElementById("cursoAlteracaoText").hidden=true;
-}
-function excluirCurso(i){
-  if(!confirm("Excluir "+cursosSalvos[i].nome+"?"))return;
-  historicoCursos.push({acao:"excluir",dados:{i,c:cursosSalvos[i]}});
-  cursosSalvos.splice(i,1);
-  salvarCursos();
-  atualizarTabelaCursos();
-}
-function desfazerCurso(){
-  if(!historicoCursos.length)return alert("Nada a desfazer.");
-  const h=historicoCursos.pop();
-  if(h.acao==="adicionar")cursosSalvos.pop();
-  if(h.acao==="excluir")cursosSalvos.splice(h.dados.i,0,h.dados.c);
-  if(h.acao==="editar")cursosSalvos[h.dados.i]=h.dados.antigo;
-  salvarCursos();atualizarTabelaCursos();
-}
-function anularCurso(){if(edtCursoIndex!==null)editarCurso(edtCursoIndex);else novoCurso()}
-
-/* =================== LANÇAMENTOS =================== */
-function getCursoAtual(){if(provaAtual?.curso)return provaAtual.curso;if(!provaAtual)return null;return cursosSalvos.find(c=>c.ano===provaAtual.ano&&c.num===provaAtual.num)||null}
-function carregarLancamentosProva(ano,num,nome){
-  const curso=cursosSalvos.find(c=>c.ano===ano&&c.num===num)||null;
-  provaAtual={ano,num,nome,curso};
-  document.getElementById("lancAno").value=ano;
-  document.getElementById("lancNum").value=num;
-  document.getElementById("lancNomeConcurso").value=nome;
-  document.getElementById("lancTipoTexto").textContent=curso?.tipo?curso.tipo.toUpperCase():"";
-  if(curso){
-    document.getElementById("lancDataIni").value=curso.data||"";
-    document.getElementById("lancHoraIni").value=curso.horaSolta||"";
-    document.getElementById("lancPartida").value=curso.horaSolta||"";
-    document.getElementById("lancTMorto").value=curso.tm1||"00:00:00";
-    document.getElementById("lancTMortoCalc").value=curso.tm1||"00:00:00";
-  }
-  lancamentos=todosLancamentos[ano+"/"+num]||[];
-  atualizarListaLancamentos();
-  limparLancamento(false,false);
-  setStatus("Prova: "+ano+"/"+num);
-  setTimeout(()=>document.getElementById("lancAnilha").focus(),100);
-}
-function limparLancamento(limparConcurso=false,manterSocio=false){
-  document.getElementById("lancAnilha").value="";
-  document.getElementById("lancChegada").value="";
-  document.getElementById("lancDistancia").value="0,0";
-  document.getElementById("lancMedia").value="0,0000";
-  document.getElementById("lancTempoVoo").value="";
-  document.getElementById("lancDias").value="1";
-  document.getElementById("lancCorrecao").value="0";
-  document.getElementById("lancCorrCalc").value="0";
-  setRadio("lancSexo","Macho");
-  editandoLancIndex=null;
-  if(!manterSocio){
-    document.getElementById("lancAssoc").value="0";
-    document.getElementById("lancColec").value="";
-    document.getElementById("lancNumConc").value="0";
-    document.getElementById("lancNomeConc").value="";
-    socioFixoLanc=null;
-    document.getElementById("lancInfoFix").classList.remove("on");
-    document.getElementById("lancNumConc").classList.remove("socio-fixo");
-    document.getElementById("lancNomeConc").classList.remove("socio-fixo");
-  }
-  if(limparConcurso){
-    provaAtual=null;lancamentos=[];
-    document.getElementById("lancAno").value="0";
-    document.getElementById("lancNum").value="0";
-    document.getElementById("lancNomeConcurso").value="";
-    document.getElementById("lancTipoTexto").textContent="";
-    document.getElementById("lancDataIni").value="";
-    document.getElementById("lancHoraIni").value="";
-    document.getElementById("lancPartida").value="";
-    document.getElementById("lancTMorto").value="00:00:00";
-    document.getElementById("lancTMortoCalc").value="00:00:00";
-  }
-  atualizarListaLancamentos();
-}
-function atualizarListaLancamentos(){
-  const tb=document.querySelector("#tabelaLancamentos tbody");if(!tb)return;tb.innerHTML="";
-  if(!lancamentos.length){
-    tb.innerHTML='<tr><td colspan="3" style="text-align:center;color:#999">-</td></tr>';
-  }else{
-    lancamentos.forEach((l,i)=>{
-      const tr=document.createElement("tr");
-      const tag=l.pmrProvisorio?' <span style="color:#a67c00;font-weight:bold;">[PMR]</span>':"";
-      tr.innerHTML="<td>"+esc(l.anilha)+tag+"</td><td>"+esc(l.chegada||"")+'</td><td><button class="btn-editar" data-i="'+i+'">E</button> <button class="btn-excluir" data-i="'+i+'">X</button></td>';
-      tb.appendChild(tr);
-    });
-    document.querySelectorAll("#tabelaLancamentos .btn-editar").forEach(b=>b.onclick=()=>editarLancamento(+b.dataset.i));
-    document.querySelectorAll("#tabelaLancamentos .btn-excluir").forEach(b=>b.onclick=()=>excluirLancamento(+b.dataset.i));
-  }
-  document.getElementById("contProva").value=lancamentos.length;
-  const n=document.getElementById("lancNumConc").value.trim();
-  document.getElementById("contConc").value=lancamentos.filter(l=>l.concNum===n).length;
-}
-function buscarPombo(){
-  const anilha=document.getElementById("lancAnilha").value.trim();
-  if(!anilha||anilha.length<3)return;
-  const p=pombosSalvos.find(x=>x.anilha===anilha);
-  if(!p){alert("Pombo "+anilha+" não cadastrado.");return}
-  document.getElementById("lancAssoc").value=p.assoc;
-  document.getElementById("lancColec").value=p.colec;
-  document.getElementById("lancNumConc").value=p.numero;
-  const c=concorrentesSalvos.find(x=>x.numero===p.numero);
-  document.getElementById("lancNomeConc").value=c?c.nome:"";
-  setRadio("lancSexo",p.sexo||"Macho");
-  atualizarDistanciaLancamento();
-}
-function atualizarDistanciaLancamento(){
-  const curso=getCursoAtual();
-  const numConc=document.getElementById("lancNumConc").value.trim();
-  const conc=concorrentesSalvos.find(c=>c.numero===numConc);
-  if(!curso||!conc){document.getElementById("lancDistancia").value="0,0";calcularTempoVoo();return}
-  const latC=dmsDec(conc.latGrau,conc.latMin,conc.latSeg),lonC=dmsDec(conc.lonGrau,conc.lonMin,conc.lonSeg);
-  const latS=dmsDec(curso.latGrau,curso.latMin,curso.latSeg),lonS=dmsDec(curso.lonGrau,curso.lonMin,curso.lonSeg);
-  document.getElementById("lancDistancia").value=fmtBR(distM(latC,lonC,latS,lonS),1);
-  calcularTempoVoo();
-  atualizarListaLancamentos();
-}
-function parseHora(t){if(!t)return[0,0,0];const p=t.split(":");return[parseInt(p[0])||0,parseInt(p[1])||0,parseInt(p[2])||0]}
-function calcularTempoVoo(){
-  const dias=Math.max(1,parseInt(document.getElementById("lancDias").value)||1);
-  const chegada=parseHora(document.getElementById("lancChegada").value||document.getElementById("lancHoraFim").value||"00:00:00");
-  const partida=parseHora(document.getElementById("lancPartida").value||document.getElementById("lancHoraIni").value||"00:00:00");
-  const morto=parseHora(document.getElementById("lancTMorto").value||"00:00:00");
-  document.getElementById("lancTMortoCalc").value=document.getElementById("lancTMorto").value||"00:00:00";
-  const correcao=brN(document.getElementById("lancCorrecao").value);
-  document.getElementById("lancCorrCalc").value=correcao;
-  const minChegada=(((dias-1)*24)+chegada[0])*60+chegada[1]+chegada[2]/60;
-  const minPartida=partida[0]*60+partida[1]+partida[2]/60;
-  const minMorto=morto[0]*60+morto[1]+morto[2]/60;
-  let totalMin=minChegada-minPartida-minMorto+correcao;if(totalMin<0)totalMin=0;
-  const totalSeg=Math.round(totalMin*60);
-  const h=Math.floor(totalSeg/3600),m=Math.floor((totalSeg%3600)/60),s=totalSeg%60;
-  document.getElementById("lancTempoVoo").value=String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
-  const distancia=brN(document.getElementById("lancDistancia").value);
-  document.getElementById("lancMedia").value=fmtBR(totalMin>0?distancia/totalMin:0,4);
-}
-function guardarLancamento(){
-  if(!provaAtual)return alert("Selecione uma prova primeiro.");
-  const anilha=document.getElementById("lancAnilha").value.trim();if(!anilha)return alert("Informe a anilha.");
-  const numConc=document.getElementById("lancNumConc").value.trim();if(!numConc||numConc==="0")return alert("Selecione um concorrente.");
-  const chegada=document.getElementById("lancChegada").value.trim();if(!chegada)return alert("Informe a hora de chegada.");
-  if(lancamentos.some((l,i)=>l.anilha===anilha&&i!==editandoLancIndex))return alert("Pombo já lançado.");
-  const qtdSoc=lancamentos.filter((l,i)=>l.concNum===numConc&&i!==editandoLancIndex).length;if(qtdSoc>=param.max)return alert("Sócio já tem "+param.max+" pombos!");
-  atualizarDistanciaLancamento();calcularTempoVoo();
-  const lanc={anilha,assoc:document.getElementById("lancAssoc").value,colec:document.getElementById("lancColec").value,concNum:numConc,sexo:getRadio("lancSexo","Macho"),dataIni:document.getElementById("lancDataIni").value,horaIni:document.getElementById("lancHoraIni").value,dataFim:document.getElementById("lancDataFim").value,horaFim:document.getElementById("lancHoraFim").value,dias:document.getElementById("lancDias").value,chegada,partida:document.getElementById("lancPartida").value,tMorto:document.getElementById("lancTMorto").value,correcao:document.getElementById("lancCorrecao").value,distancia:document.getElementById("lancDistancia").value,media:document.getElementById("lancMedia").value,tempoVoo:document.getElementById("lancTempoVoo").value};
-  if(editandoLancIndex!==null){
-    historicoLanc.push({acao:"editar",dados:{i:editandoLancIndex,antigo:lancamentos[editandoLancIndex]}});
-    lancamentos[editandoLancIndex]=lanc;editandoLancIndex=null;setStatus("Atualizado: "+anilha);
-  }else{
-    lancamentos.push(lanc);historicoLanc.push({acao:"adicionar"});setStatus("Salvo "+anilha+" ("+(qtdSoc+1)+"/"+param.max+")");
-  }
-  salvarLancamentosProvaAtual();atualizarListaLancamentos();
-  socioFixoLanc={numero:numConc,nome:document.getElementById("lancNomeConc").value,assoc:lanc.assoc,colec:lanc.colec};
-  document.getElementById("lancInfoFix").classList.add("on");
-  document.getElementById("lancNumConc").classList.add("socio-fixo");
-  document.getElementById("lancNomeConc").classList.add("socio-fixo");
-  document.getElementById("lancAnilha").value="";
-  document.getElementById("lancChegada").value="";
-  document.getElementById("lancDistancia").value="0,0";
-  document.getElementById("lancMedia").value="0,0000";
-  document.getElementById("lancTempoVoo").value="";
-  setTimeout(()=>{document.getElementById("lancAnilha").focus();document.getElementById("lancAnilha").select()},100);
-}
-function salvarLancamentosProvaAtual(){if(!provaAtual)return;todosLancamentos[provaAtual.ano+"/"+provaAtual.num]=lancamentos;salvarLancamentos()}
-function editarLancamento(i){
-  const l=lancamentos[i];
-  editandoLancIndex=i;
-  document.getElementById("lancAnilha").value=l.anilha;
-  document.getElementById("lancAssoc").value=l.assoc||"";
-  document.getElementById("lancColec").value=l.colec||"";
-  document.getElementById("lancNumConc").value=l.concNum||"";
-  const c=concorrentesSalvos.find(x=>x.numero===l.concNum);
-  document.getElementById("lancNomeConc").value=c?c.nome:"";
-  setRadio("lancSexo",l.sexo||"Macho");
-  document.getElementById("lancDataIni").value=l.dataIni||"";
-  document.getElementById("lancHoraIni").value=l.horaIni||"";
-  document.getElementById("lancDataFim").value=l.dataFim||"";
-  document.getElementById("lancHoraFim").value=l.horaFim||"";
-  document.getElementById("lancDias").value=l.dias||"1";
-  document.getElementById("lancChegada").value=l.chegada||"";
-  document.getElementById("lancPartida").value=l.partida||"";
-  document.getElementById("lancTMorto").value=l.tMorto||"00:00:00";
-  document.getElementById("lancCorrecao").value=l.correcao||"0";
-  document.getElementById("lancDistancia").value=l.distancia||"";
-  document.getElementById("lancMedia").value=l.media||"";
-  document.getElementById("lancTempoVoo").value=l.tempoVoo||"";
-}
-function excluirLancamento(i){
-  if(!confirm("Excluir "+lancamentos[i].anilha+"?"))return;
-  historicoLanc.push({acao:"excluir",dados:{i,l:lancamentos[i]}});
-  lancamentos.splice(i,1);
-  salvarLancamentosProvaAtual();
-  atualizarListaLancamentos();
-}
-function desfazerLancamento(){
-  if(!historicoLanc.length)return alert("Nada a desfazer.");
-  const h=historicoLanc.pop();
-  if(h.acao==="adicionar")lancamentos.pop();
-  if(h.acao==="excluir")lancamentos.splice(h.dados.i,0,h.dados.l);
-  if(h.acao==="editar")lancamentos[h.dados.i]=h.dados.antigo;
-  salvarLancamentosProvaAtual();
-  atualizarListaLancamentos();
-}
-function anularLancamento(){limparLancamento(false,false)}
-function liberarSocioLanc(){socioFixoLanc=null;limparLancamento(false,false);setStatus("Sócio liberado.")}
-
-/* =================== MODAIS =================== */
-function abrirModalConcurso(destino="lanc"){
-  destinoModalConcurso=destino;
-  document.getElementById("modalConcurso").classList.add("active");
-  document.getElementById("filtroConcurso").value="";
-  filtrarConcursos();
-  document.getElementById("filtroConcurso").focus();
-}
-function fecharModalConcurso(){document.getElementById("modalConcurso").classList.remove("active")}
-function filtrarConcursos(){
-  const f=document.getElementById("filtroConcurso").value.toLowerCase();
-  const tb=document.querySelector("#tabelaConcursos tbody");tb.innerHTML="";
-  const lista=cursosSalvos.slice().sort((a,b)=>(+a.ano||0)-(+b.ano||0)||(+a.num||0)-(+b.num||0)).filter(c=>String(c.ano||"").includes(f)||String(c.num||"").includes(f)||String(c.nome||"").toLowerCase().includes(f));
-  if(!lista.length){tb.innerHTML='<tr><td colspan="4" style="text-align:center">Nenhuma</td></tr>';return}
-  lista.forEach(c=>{
-    const tr=document.createElement("tr");
-    tr.innerHTML="<td>"+esc(c.ano)+"</td><td>"+esc(c.num)+"</td><td>"+esc(c.nome)+"</td><td style='text-align:center'>"+tipoAbrev(c.tipo)+"</td>";
-    tr.style.cursor="pointer";
-    tr.onclick=function(){
-      document.querySelectorAll("#tabelaConcursos tbody tr").forEach(r=>{r.style.background="";r.style.color="";r.dataset.sel=""});
-      tr.style.background="#0078d7";tr.style.color="#fff";tr.dataset.sel="1";
-    };
-    tr.ondblclick=function(){this.onclick();selecionarConcursoModal()};
-    tb.appendChild(tr);
-  });
-}
-function selecionarConcursoModal(){
-  const sel=document.querySelector('#tabelaConcursos tbody tr[data-sel="1"]');if(!sel)return alert("Selecione um concurso.");
-  const tds=sel.querySelectorAll("td");
-  const ano=tds[0].textContent,num=tds[1].textContent,nome=tds[2].textContent;
-
-  if(destinoModalConcurso==="pmr"){
-    document.getElementById("pmrAno").value=ano;
-    document.getElementById("pmrNum").value=num;
-    document.getElementById("pmrNomeConcurso").value=nome;
-    const mobConc=document.getElementById("mobNomeConcurso");
-    if(mobConc)mobConc.textContent=`Conc ${num}/${ano} - ${nome}`;
-    carregarLancamentosProva(ano,num,nome);
-    atualizarTabelaAuditoriaPMR();
-    fecharModalConcurso();
-    return;
-  }
-  if(destinoModalConcurso==="calc"){
-    document.getElementById("calcAno").value=ano;
-    document.getElementById("calcNum").value=num;
-    document.getElementById("calcNomeConcurso").value=nome;
-    preencherDadosConcursoCalc(ano,num);
-  }else if(destinoModalConcurso==="rel"){
-    document.getElementById("relAno").value=ano;
-    document.getElementById("relNum").value=num;
-    document.getElementById("relNome").value=nome;
-  }else if(destinoModalConcurso==="shr"){
-    document.getElementById("shrAno").value=ano;
-    document.getElementById("shrNum").value=num;
-    document.getElementById("shrNome").value=nome;
-  }else if(destinoModalConcurso==="exp"){
-    document.getElementById("expAno").value=ano;
-    document.getElementById("expNum").value=num;
-    document.getElementById("expNome").value=nome;
-  }else{
-    carregarLancamentosProva(ano,num,nome);
-  }
-  fecharModalConcurso();
-}
-function abrirModalConcorrente(cb){
-  callbackSelConcorrente=cb;
-  document.getElementById("modalConcorrente").classList.add("active");
-  document.getElementById("filtroConcorrente").value="";
-  filtrarConcorrentesModal();
-  document.getElementById("filtroConcorrente").focus();
-}
-function fecharModalConcorrente(){
-  document.getElementById("modalConcorrente").classList.remove("active");
-  callbackSelConcorrente=null;
-}
-function filtrarConcorrentesModal(){
-  const f=document.getElementById("filtroConcorrente").value.toLowerCase();
-  const tb=document.querySelector("#tabelaConcorrentesModal tbody");tb.innerHTML="";
-  const lista=concorrentesSalvos.filter(c=>String(c.numero||"").includes(f)||String(c.nome||"").toLowerCase().includes(f));
-  if(!lista.length){tb.innerHTML='<tr><td colspan="3" style="text-align:center">Nenhum</td></tr>';return}
-  lista.forEach(c=>{
-    const tr=document.createElement("tr");
-    tr.innerHTML="<td>"+esc(c.numero)+"</td><td>"+esc(c.nome)+"</td><td>"+esc(c.assoc)+"/"+esc(c.colec)+"</td>";
-    tr.style.cursor="pointer";
-    tr.onclick=function(){
-      document.querySelectorAll("#tabelaConcorrentesModal tbody tr").forEach(r=>{r.style.background="";r.dataset.sel=""});
-      tr.style.background="#cce8ff";
-      tr.dataset.sel="1";
-    };
-    tr.ondblclick=function(){this.onclick();selecionarConcorrenteModal()};
-    tb.appendChild(tr);
-  });
-}
-function selecionarConcorrenteModal(){
-  const sel=document.querySelector('#tabelaConcorrentesModal tbody tr[data-sel="1"]');if(!sel)return alert("Selecione um concorrente.");
-  const num=sel.querySelector("td").textContent;
-  const conc=concorrentesSalvos.find(c=>c.numero===num);
-  if(conc&&callbackSelConcorrente)callbackSelConcorrente(conc);
-  fecharModalConcorrente();
-}
-
-/* =================== CÁLCULO =================== */
-function resetarCalculo(){
-  document.getElementById("calcAno").value="0";
-  document.getElementById("calcNum").value="0";
-  document.getElementById("calcNomeConcurso").value="";
-  document.getElementById("calcDadoTipo").value="";
-  document.getElementById("calcDadoData").value="/ /";
-  document.getElementById("calcDadoLat").value="";
-  document.getElementById("calcDadoLon").value="";
-  document.getElementById("calcDadoPombos").value="0";
-  for(let i=1;i<=8;i++){
-    const el=document.getElementById("etapa"+i);
-    if(el){el.classList.remove("done");el.classList.add("pending")}
-  }
-}
-function preencherDadosConcursoCalc(ano,num){
-  const c=cursosSalvos.find(x=>x.ano===ano&&x.num===num);
-  if(!c)return;
-  document.getElementById("calcDadoTipo").value=c.tipo||"";
-  document.getElementById("calcDadoData").value=c.data||"/ /";
-  document.getElementById("calcDadoLat").value=(c.latGrau||"0")+"° "+(c.latMin||"0")+"' "+(c.latSeg||"0")+'"';
-  document.getElementById("calcDadoLon").value=(c.lonGrau||"0")+"° "+(c.lonMin||"0")+"' "+(c.lonSeg||"0")+'"';
-  const arr=todosLancamentos[ano+"/"+num]||[];
-  const oficiais=arr.filter(lancamentoValidoParaCalculo);
-  document.getElementById("calcDadoPombos").value=oficiais.length;
-}
-async function executarCalculo(){
-  const ano=document.getElementById("calcAno").value.trim();
-  const num=document.getElementById("calcNum").value.trim();
-  if(!ano||ano==="0"||!num||num==="0")return alert("Selecione um concurso.");
-
-  const chave=ano+"/"+num;
-  const todos=todosLancamentos[chave]||[];
-  const arr=todos.filter(lancamentoValidoParaCalculo);
-
-  if(!arr.length)return alert("Sem lançamentos oficiais/homologados nesta prova.");
-
-  for(let i=1;i<=8;i++){
-    const el=document.getElementById("etapa"+i);
-    if(el){el.classList.remove("done");el.classList.add("pending")}
-  }
-  const marcaEtapa=(n,delay)=>new Promise(r=>{setTimeout(()=>{const el=document.getElementById("etapa"+n);el.classList.remove("pending");el.classList.add("done");setStatus("Etapa "+n+"...");r()},delay)});
-  await marcaEtapa(1,200);await marcaEtapa(2,300);await marcaEtapa(3,300);await marcaEtapa(4,400);
-
-  const cursoSel=cursosSalvos.find(c=>c.ano===ano&&c.num===num);
-  const ini=parseInt(cursoSel?.ini)||1000;
-  const dec=parseInt(cursoSel?.dec)||1;
-  const min=1;
-
-  arr.forEach(l=>{
-    const conc=concorrentesSalvos.find(c=>c.numero===l.concNum);
-    if(conc&&cursoSel){
-      const latC=dmsDec(conc.latGrau,conc.latMin,conc.latSeg),lonC=dmsDec(conc.lonGrau,conc.lonMin,conc.lonSeg);
-      const latS=dmsDec(cursoSel.latGrau,cursoSel.latMin,cursoSel.latSeg),lonS=dmsDec(cursoSel.lonGrau,cursoSel.lonMin,cursoSel.lonSeg);
-      l.distancia=fmtBR(distM(latC,lonC,latS,lonS),1);
-      const dias=Math.max(1,parseInt(l.dias)||1);
-      const cheg=parseHora(l.chegada||"00:00:00");
-      const part=parseHora(l.partida||"00:00:00");
-      const mort=parseHora(l.tMorto||"00:00:00");
-      const corr=brN(l.correcao||0);
-      const mCheg=(((dias-1)*24)+cheg[0])*60+cheg[1]+cheg[2]/60;
-      const mPart=part[0]*60+part[1]+part[2]/60;
-      const mMort=mort[0]*60+mort[1]+mort[2]/60;
-      let totMin=mCheg-mPart-mMort+corr;if(totMin<0)totMin=0;
-      const distNum=brN(l.distancia);
-      l.media=fmtBR(totMin>0?distNum/totMin:0,4);
-    }
-  });
-
-  const groups={};
-  arr.forEach(l=>{(groups[l.concNum]=groups[l.concNum]||[]).push(Object.assign({},l))});
-  let filtrado=[];
-  Object.keys(groups).forEach(soc=>{
-    const g=groups[soc].sort((a,b)=>brN(b.media)-brN(a.media)).slice(0,param.top);
-    g.forEach((r,i)=>{r.marca=i<param.p?"P":"E";r.rankSocio=i+1});
-    filtrado=filtrado.concat(g);
-  });
-  filtrado.sort((a,b)=>brN(b.media)-brN(a.media));
-  filtrado.forEach((r,i)=>{
-    r.lugar=i+1;
-    r.pontosPombo=calcPts(i+1,ini,dec,min);
-    r.pontosSoc=r.marca==="P"?r.pontosPombo:0;
-    r.pontos=r.pontosPombo;
-  });
-
-  await marcaEtapa(5,400);await marcaEtapa(6,300);await marcaEtapa(7,300);await marcaEtapa(8,300);
-  window._ultimaClassificacao={chave,ano,num,lista:filtrado};
-
-  document.getElementById("calcResAno").value=ano;
-  document.getElementById("calcResNum").value=num;
-  document.getElementById("calcResNome").value=document.getElementById("calcNomeConcurso").value;
-  const tb=document.querySelector("#tabelaClassificacao tbody");
-  tb.innerHTML="";
-  filtrado.forEach(l=>{
-    const conc=concorrentesSalvos.find(c=>c.numero===l.concNum);
-    const nome=conc?conc.nome:"";
-    const tr=document.createElement("tr");
-    tr.innerHTML='<td class="lugar">'+l.lugar+"</td><td>"+esc(l.anilha)+"</td><td>"+esc(l.concNum)+"</td><td>"+esc(nome)+"</td><td>"+esc(l.chegada||"")+"</td><td>"+esc(l.distancia||"")+"</td><td>"+esc(l.media||"")+'</td><td class="pontos">'+l.pontos+"</td><td>"+(l.marca==="P"?'<span class="tagP">P</span>':'<span class="tagE">E</span>')+"</td>";
-    tb.appendChild(tr);
-  });
-  setStatus("Concluído: "+filtrado.length+" pombos");
-  openWin("winCalculoResult");
-}
-function confirmarCalculo(){
-  if(!window._ultimaClassificacao)return alert("Execute o cálculo primeiro.");
-  const {chave,lista}=window._ultimaClassificacao;
-  classificacoesSalvas[chave]=lista.map(l=>({
-    anilha:l.anilha,concNum:l.concNum,nome:(concorrentesSalvos.find(c=>c.numero===l.concNum)||{}).nome||"",
-    pontos:l.pontosPombo,pontosSoc:l.pontosSoc,marca:l.marca,media:l.media,lugar:l.lugar,rankSocio:l.rankSocio,chegada:l.chegada,distancia:l.distancia
-  }));
-  salvarClassificacoes();
-  alert("Confirmada!");
-  setStatus("Confirmada: "+chave);
-}
-
-/* =================== RELATÓRIO / TOTAIS =================== */
-function resetarRelatorio(){
-  document.getElementById("relAno").value="";
-  document.getElementById("relNum").value="";
-  document.getElementById("relNome").value="";
-  document.getElementById("conteudoRelatorio").innerHTML="";
-}
-function gerarRelatorioPombos(){
-  const ano=document.getElementById("relAno").value.trim();
-  const num=document.getElementById("relNum").value.trim();
-  if(!ano||!num)return alert("Selecione um concurso.");
-  const curso=cursosSalvos.find(c=>c.ano===ano&&c.num===num);
-  if(!curso)return alert("Concurso não encontrado.");
-  const chave=ano+"/"+num;
-  let arr=classificacoesSalvas[chave];
-  if(!arr||!arr.length){
-    document.getElementById("calcAno").value=ano;
-    document.getElementById("calcNum").value=num;
-    preencherDadosConcursoCalc(ano,num);
-    executarCalculo();
-    arr=window._ultimaClassificacao?.lista||[];
-  }
-  if(!arr.length)return alert("Sem lançamentos.");
-  const totalConc=new Set(arr.map(x=>x.concNum)).size;
-  let html='<h1>CLUBE COLUMBÓFILO LIMEIRENSE</h1><div class="redTitle" style="font-size:18px;">Prova: '+esc(curso.tipo)+". "+esc(curso.nome)+"</div>";
-  html+='<div class="report-box"><b>Concurso:</b> '+esc(ano)+" / "+esc(num)+" &nbsp; <b>Nome:</b> "+esc(curso.nome)+"<br><b>Data:</b> "+esc(curso.data)+" &nbsp; <b>Tipo:</b> "+esc(curso.tipo)+" &nbsp; <b>Hora solta:</b> "+esc(curso.horaSolta)+" &nbsp; <b>Nº Concorrentes:</b> "+totalConc+"</div>";
-  html+='<table class="report-table"><tr><th>lugar</th><th>anilha</th><th>Sócio</th><th>nome_conco</th><th>horacheg</th><th>distancia</th><th>media</th><th>pontos</th><th>Marca</th></tr>';
-  arr.forEach((l,i)=>{
-    const conc=concorrentesSalvos.find(c=>c.numero===l.concNum);
-    const nome=l.nome||(conc?conc.nome:"");
-    const lanc=(todosLancamentos[chave]||[]).find(x=>x.anilha===l.anilha)||{};
-    html+='<tr><td class="lugar">'+(l.lugar||i+1)+"</td><td>"+esc(l.anilha)+"</td><td>"+esc(l.concNum)+"</td><td>"+esc(nome)+"</td><td>"+esc(lanc.chegada||l.chegada||"")+"</td><td>"+esc(lanc.distancia||l.distancia||"")+"</td><td>"+esc(lanc.media||l.media||"")+'</td><td class="pontos">'+(l.pontos||l.pontosPombo||0)+"</td><td>"+(l.marca==="P"?"P":"E")+"</td></tr>";
-  });
-  html+="</table>";
-  document.getElementById("conteudoRelatorio").innerHTML=html;
-}
-function ccAtualizaTitulo(){
-  const tipo=getRadio("ccTipo","Velocidade Adulto");
-  const mapa={"Velocidade Adulto":"Velocidade","Meio-fundo":"Meio Fundo","Fundo":"Fundo","Filhotes":"Filhotes","Geral":"Geral"};
-  document.getElementById("ccTitulo").value="Classificação de Concorrentes - "+(mapa[tipo]||tipo);
-}
-function filtrarProvasPorFiltros(tipoFiltro,provasFiltro){
-  return Object.keys(classificacoesSalvas).filter(chave=>{
-    const [a,n]=chave.split("/");
-    const curso=cursosSalvos.find(c=>c.ano===a&&c.num===n);
-    if(!curso)return false;
-    if(provasFiltro==="oficiais"&&curso.oficial!=="Sim")return false;
-    if(provasFiltro==="naooficiais"&&curso.oficial==="Sim")return false;
-    if(tipoFiltro!=="Geral"&&curso.tipo!==tipoFiltro)return false;
-    return true;
-  });
-}
-function gerarClassConc(){
-  const tipo=getRadio("ccTipo","Velocidade Adulto");
-  const provas=getRadio("ccProvas","oficiais");
-  const zero=getRadio("ccZero","Nao");
-  const melhores=parseInt(document.getElementById("ccMelhores").value)||999999;
-  const realcar=parseInt(document.getElementById("ccRealcar").value)||0;
-  const titulo=document.getElementById("ccTitulo").value.trim();
-  const chaves=filtrarProvasPorFiltros(tipo,provas);
-  if(!chaves.length){document.getElementById("areaClassConc").innerHTML='<div style="text-align:center;color:red;padding:20px;">Nenhuma prova encontrada.</div>';return}
-  const map={};
-  chaves.forEach(chave=>{
-    classificacoesSalvas[chave].forEach(item=>{
-      const pts=brN(item.pontosSoc!=null?item.pontosSoc:(item.marca==="P"?item.pontos:0));
-      if(!map[item.concNum]){
-        const c=concorrentesSalvos.find(x=>x.numero===item.concNum);
-        map[item.concNum]={numero:item.concNum,nome:item.nome||(c?c.nome:""),assoc:c?c.assoc:"11",colec:c?c.colec:"33",pontos:0};
-      }
-      map[item.concNum].pontos+=pts;
-    });
-  });
-  let arr=Object.values(map);
-  if(zero!=="Sim")arr=arr.filter(x=>x.pontos>0);
-  arr.sort((a,b)=>b.pontos-a.pontos);
-  arr=arr.slice(0,melhores);
-  const chavesOrd=chaves.sort((a,b)=>{const [aa,an]=a.split("/"),[ba,bn]=b.split("/");return (+aa||0)-(+ba||0)||(+an||0)-(+bn||0)});
-  const ultimaProva=chavesOrd[chavesOrd.length-1];
-  const [a,n]=ultimaProva.split("/");
-  const cursoUlt=cursosSalvos.find(c=>c.ano===a&&c.num===n);
-  const ateProva=cursoUlt?`Até à prova ${a}/${n} - ${cursoUlt.nome}`:"";
-  let html=`<div class="gpc-header gpc-h1">CLUBE COLUMBÓFILO LIMEIRENSE</div><div class="gpc-header gpc-h2">${esc(titulo)}</div>`;
-  html+=`<table class="gpc-table"><thead><tr><th style="width:60px">Lugar</th><th>Concorrente</th><th style="text-align:right;width:80px">Pontos</th></tr></thead><tbody>`;
-  arr.forEach((r,i)=>{const cls=realcar>0&&i<realcar?'class="gpc-highlight"':"";html+=`<tr ${cls}><td>${i+1}</td><td>${esc(r.colec)} / ${esc(padNum(r.numero,4))} &nbsp;&nbsp;${esc(r.nome)}</td><td style="text-align:right">${r.pontos}</td></tr>`});
-  html+=`</tbody></table>`;
-  if(ateProva)html+=`<div class="gpc-footer">${esc(ateProva)}</div>`;
-  document.getElementById("areaClassConc").innerHTML=html;
-  setStatus("Concorrentes: "+arr.length);
-}
-function gerarClassPombos(){
-  const tipo=getRadio("cpTipo","Velocidade Adulto");
-  const provas=getRadio("cpProvas","oficiais");
-  const melhores=parseInt(document.getElementById("cpMelhores").value)||999999;
-  const realcar=parseInt(document.getElementById("cpRealcar").value)||0;
-  const chaves=filtrarProvasPorFiltros(tipo,provas);
-  if(!chaves.length){document.getElementById("areaClassPombos").innerHTML='<div style="text-align:center;color:red;padding:20px;">Nenhuma prova encontrada.</div>';return}
-  const map={};
-  chaves.forEach(chave=>{
-    classificacoesSalvas[chave].forEach(item=>{
-      const pts=brN(item.pontos);
-      if(!map[item.anilha]){
-        const c=concorrentesSalvos.find(x=>x.numero===item.concNum);
-        map[item.anilha]={anilha:item.anilha,numero:item.concNum,nome:item.nome||(c?c.nome:""),colec:c?c.colec:"33",sexo:"M",pontos:0};
-      }
-      map[item.anilha].pontos+=pts;
-    });
-  });
-  Object.keys(map).forEach(an=>{
-    const p=pombosSalvos.find(x=>x.anilha===an);
-    if(p)map[an].sexo=(p.sexo||"M").charAt(0);
-  });
-  let arr=Object.values(map).filter(x=>x.pontos>0).sort((a,b)=>b.pontos-a.pontos).slice(0,melhores);
-  const mapaTit={"Velocidade Adulto":"Velocidade","Meio-fundo":"Meio Fundo","Fundo":"Fundo","Filhotes":"Filhotes","Geral":"Geral"};
-  let html=`<div class="gpc-header gpc-h1">CLUBE COLUMBÓFILO LIMEIRENSE</div><div class="gpc-header gpc-h2">Classificação de Pombos - ${esc(mapaTit[tipo]||tipo)}</div>`;
-  html+=`<table class="gpc-table"><thead><tr><th style="width:50px">Lugar</th><th style="width:100px">Anilha</th><th style="width:24px">S</th><th>Concorrente</th><th style="text-align:right;width:80px">Pontos</th></tr></thead><tbody>`;
-  arr.forEach((r,i)=>{const cls=realcar>0&&i<realcar?'class="gpc-highlight"':"";html+=`<tr ${cls}><td>${i+1}</td><td>${esc(r.anilha)}</td><td>${esc(r.sexo)}</td><td>${esc(r.colec)} / ${esc(padNum(r.numero,4))} &nbsp;&nbsp;${esc(r.nome)}</td><td style="text-align:right">${r.pontos}</td></tr>`});
-  html+=`</tbody></table>`;
-  document.getElementById("areaClassPombos").innerHTML=html;
-  setStatus("Pombos: "+arr.length);
-}
-
-/* =================== POMBO ÁS / PALMARÉS =================== */
-function gerarPomboAs(){
-  const tipo=getRadio("asTipo","Velocidade Adulto");
-  const provas=getRadio("asProvas","oficiais");
-  const chaves=filtrarProvasPorFiltros(tipo,provas);
-  if(!chaves.length){document.getElementById("areaPomboAs").innerHTML='<div style="text-align:center;color:red;padding:20px;">Nenhuma prova encontrada.</div>';return}
-  const totalProvas=chaves.length;
-  const contagem={};
-  chaves.forEach(chave=>{
-    classificacoesSalvas[chave].forEach(item=>{
-      if(!contagem[item.anilha])contagem[item.anilha]={anilha:item.anilha,numero:item.concNum,nome:item.nome||"",colec:"33",sexo:"M",pontos:0,provasFeitas:0};
-      contagem[item.anilha].provasFeitas++;
-      contagem[item.anilha].pontos+=brN(item.pontos);
-    });
-  });
-  Object.keys(contagem).forEach(an=>{
-    const p=pombosSalvos.find(x=>x.anilha===an);if(p)contagem[an].sexo=(p.sexo||"M").charAt(0);
-    const c=concorrentesSalvos.find(x=>x.numero===contagem[an].numero);if(c){contagem[an].colec=c.colec;if(!contagem[an].nome)contagem[an].nome=c.nome}
-  });
-  const aces=Object.values(contagem).filter(x=>x.provasFeitas===totalProvas).sort((a,b)=>b.pontos-a.pontos);
-  const mapaTit={"Velocidade Adulto":"Velocidade Adulto","Meio-fundo":"Meio-fundo","Fundo":"Fundo","Filhotes":"Filhotes"};
-  let html=`<div class="tabPombo"><div class="as-header">🏆 POMBO ÁS - ${esc(mapaTit[tipo]||tipo)} - ${totalProvas} prova(s)</div>`;
-  if(!aces.length){
-    html+='<div style="text-align:center;padding:20px;color:#a00;font-weight:bold;">Nenhum pombo classificou em TODAS as '+totalProvas+' provas.</div>';
-  }else{
-    html+=`<table class="gpc-table" style="margin-top:10px;"><thead><tr><th style="width:50px">Lugar</th><th style="width:100px">Anilha</th><th style="width:24px">S</th><th>Concorrente</th><th style="text-align:center;width:70px">Provas</th><th style="text-align:right;width:80px">Pontos</th></tr></thead><tbody>`;
-    aces.forEach((r,i)=>{
-      const dest=i<3?'class="gpc-highlight"':"";
-      const medalha=i===0?"🥇":i===1?"🥈":i===2?"🥉":"";
-      html+=`<tr ${dest}><td class="lugar">${medalha} ${i+1}</td><td>${esc(r.anilha)}</td><td>${esc(r.sexo)}</td><td>${esc(r.colec)} / ${esc(padNum(r.numero,4))} &nbsp;&nbsp;${esc(r.nome)}</td><td style="text-align:center">${r.provasFeitas}/${totalProvas}</td><td class="pontos" style="text-align:right">${r.pontos}</td></tr>`;
-    });
-    html+=`</tbody></table><div style="margin-top:14px;padding:8px;background:#f0f8ff;border:1px solid #4a90e2;font-size:11px;">✅ `+aces.length+' pombo(s) Ás — classificaram nas <b>'+totalProvas+' provas</b>.</div>';
-  }
-  html+='</div>';
-  document.getElementById("areaPomboAs").innerHTML=html;
-  setStatus("Pombo Ás: "+aces.length);
-}
-function gerarPalmares(){
-  const anilha=document.getElementById("palmAnilha").value.trim();
-  if(!anilha)return alert("Digite a anilha.");
-  const p=pombosSalvos.find(x=>x.anilha===anilha);
-  const historico=[];
-  Object.keys(classificacoesSalvas).forEach(chave=>{
-    const item=classificacoesSalvas[chave].find(x=>x.anilha===anilha);
-    if(item){
-      const [a,n]=chave.split("/");
-      const curso=cursosSalvos.find(c=>c.ano===a&&c.num===n);
-      historico.push({chave,ano:a,num:n,curso,item});
-    }
-  });
-  if(!historico.length){document.getElementById("areaPalmares").innerHTML='<div style="text-align:center;color:red;padding:20px;">Nenhum registro para a anilha <b>'+esc(anilha)+'</b>.</div>';return}
-  historico.sort((a,b)=>(+a.ano||0)-(+b.ano||0)||(+a.num||0)-(+b.num||0));
-  const conc=p?concorrentesSalvos.find(c=>c.numero===p.numero):null;
-  const totalProvas=historico.length;
-  const totalPontos=historico.reduce((s,h)=>s+brN(h.item.pontos),0);
-  const totalP=historico.filter(h=>h.item.marca==="P").length;
-  const totalE=historico.filter(h=>h.item.marca==="E").length;
-  let html=`<div class="tabPombo"><div class="as-header" style="background:#4a90e2;color:#fff;">📋 PALMARÉS DO POMBO ${esc(anilha)}</div>`;
-  if(p&&conc)html+='<div style="padding:8px;background:#f0f8ff;margin-top:4px;font-size:12px;"><b>Concorrente:</b> '+esc(conc.assoc)+"/"+esc(conc.colec)+"/"+esc(conc.numero)+" - "+esc(conc.nome)+' &nbsp; <b>Sexo:</b> '+esc(p.sexo)+'</div>';
-  html+='<div style="padding:8px;background:#fffacd;font-size:12px;font-weight:bold;">📊 '+totalProvas+' provas · '+totalP+' P · '+totalE+' E · <span class="pontos">'+totalPontos+' pts</span></div>';
-  html+=`<table class="gpc-table" style="margin-top:8px;"><thead><tr><th>Concurso</th><th>Prova</th><th>Tipo</th><th style="text-align:center">Lugar</th><th style="text-align:center">RankSócio</th><th style="text-align:right">Distância</th><th style="text-align:right">Média</th><th style="text-align:center">Marca</th><th style="text-align:right">Pontos</th></tr></thead><tbody>`;
-  historico.forEach(h=>{
-    const marca=h.item.marca==="P"?'<span class="tagP">P</span>':'<span class="tagE">E</span>';
-    html+=`<tr><td>${esc(h.ano)}/${esc(h.num)}</td><td>${esc(h.curso?h.curso.nome:"?")}</td><td>${esc(h.curso?h.curso.tipo:"?")}</td><td class="lugar" style="text-align:center">${h.item.lugar}</td><td style="text-align:center">${h.item.rankSocio||"-"}</td><td style="text-align:right">${esc(h.item.distancia||"-")}</td><td style="text-align:right">${esc(h.item.media||"-")}</td><td style="text-align:center">${marca}</td><td class="pontos" style="text-align:right">${h.item.pontos}</td></tr>`;
-  });
-  html+=`</tbody></table></div>`;
-  document.getElementById("areaPalmares").innerHTML=html;
-  setStatus("Palmarés: "+anilha);
-}
-
-/* =================== IMPORTAÇÃO / EXPORTAÇÃO GPC =================== */
-function impTab(t){
-  document.querySelectorAll(".imp-page").forEach(p=>p.style.display="none");
-  document.querySelectorAll("[id^='impTab']").forEach(x=>x.classList.remove("active"));
-  const map={conc:"Conc",pomb:"Pomb",mov:"Mov"};
-  document.getElementById("impPage"+map[t]).style.display="block";
-  document.getElementById("impTab"+map[t]).classList.add("active");
-}
-function logImp(id,msg,cls){
-  const el=document.getElementById(id);
-  el.innerHTML+='<div class="'+(cls||"")+'">'+esc(msg)+'</div>';
-  el.scrollTop=el.scrollHeight;
-}
-function limparLogImp(id){document.getElementById(id).innerHTML=""}
-function importarConcorrentes(){
-  const file=document.getElementById("impFileConc").files[0];
-  if(!file)return alert("Selecione o arquivo primeiro.");
-  limparLogImp("impLogConc");logImp("impLogConc","▶ Lendo: "+file.name);
-  const reader=new FileReader();
-  reader.onload=e=>{
-    const txt=e.target.result;
-    const linhas=txt.split(/\r?\n/).filter(l=>l.trim().length>0);
-    logImp("impLogConc","▶ Linhas: "+linhas.length,"ok");
-    let novos=0,atualizados=0,erros=0;
-    for(let i=0;i<linhas.length;i+=2){
-      try{
-        const l1=linhas[i]||"",l2=linhas[i+1]||"";
-        const p1=l1.split(",").map(x=>x.trim());
-        const p2=l2.split(",").map(x=>x.trim());
-        if(p1.length<10)continue;
-        const colec=p1[0]||"33",numero=p1[1]||"",nome=(p1[3]||"").trim(),morada=(p1[4]||"").trim(),localidade=(p1[5]||"").trim();
-        const latGrau=p2[3]||"022",latMin=p2[4]||"33",latSeg=p2[5]||"46.4",lonGrau=p2[6]||"047",lonMin=p2[7]||"22",lonSeg=p2[7]||"55.1";
-        if(!numero||!nome){logImp("impLogConc","⚠️ Linha "+(i+1)+": faltando dados","warn");erros++;continue}
-        const conc={assoc:"11",colec:colec.trim(),numero:numero.trim(),nome,morada,localidade,telefone:"",email:"",latGrau,latMin,latSeg,lonGrau,lonMin,lonSeg};
-        const idx=concorrentesSalvos.findIndex(c=>c.numero===conc.numero);
-        if(idx>=0){concorrentesSalvos[idx]=conc;atualizados++;logImp("impLogConc","♻ Atualizado: "+conc.numero+" - "+conc.nome)}
-        else{concorrentesSalvos.push(conc);novos++;logImp("impLogConc","✓ Novo: "+conc.numero+" - "+conc.nome,"ok")}
-      }catch(err){logImp("impLogConc","❌ "+err.message,"err");erros++}
-    }
-    salvarConcorrentes();atualizarTabelaConcorrentes();
-    logImp("impLogConc","━━━━━━━━━","ok");
-    logImp("impLogConc","✅ "+novos+" novos, "+atualizados+" atualizados, "+erros+" erros","ok");
-    setStatus("Concorrentes importados: "+(novos+atualizados));
-  };
-  reader.readAsText(file,"UTF-8");
-}
-function importarPombos(){
-  const file=document.getElementById("impFilePomb").files[0];
-  if(!file)return alert("Selecione o arquivo primeiro.");
-  limparLogImp("impLogPomb");logImp("impLogPomb","▶ Lendo: "+file.name);
-  const reader=new FileReader();
-  reader.onload=e=>{
-    const txt=e.target.result;
-    let novos=0,atualizados=0,erros=0;
-    const regex=/(\d{7}\/\d{2})\s+(\d{1,6})([MFmf?])/g;let match;
-    while((match=regex.exec(txt))!==null){
-      try{
-        const anilha=match[1];
-        const numero=match[2];
-        const sexo=match[3].toUpperCase()==="M"?"Macho":match[3].toUpperCase()==="F"?"Femea":"????";
-        const pombo={anilha,assoc:"11",colec:"33",numero,sexo};
-        const idx=pombosSalvos.findIndex(p=>p.anilha===anilha);
-        if(idx>=0){pombosSalvos[idx]=pombo;atualizados++;logImp("impLogPomb","♻ "+anilha+" ("+numero+")")}
-        else{pombosSalvos.push(pombo);novos++;logImp("impLogPomb","✓ "+anilha+" ("+numero+")","ok")}
-      }catch(err){logImp("impLogPomb","❌ "+err.message,"err");erros++}
-    }
-    salvarPombos();atualizarTabelaPombos();
-    logImp("impLogPomb","━━━━━━━━━","ok");
-    logImp("impLogPomb","✅ "+novos+" novos, "+atualizados+" atualizados","ok");
-    setStatus("Pombos importados: "+(novos+atualizados));
-  };
-  reader.readAsText(file,"UTF-8");
-}
-function importarMovimentos(){
-  const file=document.getElementById("impFileMov").files[0];
-  if(!file)return alert("Selecione o arquivo primeiro.");
-  limparLogImp("impLogMov");logImp("impLogMov","▶ Lendo: "+file.name);
-  const reader=new FileReader();
-  reader.onload=e=>{
-    const txt=e.target.result;
-    const linhas=txt.split(/\r?\n/).filter(l=>l.trim().length>0);
-    logImp("impLogMov","▶ Movimentos: "+linhas.length,"ok");
-    if(!linhas.length)return;
-    const primeira=linhas[0].split(",").map(x=>x.trim());
-    const numConcurso=primeira[0]||"";
-    const ano=primeira[19]||new Date().getFullYear();
-    const chave=ano+"/"+parseInt(numConcurso);
-    logImp("impLogMov","▶ Prova: "+chave,"ok");
-    let curso=cursosSalvos.find(c=>c.ano===String(ano)&&c.num===String(parseInt(numConcurso)));
-    if(!curso){
-      curso={ano:String(ano),num:String(parseInt(numConcurso)),nome:"Prova "+chave+" (importada)",data:primeira[15]||"",tipo:"Velocidade Adulto",oficial:"Sim",ini:"1000",dec:"1",tm1:"00:00:00",tm2:"00:00:00",tm3:"00:00:00",horaSolta:primeira[13]||"07:00:00",obs:"Importado do GPC",latGrau:"020",latMin:"02",latSeg:"28.0",lonGrau:"047",lonMin:"44",lonSeg:"25.0"};
-      cursosSalvos.push(curso);salvarCursos();logImp("impLogMov","+ Concurso criado","ok");
-    }
-    const novosLanc=[];let erros=0;
-    linhas.forEach(linha=>{
-      try{
-        const p=linha.split(",").map(x=>x.trim());if(p.length<20)return;
-        const anilha=p[1],concNum=p[3],dias=p[4]||"1",chegada=p[5],horaIni=p[13]||"18:00:00",horaFim=p[14]||"18:00:00",dataIni=p[15]||"",dataFim=p[16]||"",correcao=p[17]||"0",sexo=(p[20]||"M")==="M"?"Macho":(p[20]||"M")==="F"?"Femea":"????";
-        novosLanc.push({anilha,assoc:"11",colec:"33",concNum,sexo,dataIni,horaIni,dataFim,horaFim,dias,chegada,partida:curso.horaSolta,tMorto:curso.tm1||"00:00:00",correcao,distancia:"0",media:"0",tempoVoo:""});
-        logImp("impLogMov","✓ "+anilha+" ("+concNum+") "+chegada);
-      }catch(err){logImp("impLogMov","❌ "+err.message,"err");erros++}
-    });
-    todosLancamentos[chave]=novosLanc;salvarLancamentos();
-    logImp("impLogMov","━━━━━━━━━","ok");
-    logImp("impLogMov","✅ "+novosLanc.length+" movimentos importados","ok");
-    logImp("impLogMov","💡 Agora: Cálculo de Prova → "+chave+" → Confirmar","warn");
-    setStatus("Movimentos: "+novosLanc.length);
-  };
-  reader.readAsText(file,"UTF-8");
-}
-function exportarMovimentosGPC(){
-  const ano=document.getElementById("expAno").value.trim();
-  const num=document.getElementById("expNum").value.trim();
-  if(!ano||ano==="0")return alert("Selecione um concurso.");
-  const chave=ano+"/"+num;
-  const todos=todosLancamentos[chave]||[];
-  const arr=todos.filter(lancamentoValidoParaCalculo);
-  if(!arr.length)return alert("Sem lançamentos oficiais/homologados nesta prova.");
-  document.getElementById("expLog").innerHTML="";
-  const numPad=String(num).padStart(3,"0");
-  let txt="";
-  arr.forEach(l=>{
-    const anilha=l.anilha||"",colec="33 ",conc=String(l.concNum||"").padStart(5," "),dias=l.dias||"1",cheg=l.chegada||"00:00:00";
-    const horaIni=l.horaIni||"18:00:00",horaFim=l.horaFim||"18:00:00",dataIni=l.dataIni||"",dataFim=l.dataFim||"",corr=String(l.correcao||"0").padStart(4," "),sexo=(l.sexo||"Macho").charAt(0);
-    txt+=numPad+","+anilha+","+colec+","+conc+","+dias+","+cheg+",S,S,N,N, ,N,N,"+horaIni+","+horaFim+","+dataIni+","+dataFim+","+corr+",11,"+ano+","+sexo+",S\r\n";
-  });
-  const blob=new Blob([txt],{type:"text/plain;charset=utf-8"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url;a.download="ZDWMOV_T.TXT";a.click();URL.revokeObjectURL(url);
-  document.getElementById("expLog").innerHTML='<div class="ok">✅ Arquivo ZDWMOV_T.TXT gerado com '+arr.length+' movimentos.</div>';
-  setStatus("Exportação: "+arr.length);
-}
-
-/* =================== COMPARTILHAR =================== */
-function resetarCompartilhar(){
-  document.getElementById("shrAno").value="0";
-  document.getElementById("shrNum").value="0";
-  document.getElementById("shrNome").value="";
-  document.getElementById("wppPreview").textContent="Selecione um concurso.";
-  document.getElementById("sitePreview").innerHTML="Selecione um concurso.";
-  document.getElementById("txtPreview").value="Selecione um concurso.";
-}
-function shrTab(t){
-  document.querySelectorAll(".shr-page").forEach(p=>p.style.display="none");
-  document.querySelectorAll("#winCompartilhar .share-tab").forEach(x=>x.classList.remove("active"));
-  document.getElementById("shrPage"+t.charAt(0).toUpperCase()+t.slice(1)).style.display="block";
-  document.getElementById("shrTab"+t.charAt(0).toUpperCase()+t.slice(1)).classList.add("active");
-}
-function _getClassifShr(){
-  const ano=document.getElementById("shrAno").value.trim();
-  const num=document.getElementById("shrNum").value.trim();
-  if(!ano||ano==="0"||!num||num==="0"){alert("Selecione um concurso primeiro (🔍).");return null}
-  const chave=ano+"/"+num;
-  const curso=cursosSalvos.find(c=>c.ano===ano&&c.num===num);
-  let arr=classificacoesSalvas[chave];
-  if(!arr||!arr.length){alert("Prova não confirmada.");return null}
-  return {ano,num,curso,arr};
-}
-function gerarWpp(modo){
-  const d=_getClassifShr();if(!d)return;
-  const {curso,arr}=d;
-  let lista=arr.slice();
-  if(modo==="top3")lista=lista.slice(0,3);else if(modo==="top10")lista=lista.slice(0,10);else if(modo==="vencedor")lista=lista.slice(0,1);
-  const medalhas=["🥇","🥈","🥉"];
-  let msg="🕊️ *CLUBE COLUMBÓFILO LIMEIRENSE*\n🏆 *"+(curso.tipo||"")+"* - "+curso.nome+"\n📅 "+(curso.data||"")+" · 🕐 Solta: "+(curso.horaSolta||"")+"\n━━━━━━━━━━━━━━━━━━━━\n";
-  lista.forEach((l,i)=>{
-    const conc=concorrentesSalvos.find(c=>c.numero===l.concNum);
-    const nome=l.nome||(conc?conc.nome:"");
-    const med=i<3?medalhas[i]+" ":"*"+l.lugar+"º* ";
-    msg+=med+nome+"\n    🕊️ "+l.anilha+" | 📏 "+(l.distancia||"?")+" m | 💨 "+l.media+" m/min | 🏅 "+l.pontos+" pts\n";
-  });
-  msg+="━━━━━━━━━━━━━━━━━━━━\n📊 Total: "+arr.length+" pombos\n_Enviado via S.G.C-S.P_";
-  document.getElementById("wppPreview").textContent=msg;
-  window._wppTexto=msg;
-  setStatus("WhatsApp gerado");
-}
-function copiarWpp(){if(!window._wppTexto)return alert("Gere a mensagem primeiro.");navigator.clipboard.writeText(window._wppTexto).then(()=>alert("✅ Copiado!"))}
-function abrirWhatsApp(){if(!window._wppTexto)return alert("Gere a mensagem primeiro.");window.open("https://web.whatsapp.com/send?text="+encodeURIComponent(window._wppTexto),"_blank")}
-function gerarSite(){
-  const d=_getClassifShr();if(!d)return;
-  const {curso,arr}=d;
-  let html='<div style="font-family:Arial;max-width:900px;margin:0 auto;padding:20px;background:#fff;">';
-  html+='<h1 style="color:#008080;text-align:center;font-style:italic;">🕊️ CLUBE COLUMBÓFILO LIMEIRENSE</h1>';
-  html+='<h2 style="color:#008080;text-align:center;font-style:italic;">Classificação - '+esc(curso.tipo||"")+' - '+esc(curso.nome)+'</h2>';
-  html+='<div style="text-align:center;color:#555;margin-bottom:20px;"><b>Data:</b> '+esc(curso.data||"")+' &nbsp; <b>Hora solta:</b> '+esc(curso.horaSolta||"")+' &nbsp; <b>Total:</b> '+arr.length+' pombos</div>';
-  html+='<table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr style="background:#008080;color:#fff;"><th style="padding:8px;">Lugar</th><th style="padding:8px;">Anilha</th><th style="padding:8px;">Concorrente</th><th style="padding:8px;">Chegada</th><th style="padding:8px;">Distância</th><th style="padding:8px;">Média</th><th style="padding:8px;">Pontos</th></tr></thead><tbody>';
-  arr.forEach((l,i)=>{
-    const conc=concorrentesSalvos.find(c=>c.numero===l.concNum);
-    const nome=l.nome||(conc?conc.nome:"");
-    const bg=i%2===0?"#f4f7fb":"#fff";
-    html+='<tr style="background:'+bg+';"><td style="padding:6px;text-align:center;color:#c00;font-weight:bold;">'+l.lugar+'º</td><td style="padding:6px;">'+esc(l.anilha)+'</td><td style="padding:6px;">'+esc(l.concNum)+' - '+esc(nome)+'</td><td style="padding:6px;text-align:center;">'+esc(l.chegada||"")+'</td><td style="padding:6px;text-align:right;color:#804000;font-weight:bold;">'+esc(l.distancia||"")+' m</td><td style="padding:6px;text-align:right;">'+esc(l.media||"")+'</td><td style="padding:6px;text-align:right;color:#00c;font-weight:bold;">'+(l.pontos||0)+'</td></tr>';
-  });
-  html+='</tbody></table></div>';
-  document.getElementById("sitePreview").innerHTML=html;
-  window._siteHtml=html;
-  setStatus("HTML gerado");
-}
-function copiarSite(){if(!window._siteHtml)return alert("Gere o HTML primeiro.");navigator.clipboard.writeText(window._siteHtml).then(()=>alert("✅ HTML copiado!"))}
-function baixarSite(){
-  if(!window._siteHtml)return alert("Gere o HTML primeiro.");
-  const d=_getClassifShr();if(!d)return;
-  const nome="classificacao-"+d.ano+"-"+d.num+".html";
-  const full='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+esc(d.curso.nome)+'</title></head><body>'+window._siteHtml+'</body></html>';
-  const blob=new Blob([full],{type:"text/html;charset=utf-8"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url;a.download=nome;a.click();URL.revokeObjectURL(url);
-}
-function gerarTxt(){
-  const d=_getClassifShr();if(!d)return;
-  const {curso,arr}=d;
-  let txt="="+"=".repeat(90)+"\n  CLUBE COLUMBÓFILO LIMEIRENSE\n  "+(curso.tipo||"")+" - "+curso.nome+"\n  Data: "+(curso.data||"")+"  |  Hora solta: "+(curso.horaSolta||"")+"\n"+"=".repeat(91)+"\n\nLUGAR ANILHA        CONCORRENTE                    CHEGADA    DISTÂNCIA     MÉDIA    PONTOS\n"+"-".repeat(91)+"\n";
-  arr.forEach(l=>{
-    const conc=concorrentesSalvos.find(c=>c.numero===l.concNum);
-    const nome=l.nome||(conc?conc.nome:"");
-    txt+=String(l.lugar).padStart(3," ")+"º  "+(l.anilha||"").padEnd(12," ")+" "+(nome||"").substring(0,30).padEnd(30," ")+" "+(l.chegada||"").padEnd(10," ")+" "+((l.distancia||"")+" m").padStart(12," ")+" "+(l.media||"").padStart(10," ")+" "+String(l.pontos||0).padStart(6," ")+"\n";
-  });
-  txt+="\n"+"=".repeat(91)+"\nTotal: "+arr.length+" pombos\n";
-  document.getElementById("txtPreview").value=txt;
-  window._txtConteudo=txt;
-}
-function copiarTxt(){const t=document.getElementById("txtPreview");t.select();document.execCommand("copy");alert("✅ Copiado!")}
-function baixarTxt(){
-  if(!window._txtConteudo)return alert("Gere o texto primeiro.");
-  const d=_getClassifShr();if(!d)return;
-  const blob=new Blob([window._txtConteudo],{type:"text/plain;charset=utf-8"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url;a.download="classificacao-"+d.ano+"-"+d.num+".txt";a.click();URL.revokeObjectURL(url);
-}
-
-/* =================== PMR =================== */
-const PMR_SECRET_KEY="SGC_SP_LIMEIRA_2026_@#SEC_KEY_9812";
-let pmrSocioSelecionado=null;
-let pmrAnilhasMobile=[{anilha:"2335027/23",hora:"11:34:58",obs:"Normal"}];
-let pmrDadosImportadosAtual=null;
-
-async function gerarHashPMR(texto){
-  const inputFinal=texto+"|"+PMR_SECRET_KEY;
-  if(window.crypto&&window.crypto.subtle){
-    const encoder=new TextEncoder();
-    const data=encoder.encode(inputFinal);
-    const hashBuffer=await crypto.subtle.digest("SHA-256",data);
-    const hashArray=Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b=>b.toString(16).padStart(2,"0")).join("").toUpperCase();
-  }else{
-    let hash=0x811c9dc5;
-    for(let i=0;i<inputFinal.length;i++){
-      hash^=inputFinal.charCodeAt(i);
-      hash+=(hash<<1)+(hash<<4)+(hash<<7)+(hash<<8)+(hash<<24);
-    }
-    return ("PMRX-"+Math.abs(hash>>>0).toString(16).padStart(8,"0")).toUpperCase();
-  }
-}
-
-function selecionarSocioPMR(){
-  abrirModalConcorrente(conc=>{
-    pmrSocioSelecionado=conc;
-    document.getElementById("pmrSocioID").value=conc.numero;
-    document.getElementById("pmrSocioNome").value=conc.nome;
-    const mobNome=document.getElementById("mobNomeSocio");
-    if(mobNome)mobNome.textContent=conc.numero+" - "+conc.nome;
-    setStatus("Sócio selecionado para PM Remote: "+conc.nome);
-  });
-}
-
-async function gerarLinkPMR(){
-  const concNum=document.getElementById("pmrSocioID").value||"81";
-  const socioNome=document.getElementById("pmrSocioNome").value||"";
-  const ano=document.getElementById("pmrAno").value||"2026";
-  const num=document.getElementById("pmrNum").value||"1";
-  const relogio=document.getElementById("pmrTipoRelogio").value||"Benzing";
-  const exigirGps=document.getElementById("pmrExigirGps").checked?"1":"0";
-  const nomeConcurso=document.getElementById("pmrNomeConcurso").value||"";
-
-  const tokenBase=`ano=${ano}&num=${num}&socio=${concNum}&relogio=${relogio}&gps=${exigirGps}&nome=${nomeConcurso}`;
-  const hashToken=await gerarHashPMR(tokenBase);
-
-  const base=window.location.href.split("?")[0];
-  const params=new URLSearchParams();
-  params.set("pmr","1");
-  params.set("ano",ano);
-  params.set("num",num);
-  params.set("socio",concNum);
-  params.set("socioNome",socioNome);
-  params.set("relogio",relogio);
-  params.set("gps",exigirGps);
-  params.set("nome",nomeConcurso);
-  params.set("h",hashToken.substring(0,12));
-
-  const linkFinal=`${base}?${params.toString()}`;
-  document.getElementById("pmrLinkGerado").value=linkFinal;
-
-  const mobRel=document.getElementById("mobTipoRelogio");
-  const mobConc=document.getElementById("mobNomeConcurso");
-  const mobSoc=document.getElementById("mobNomeSocio");
-  if(mobRel)mobRel.textContent=relogio;
-  if(mobConc)mobConc.textContent=`Conc ${num}/${ano} - ${nomeConcurso}`;
-  if(mobSoc)mobSoc.textContent=`${concNum} - ${socioNome}`;
-
-  const isLocalFile=window.location.protocol==="file:";
-  if(isLocalFile){
-    alert(
-      "🔗 Link gerado com sucesso!\n\n"+
-      "ATENÇÃO: você está rodando o sistema em arquivo local (file:///).\n"+
-      "Esse link serve para TESTE neste computador, mas não vai abrir no celular do sócio por WhatsApp.\n\n"+
-      "Para funcionar no celular, publique este HTML em um site/servidor."
-    );
-  }else{
-    alert("🔗 Link seguro PMR gerado com sucesso!");
-  }
-}
-
-function enviarLinkWhatsAppPMR(){
-  const link=document.getElementById("pmrLinkGerado").value;
-  if(!link)return alert("Primeiro clique em 'Gerar Link de Constatação'.");
-  const socioNome=document.getElementById("pmrSocioNome").value;
-  const msg=`Olá, ${socioNome}! 🏁 A prova foi encerrada. Registre agora suas constatações provisórias através do link oficial seguro:\n\n👉 ${link}\n\n*Clube Columbófilo Limeirense*`;
-  window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`,"_blank");
-}
-
-function abrirTelaCelularSocio(){
-  const win=document.getElementById("winMobileApp");
-  if(!win)return;
-  win.classList.add("active");
-  win.style.zIndex=++zCounter;
-  capturarGpsMobile();
-}
-
-function capturarGpsMobile(){
-  const statusEl=document.getElementById("mobStatusGps");
-  if(!statusEl)return;
-  if(navigator.geolocation){
-    statusEl.textContent="📍 GPS: Obtendo satélites...";
-    statusEl.style.color="#d9822b";
-    navigator.geolocation.getCurrentPosition(pos=>{
-      const lat=pos.coords.latitude.toFixed(6);
-      const lon=pos.coords.longitude.toFixed(6);
-      statusEl.textContent=`📍 GPS Capturado: ${lat}, ${lon}`;
-      statusEl.style.color="#008000";
-      statusEl.dataset.lat=lat;
-      statusEl.dataset.lon=lon;
-    },()=>{
-      statusEl.textContent="⚠ GPS: Permissão negada / Indisponível";
-      statusEl.style.color="#a00000";
-    });
-  }else{
-    statusEl.textContent="⚠ GPS: Não suportado pelo aparelho";
-  }
-}
-
-function capturarHoraAtualCelular(){
-  const agora=new Date();
-  const hh=String(agora.getHours()).padStart(2,"0");
-  const mm=String(agora.getMinutes()).padStart(2,"0");
-  const ss=String(agora.getSeconds()).padStart(2,"0");
-  document.getElementById("mobHoraInput").value=`${hh}:${mm}:${ss}`;
-}
-
-function adicionarAnilhaListaMobile(){
-  const anilha=document.getElementById("mobAnilhaInput").value.trim();
-  const hora=document.getElementById("mobHoraInput").value.trim();
-  const obs=document.getElementById("mobObsInput").value.trim()||"Normal";
-  if(!anilha||!hora)return alert("Preencha o número da Anilha e a Hora da Constatação!");
-  pmrAnilhasMobile.push({anilha,hora,obs});
-  renderizarListaAnilhasMobile();
-  document.getElementById("mobAnilhaInput").value="";
-  document.getElementById("mobObsInput").value="";
-  document.getElementById("mobAnilhaInput").focus();
-}
-function renderizarListaAnilhasMobile(){
-  const container=document.getElementById("mobListaAnilhas");
-  const cont=document.getElementById("mobCountAnilhas");
-  if(!container)return;
-  container.innerHTML="";
-  if(cont)cont.textContent=pmrAnilhasMobile.length;
-  pmrAnilhasMobile.forEach((item,idx)=>{
-    const div=document.createElement("div");
-    div.style.cssText="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #eee;font-size:12px;";
-    div.innerHTML=`<span>🕊️ <b>${esc(item.anilha)}</b> ${item.obs!=='Normal'?`<i style="color:#666">(${esc(item.obs)})</i>`:''}</span><div><span style="font-family:Consolas;font-weight:bold;color:#008000;margin-right:6px;">${esc(item.hora)}</span><span style="color:#a00000;cursor:pointer;font-weight:bold;" onclick="pmrAnilhasMobile.splice(${idx},1);renderizarListaAnilhasMobile()">X</span></div>`;
-    container.appendChild(div);
-  });
-}
-
-async function gerarEBaixarArquivoPMR(){
-  if(!pmrAnilhasMobile.length)return alert("Adicione pelo menos 1 pombo na lista!");
-  const ano=document.getElementById("pmrAno").value||"2026";
-  const num=document.getElementById("pmrNum").value||"1";
-  const socioNum=document.getElementById("pmrSocioID").value||"81";
-  const socioNome=document.getElementById("pmrSocioNome").value||"Carlos Silva";
-  const relogio=document.getElementById("mobTipoRelogio").textContent||"Benzing";
-  const gpsEl=document.getElementById("mobStatusGps");
-  const lat=gpsEl?.dataset?.lat||"-22.564100";
-  const lon=gpsEl?.dataset?.lon||"-47.401100";
-  const horaServidor=new Date().toISOString();
-
-  let payloadDados=`Version=2.1.2026\nConcurso=${ano}/${num}\nSocioID=${socioNum}\nSocioNome=${socioNome}\nRelogio=${relogio}\nLatLong=${lat},${lon}\nHoraEnvio=${horaServidor}\n[ANILHAS]\n`;
-  pmrAnilhasMobile.forEach((p,i)=>{payloadDados+=`Band${i+1}=${p.anilha}|${p.hora}|${p.obs}\n`});
-  const hashSeguranca=await gerarHashPMR(payloadDados.trim());
-  const arquivoConteudo=`[PIGEON_MASTER_RACE_CLOCK]\n${payloadDados}[SECURITY]\nHash=${hashSeguranca}\n`;
-
-  const blob=new Blob([arquivoConteudo],{type:"text/plain;charset=utf-8"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url;
-  a.download=`CONC${num}_SOCIO${socioNum}_${ano}.PMR`;
-  a.click();
-  URL.revokeObjectURL(url);
-
-  setStatus("Arquivo oficial inviolável .PMR gerado com Hash SHA-256!");
-  alert(`🛡️ ARQUIVO .PMR GERADO COM SUCESSO!\n\nHash:\n${hashSeguranca.substring(0,20)}...\n\nSe alguém alterar o arquivo, o sistema detectará automaticamente.`);
-}
-
-function enviarPmrDiretoWhatsApp(){
-  const socioNum=document.getElementById("pmrSocioID").value||"81";
-  const qtd=pmrAnilhasMobile.length;
-  let resumo="";
-  pmrAnilhasMobile.forEach(p=>resumo+=`\n🕊️ *${p.anilha}* - ⏰ ${p.hora}`);
-  const msg=`🏁 *CONSTATAÇÃO REMOTA (PROVISÓRIA)*\n👤 Sócio: ${socioNum}\n📊 Pombos constatados: ${qtd}${resumo}\n\n📥 _(O arquivo .PMR deve ser gerado e enviado ao clube)_`;
-  window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`,"_blank");
-}
-
-async function lerArquivoPMR(event){
-  const file=event.target.files[0];
-  if(!file)return;
-  const reader=new FileReader();
-  reader.onload=async e=>{
-    const textoCompleto=e.target.result;
-    const partes=textoCompleto.split("[SECURITY]");
-    if(partes.length<2||!partes[1].includes("Hash=")){
-      return alert("🚨 ARQUIVO INVÁLIDO OU CORROMPIDO!\n\nEste arquivo não possui assinatura digital válida de constatação .PMR.");
-    }
-    const payloadDados=partes[0].replace("[PIGEON_MASTER_RACE_CLOCK]\n","").trim();
-    const hashNoArquivo=partes[1].split("Hash=")[1]?.trim();
-    const hashRecalculado=await gerarHashPMR(payloadDados);
-    const statusBadge=document.getElementById("impPmrStatusHash");
-    const btnLancar=document.getElementById("btnLancarProvisorio");
-
-    if(hashNoArquivo!==hashRecalculado){
-      statusBadge.className="pmr-badge-err";
-      statusBadge.textContent="🚨 ADULTERADO! HASH INVÁLIDO";
-      btnLancar.disabled=true;
-      alert("🛑 ERRO GRAVE DE SEGURANÇA:\n\nO sistema detectou que este arquivo .PMR foi alterado manualmente após ser gerado.\n\nA importação foi bloqueada.");
-    }else{
-      statusBadge.className="pmr-badge-ok";
-      statusBadge.textContent="✔ HASH SHA-256 AUTENTICADO E ÍNTEGRO";
-      btnLancar.disabled=false;
-    }
-
-    const linhas=payloadDados.split("\n");
-    let objPmr={pombos:[]};
-    linhas.forEach(l=>{
-      if(l.startsWith("Concurso="))objPmr.concurso=l.split("=")[1];
-      if(l.startsWith("SocioID="))objPmr.socioID=l.split("=")[1];
-      if(l.startsWith("Relogio="))objPmr.relogio=l.split("=")[1];
-      if(l.startsWith("LatLong="))objPmr.latlong=l.split("=")[1];
-      if(l.startsWith("HoraEnvio="))objPmr.horaEnvio=l.split("=")[1];
-      if(l.startsWith("Band")){
-        const d=l.split("=")[1]?.split("|");
-        if(d&&d.length>=2)objPmr.pombos.push({anilha:d[0],hora:d[1],obs:d[2]||"Normal"});
-      }
-    });
-    pmrDadosImportadosAtual=objPmr;
-
-    document.getElementById("impPmrConcurso").textContent=objPmr.concurso||"-";
-    document.getElementById("impPmrSocio").textContent=objPmr.socioID||"-";
-    document.getElementById("impPmrRelogio").textContent=objPmr.relogio||"-";
-    document.getElementById("impPmrGps").textContent=objPmr.latlong||"Não informado";
-    document.getElementById("impPmrHoraEnv").textContent=objPmr.horaEnvio?new Date(objPmr.horaEnvio).toLocaleTimeString():"-";
-
-    const concSalvo=concorrentesSalvos.find(c=>c.numero===objPmr.socioID);
-    if(concSalvo&&objPmr.latlong&&objPmr.latlong.includes(",")){
-      const coords=objPmr.latlong.split(",");
-      const latCel=parseFloat(coords[0]),lonCel=parseFloat(coords[1]);
-      const latPombal=dmsDec(concSalvo.latGrau,concSalvo.latMin,concSalvo.latSeg);
-      const lonPombal=dmsDec(concSalvo.lonGrau,concSalvo.lonMin,concSalvo.lonSeg);
-      const distMetros=distM(latPombal,lonPombal,latCel,lonCel);
-      if(distMetros>500&&!isNaN(distMetros)){
-        alert(`⚠ ALERTA DE GEOLOCALIZAÇÃO:\n\nO GPS de envio está a ${fmtBR(distMetros,0)}m do pombal cadastrado.`);
-      }
-    }
-
-    const tbLidos=document.querySelector("#tabelaPmrLidos tbody");
-    tbLidos.innerHTML="";
-    objPmr.pombos.forEach(p=>{
-      const pCad=pombosSalvos.find(x=>x.anilha===p.anilha);
-      const tr=document.createElement("tr");
-      tr.innerHTML=`<td><b>${esc(p.anilha)}</b></td><td style="font-family:Consolas;color:#005500;font-weight:bold;">${esc(p.hora)}</td><td>${esc(p.obs)}</td><td>${pCad?'<span style="color:#008000;font-weight:bold;">✔ Cadastrado</span>':'<span style="color:#a00000;font-weight:bold;">⚠ Não cadastrado</span>'}</td>`;
-      tbLidos.appendChild(tr);
-    });
-    document.getElementById("pmrDadosArquivo").style.display="block";
-    setStatus("Arquivo .PMR analisado. Pombos lidos: "+objPmr.pombos.length);
-  };
-  reader.readAsText(file);
-}
-
-function limparImportacaoPMR(){
-  document.getElementById("pmrDadosArquivo").style.display="none";
-  document.getElementById("filePmrInput").value="";
-  pmrDadosImportadosAtual=null;
-  document.getElementById("btnLancarProvisorio").disabled=true;
-}
-
-function importarParaLancamentoProvisorio(){
-  if(!pmrDadosImportadosAtual||!pmrDadosImportadosAtual.pombos.length)return;
-  if(!provaAtual){
-    const ano=document.getElementById("lancAno").value||"2026";
-    const num=document.getElementById("lancNum").value||"1";
-    carregarLancamentosProva(ano,num,document.getElementById("lancNomeConcurso").value);
-  }
-  let importadosCont=0;
-  pmrDadosImportadosAtual.pombos.forEach(p=>{
-    if(!lancamentos.some(l=>l.anilha===p.anilha)){
-      const pCad=pombosSalvos.find(x=>x.anilha===p.anilha);
-      lancamentos.push({
-        anilha:p.anilha,
-        assoc:pCad?pCad.assoc:"11",
-        colec:pCad?pCad.colec:"33",
-        concNum:pmrDadosImportadosAtual.socioID||"81",
-        sexo:pCad?pCad.sexo:"Macho",
-        chegada:p.hora,
-        dias:"1",
-        tMorto:"00:00:00",
-        correcao:"0",
-        distancia:"0,0",
-        media:"0,0000",
-        tempoVoo:"",
-        pmrProvisorio:true
-      });
-      importadosCont++;
-    }
-  });
-  salvarLancamentosProvaAtual();
-  atualizarListaLancamentos();
-  atualizarTabelaAuditoriaPMR();
-  alert(`⚡ SUCESSO! ${importadosCont} constatação(ões) provisória(s) foram lançadas na prova.`);
-  closeWin("winRemoteClock");
-  openWin("winLancamento");
-}
-
-function atualizarTabelaAuditoriaPMR(){
-  const tbAud=document.querySelector("#tabelaPmrAuditoria tbody");if(!tbAud)return;
-  tbAud.innerHTML="";
-  const provisorios=lancamentos.filter(l=>l.pmrProvisorio||l.horaFisicaOficial);
-  if(!provisorios.length){
-    tbAud.innerHTML='<tr><td colspan="7" style="text-align:center;padding:15px;color:#666">Nenhuma constatação remota provisória pendente para esta prova.</td></tr>';
-    return;
-  }
-  provisorios.forEach((l,idx)=>{
-    const conc=concorrentesSalvos.find(c=>c.numero===l.concNum);
-    const horaCel=l.chegada||"00:00:00";
-    const horaFis=l.horaFisicaOficial||horaCel;
-    const pCel=parseHora(horaCel),pFis=parseHora(horaFis);
-    const diffSegs=(pFis[0]*3600+pFis[1]*60+pFis[2])-(pCel[0]*3600+pCel[1]*60+pCel[2]);
-    const exato=diffSegs===0;
-    const tr=document.createElement("tr");
-    tr.style.background=exato?"#fff":"#fff0f0";
-    tr.innerHTML=`<td>${esc(l.concNum)} - ${esc(conc?conc.nome:'')}</td><td><b>${esc(l.anilha)}</b></td><td style="color:#005500;font-weight:bold;font-family:Consolas">${esc(horaCel)}</td><td style="font-family:Consolas">${esc(horaFis)}</td><td style="font-weight:bold;color:${exato?'#008000':'#a00000'}">${exato?'0s (Exato)':`${diffSegs>0?'+':''}${diffSegs}s (Divergente!)`}</td><td><span class="${l.homologado?'pmr-badge-ok':'pmr-badge-prov'}">${l.homologado?'Homologado':'Provisório'}</span></td><td>${!l.homologado?`<button class="small-btn" style="background:#d4edda;font-weight:bold;" onclick="homologarConstatacaoIndividual(${idx})">✔ Homologar</button>`:'✔ Oficial'}</td>`;
-    tbAud.appendChild(tr);
-  });
-}
-
-function homologarConstatacaoIndividual(idx){
-  const provisorios=lancamentos.filter(l=>l.pmrProvisorio||l.horaFisicaOficial);
-  const item=provisorios[idx];
-  if(item){
-    item.homologado=true;
-    item.pmrProvisorio=false;
-    salvarLancamentosProvaAtual();
-    atualizarTabelaAuditoriaPMR();
-    atualizarListaLancamentos();
-    setStatus("Homologado com sucesso: "+item.anilha);
-  }
-}
-function homologarTodosExatos(){
-  let cont=0;
-  lancamentos.forEach(l=>{
-    if(l.pmrProvisorio){
-      l.homologado=true;
-      l.pmrProvisorio=false;
-      cont++;
-    }
-  });
-  salvarLancamentosProvaAtual();
-  atualizarTabelaAuditoriaPMR();
-  atualizarListaLancamentos();
-  alert(`✔ Auditoria Concluída! ${cont} pombos foram homologados oficialmente.`);
-}
-
-function initPMRFromUrl(){
-  const params=new URLSearchParams(window.location.search);
-  if(params.get("pmr")!=="1")return;
-
-  const ano=params.get("ano")||"2026";
-  const num=params.get("num")||"1";
-  const socio=params.get("socio")||"";
-  const socioNome=params.get("socioNome")||"";
-  const relogio=params.get("relogio")||"Benzing";
-  const nomeConcurso=params.get("nome")||"Concurso";
-
-  const mobConc=document.getElementById("mobNomeConcurso");
-  const mobSoc=document.getElementById("mobNomeSocio");
-  const mobRel=document.getElementById("mobTipoRelogio");
-
-  const pmrAno=document.getElementById("pmrAno");
-  const pmrNum=document.getElementById("pmrNum");
-  const pmrSocio=document.getElementById("pmrSocioID");
-  const pmrSocioNome=document.getElementById("pmrSocioNome");
-  const pmrNomeConcurso=document.getElementById("pmrNomeConcurso");
-
-  if(pmrAno)pmrAno.value=ano;
-  if(pmrNum)pmrNum.value=num;
-  if(pmrSocio)pmrSocio.value=socio;
-  if(pmrSocioNome)pmrSocioNome.value=socioNome;
-  if(pmrNomeConcurso)pmrNomeConcurso.value=nomeConcurso;
-  if(mobConc)mobConc.textContent=`Conc ${num}/${ano} - ${nomeConcurso}`;
-  if(mobSoc)mobSoc.textContent=`${socio} - ${socioNome}`;
-  if(mobRel)mobRel.textContent=relogio;
-
-  document.querySelectorAll("#workspace>.child-window.active").forEach(x=>x.classList.remove("active"));
-  abrirTelaCelularSocio();
-}
-
-/* =================== EVENTOS =================== */
-document.getElementById("edtNumero").addEventListener("blur",preencherNomeConcPombo);
-document.getElementById("btnGuardarPombo").onclick=guardarPombo;
-document.getElementById("btnNovoPombo").onclick=()=>novoPombo(false);
-document.getElementById("btnDesfazerPombo").onclick=desfazerPombo;
-document.getElementById("btnAnularPombo").onclick=anularPombo;
-
-document.getElementById("btnGuardarConc").onclick=guardarConc;
-document.getElementById("btnNovoConc").onclick=novoConc;
-document.getElementById("btnDesfazerConc").onclick=desfazerConc;
-document.getElementById("btnAnularConc").onclick=anularConc;
-document.getElementById("btnRestaurarConc").onclick=function(){if(confirm("Restaurar lista padrão?")){carregarConcorrentesIniciais();atualizarTabelaConcorrentes()}};
-
-document.getElementById("btnNovoCurso").onclick=novoCurso;
-document.getElementById("btnGuardarCurso").onclick=guardarCurso;
-document.getElementById("btnDesfazerCurso").onclick=desfazerCurso;
-document.getElementById("btnAnularCurso").onclick=anularCurso;
-
-document.getElementById("btnNovoLanc").onclick=()=>limparLancamento(false,false);
-document.getElementById("btnGuardarLanc").onclick=guardarLancamento;
-document.getElementById("btnDesfazerLanc").onclick=desfazerLancamento;
-document.getElementById("btnAnularLanc").onclick=anularLancamento;
-document.getElementById("btnBuscarPombo").onclick=buscarPombo;
-document.getElementById("lancAnilha").addEventListener("blur",buscarPombo);
-document.getElementById("lancNumConc").addEventListener("blur",atualizarDistanciaLancamento);
-["lancDias","lancChegada","lancPartida","lancTMorto","lancCorrecao"].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener("input",calcularTempoVoo)});
-
-document.getElementById("btnBuscarConcurso").onclick=()=>abrirModalConcurso("lanc");
-document.getElementById("btnBuscarConcursoCalc").onclick=()=>abrirModalConcurso("calc");
-document.getElementById("btnBuscarConcursoRel").onclick=()=>abrirModalConcurso("rel");
-document.getElementById("btnBuscarConcursoShr").onclick=()=>abrirModalConcurso("shr");
-document.getElementById("btnBuscarConcursoExp").onclick=()=>abrirModalConcurso("exp");
-document.getElementById("btnBuscarConcursoPmr").onclick=()=>abrirModalConcurso("pmr");
-
-document.getElementById("filtroConcurso").addEventListener("input",filtrarConcursos);
-document.getElementById("btnSelConcurso").onclick=selecionarConcursoModal;
-document.getElementById("filtroConcorrente").addEventListener("input",filtrarConcorrentesModal);
-document.getElementById("btnSelConcorrente").onclick=selecionarConcorrenteModal;
-
-document.getElementById("btnBuscarConcLanc").onclick=()=>abrirModalConcorrente(conc=>{
-  document.getElementById("lancNumConc").value=conc.numero;
-  document.getElementById("lancNomeConc").value=conc.nome;
-  document.getElementById("lancAssoc").value=conc.assoc;
-  document.getElementById("lancColec").value=conc.colec;
-  atualizarDistanciaLancamento();
-  setTimeout(()=>document.getElementById("lancAnilha").focus(),100);
-});
-document.getElementById("btnBuscarConcPombo").onclick=()=>abrirModalConcorrente(conc=>{
-  document.getElementById("edtNumero").value=conc.numero;
-  document.getElementById("edtNomeConcPombo").value=conc.nome;
-  document.getElementById("edtAssoc").value=conc.assoc;
-  document.getElementById("edtColec").value=conc.colec;
-  setTimeout(()=>{document.getElementById("edtAnilha").focus();document.getElementById("edtAnilha").select()},100);
-});
-
-document.getElementById("btnCalcular").onclick=executarCalculo;
-document.getElementById("btnConfirmarCalc").onclick=confirmarCalculo;
-document.getElementById("btnGerarRel").onclick=gerarRelatorioPombos;
-
-document.addEventListener("keydown",function(e){
-  if(e.ctrlKey&&(e.key==="l"||e.key==="L")){
-    e.preventDefault();
-    if(document.getElementById("winPombos").classList.contains("active"))liberarSocioPombos();
-    else if(document.getElementById("winLancamento").classList.contains("active"))liberarSocioLanc();
-    return;
-  }
-  if(e.ctrlKey&&(e.key==="m"||e.key==="M")){
-    e.preventDefault();
-    openWin("winRemoteClock");
-    return;
-  }
-  if(e.key==="Enter"&&e.target.tagName==="INPUT"&&e.target.type!=="radio"&&e.target.type!=="button"){
-    e.preventDefault();
-    if(e.target.id==="edtAnilha"){
-      const numero=document.getElementById("edtNumero").value.trim();
-      if(numero){document.getElementById("btnGuardarPombo").click();return}else{document.getElementById("edtNumero").focus();return}
-    }
-    if(e.target.id==="edtNumero"){preencherNomeConcPombo();setTimeout(()=>document.getElementById("edtAnilha").focus(),50);return}
-    if(e.target.id==="lancAnilha"){buscarPombo();setTimeout(()=>document.getElementById("lancChegada").focus(),50);return}
-    if(e.target.id==="lancChegada"){document.getElementById("btnGuardarLanc").click();return}
-    if(e.target.id==="mobHoraInput"){adicionarAnilhaListaMobile();return}
-    const inputs=Array.from(document.querySelectorAll("input:not([readonly]):not([type='radio']):not([type='button']), textarea"));
-    const visible=inputs.filter(el=>el.offsetParent!==null);
-    const idx=visible.indexOf(e.target);
-    if(idx>=0&&idx<visible.length-1){
-      visible[idx+1].focus();
-      if(visible[idx+1].select)visible[idx+1].select();
-    }
-  }
-});
-
-let dragWin=null,ox=0,oy=0;
-document.querySelectorAll(".win-title").forEach(tt=>{
-  tt.addEventListener("mousedown",function(e){
-    if(e.target.tagName==="BUTTON")return;
-    const win=tt.closest(".child-window");
-    if(!win)return;
-    dragWin=win;
-    dragWin.style.zIndex=++zCounter;
-    const r=dragWin.getBoundingClientRect();
-    ox=e.clientX-r.left;
-    oy=e.clientY-r.top;
-    e.preventDefault();
-  });
-});
-document.addEventListener("mousemove",function(e){
-  if(!dragWin)return;
-  const ws=document.getElementById("workspace").getBoundingClientRect();
-  dragWin.style.left=Math.max(0,e.clientX-ws.left-ox)+"px";
-  dragWin.style.top=Math.max(0,e.clientY-ws.top-oy)+"px";
-});
-document.addEventListener("mouseup",()=>{dragWin=null});
-
-function onlyNum(v){return String(v??"").replace(/\D/g,"")}
-function maskData(el){
-  let v=onlyNum(el.value).slice(0,8);
-  el.value=v.length>=5?v.slice(0,2)+"/"+v.slice(2,4)+"/"+v.slice(4):v.length>=3?v.slice(0,2)+"/"+v.slice(2):v;
-}
-function maskAnilha(el){
-  let v=onlyNum(el.value).slice(0,9);
-  if(v.length===0){el.value="";return}
-  if(v.length<=7)el.value=v;else el.value=v.slice(0,7)+"/"+v.slice(7);
-}
-function maskHora(el){
-  let v=onlyNum(el.value).slice(0,6);
-  if(v.length===0){el.value="";return}
-  if(v.length<=2)el.value=v;else if(v.length<=4)el.value=v.slice(0,2)+":"+v.slice(2);else el.value=v.slice(0,2)+":"+v.slice(2,4)+":"+v.slice(4);
-}
-function ligarMascaras(){
-  ["cursoData","lancDataIni","lancDataFim"].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener("input",()=>maskData(el))});
-  ["edtAnilha","lancAnilha","palmAnilha","mobAnilhaInput"].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener("input",()=>maskAnilha(el))});
-  ["lancHoraIni","lancHoraFim","lancChegada","lancPartida","lancTMorto","cursoHoraSolta","cursoTM1","cursoTM2","cursoTM3","mobHoraInput"].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener("input",()=>maskHora(el))});
-}
-
-window.addEventListener("load",function(){
-  carregarStorage();
-  ligarMascaras();
-  atualizarTabelaPombos();
-  atualizarTabelaConcorrentes();
-  atualizarTabelaCursos();
-  limparLancamento(true,false);
-  resetarCalculo();
-  resetarRelatorio();
-  const alt=document.getElementById("edtAltText");if(alt)alt.hidden=true;
-  const altC=document.getElementById("cursoAlteracaoText");if(altC)altC.hidden=true;
-  setStatus("Pronto | v2.1 | PigeonMaster Remote Clock (.PMR) Ativo");
-  openWin("winPombos");
-  initPMRFromUrl();
-});
-</script>
-/* ============================================================
-   PATCH v2.2 - CONCURSOS PARALELOS POR TIPO
-   Permite:
-   - 2026 / 1 / Velocidade Adulto
-   - 2026 / 1 / Filhotes
-   sem misturar dados
-============================================================ */
-(function(){
-  if(window.__PATCH_V22_CONCURSO_TIPO__) return;
-  window.__PATCH_V22_CONCURSO_TIPO__ = true;
-
-  let ctxCalc = null;
-  let ctxRel = null;
-  let ctxShr = null;
-  let ctxExp = null;
-  let ctxPMR = null;
-
-  function concursoKey(ano,num,tipo){
-    return `${String(ano||"").trim()}/${String(num||"").trim()}|${String(tipo||"").trim()}`;
-  }
-
-  function parseConcursoKey(key){
-    const s = String(key||"");
-    const [base,tipo=""] = s.split("|");
-    const [ano="",num=""] = base.split("/");
-    return { ano, num, tipo };
-  }
-
-  function findCursoExato(ano,num,tipo,nome){
-    let lista = (cursosSalvos||[]).filter(c => String(c.ano)===String(ano) && String(c.num)===String(num));
-    if(tipo) lista = lista.filter(c => String(c.tipo||"")===String(tipo));
-    if(nome) {
-      const porNome = lista.filter(c => String(c.nome||"")===String(nome));
-      if(porNome.length) return porNome[0];
-    }
-    return lista[0] || null;
-  }
-
-  function findCursoSeguro(ano,num,nome,tipo){
-    if(tipo) return findCursoExato(ano,num,tipo,nome);
-    let lista = (cursosSalvos||[]).filter(c => String(c.ano)===String(ano) && String(c.num)===String(num));
-    if(nome) {
-      const porNome = lista.filter(c => String(c.nome||"")===String(nome));
-      if(porNome.length===1) return porNome[0];
-    }
-    if(lista.length===1) return lista[0];
-    return null;
-  }
-
-  function lancamentoValidoParaCalculoV22(l){
-    return !l.pmrProvisorio || l.homologado === true;
-  }
-
-  function tipoAbrevReal(tipo){
-    const m = {
-      "Velocidade Adulto":"V",
-      "Meio-fundo":"M",
-      "Fundo":"F",
-      "Filhotes":"J"
-    };
-    return m[tipo] || "G";
-  }
-
-  function migrateLegacyKeys(){
-    let changed = false;
-
-    (cursosSalvos||[]).forEach(c=>{
-      if(!c.tipo){
-        c.tipo = "Velocidade Adulto";
-        changed = true;
-      }
-    });
-
-    const novoLanc = {};
-    Object.keys(todosLancamentos||{}).forEach(k=>{
-      if(k.includes("|")){
-        novoLanc[k] = todosLancamentos[k];
-        return;
-      }
-      const [ano,num] = k.split("/");
-      const lista = (cursosSalvos||[]).filter(c=>String(c.ano)===String(ano) && String(c.num)===String(num));
-      let tipo = "Velocidade Adulto";
-      if(lista.length===1) tipo = lista[0].tipo || "Velocidade Adulto";
-      novoLanc[concursoKey(ano,num,tipo)] = todosLancamentos[k];
-      changed = true;
-    });
-    todosLancamentos = novoLanc;
-
-    const novaClass = {};
-    Object.keys(classificacoesSalvas||{}).forEach(k=>{
-      if(k.includes("|")){
-        novaClass[k] = classificacoesSalvas[k];
-        return;
-      }
-      const [ano,num] = k.split("/");
-      const lista = (cursosSalvos||[]).filter(c=>String(c.ano)===String(ano) && String(c.num)===String(num));
-      let tipo = "Velocidade Adulto";
-      if(lista.length===1) tipo = lista[0].tipo || "Velocidade Adulto";
-      novaClass[concursoKey(ano,num,tipo)] = classificacoesSalvas[k];
-      changed = true;
-    });
-    classificacoesSalvas = novaClass;
-
-    if(changed){
-      try{
-        salvarCursos();
-        salvarLancamentos();
-        salvarClassificacoes();
-      }catch(e){}
-    }
-  }
-
-  /* ================= CURSO / CADASTRO ================= */
-  guardarCurso = function(){
-    const c = cursoForm();
-    if(!c.ano || !c.num || !c.nome) return alert("Preencha Ano, Número e Nome.");
-
-    const duplicado = cursosSalvos.findIndex((x,i)=>
-      String(x.ano)===String(c.ano) &&
-      String(x.num)===String(c.num) &&
-      String(x.tipo||"")===String(c.tipo||"") &&
-      i!==edtCursoIndex
-    ) >= 0;
-
-    if(duplicado) return alert("Já existe um concurso com este Ano / Número / Tipo.");
-
-    if(edtCursoIndex!==null){
-      historicoCursos.push({acao:"editar",dados:{i:edtCursoIndex,antigo:cursosSalvos[edtCursoIndex]}});
-      cursosSalvos[edtCursoIndex] = c;
-      edtCursoIndex = null;
-      alert("Atualizado.");
-    }else{
-      cursosSalvos.push(c);
-      historicoCursos.push({acao:"adicionar"});
-      alert("Salvo.");
-    }
-
-    salvarCursos();
-    atualizarTabelaCursos();
-    document.getElementById("cursoAlteracaoText").hidden = true;
-  };
-
-  /* ================= MODAL DE CONCURSOS ================= */
-  filtrarConcursos = function(){
-    const f = document.getElementById("filtroConcurso").value.toLowerCase();
-    const tb = document.querySelector("#tabelaConcursos tbody");
-    tb.innerHTML = "";
-
-    const lista = cursosSalvos.slice()
-      .sort((a,b)=>(+a.ano||0)-(+b.ano||0)||(+a.num||0)-(+b.num||0)||String(a.tipo||"").localeCompare(String(b.tipo||"")))
-      .filter(c =>
-        String(c.ano||"").includes(f) ||
-        String(c.num||"").includes(f) ||
-        String(c.nome||"").toLowerCase().includes(f) ||
-        String(c.tipo||"").toLowerCase().includes(f)
-      );
-
-    if(!lista.length){
-      tb.innerHTML = '<tr><td colspan="4" style="text-align:center">Nenhuma</td></tr>';
-      return;
-    }
-
-    lista.forEach(c=>{
-      const tr = document.createElement("tr");
-      tr.dataset.ano = c.ano;
-      tr.dataset.num = c.num;
-      tr.dataset.nome = c.nome;
-      tr.dataset.tipo = c.tipo || "";
-      tr.innerHTML = "<td>"+esc(c.ano)+"</td><td>"+esc(c.num)+"</td><td>"+esc(c.nome)+"</td><td style='text-align:center'>"+tipoAbrevReal(c.tipo)+"</td>";
-      tr.style.cursor = "pointer";
-      tr.onclick = function(){
-        document.querySelectorAll("#tabelaConcursos tbody tr").forEach(r=>{r.style.background="";r.style.color="";r.dataset.sel=""});
-        tr.style.background="#0078d7";
-        tr.style.color="#fff";
-        tr.dataset.sel="1";
-      };
-      tr.ondblclick = function(){ this.onclick(); selecionarConcursoModal(); };
-      tb.appendChild(tr);
-    });
-  };
-
-  selecionarConcursoModal = function(){
-    const sel = document.querySelector('#tabelaConcursos tbody tr[data-sel="1"]');
-    if(!sel) return alert("Selecione um concurso.");
-
-    const ano  = sel.dataset.ano || "";
-    const num  = sel.dataset.num || "";
-    const nome = sel.dataset.nome || "";
-    const tipo = sel.dataset.tipo || "";
-
-    if(destinoModalConcurso==="lanc"){
-      carregarLancamentosProva(ano,num,nome,tipo);
-    }
-    else if(destinoModalConcurso==="calc"){
-      ctxCalc = {ano,num,nome,tipo};
-      document.getElementById("calcAno").value = ano;
-      document.getElementById("calcNum").value = num;
-      document.getElementById("calcNomeConcurso").value = nome;
-      preencherDadosConcursoCalc(ano,num,tipo,nome);
-    }
-    else if(destinoModalConcurso==="rel"){
-      ctxRel = {ano,num,nome,tipo};
-      document.getElementById("relAno").value = ano;
-      document.getElementById("relNum").value = num;
-      document.getElementById("relNome").value = nome;
-    }
-    else if(destinoModalConcurso==="shr"){
-      ctxShr = {ano,num,nome,tipo};
-      document.getElementById("shrAno").value = ano;
-      document.getElementById("shrNum").value = num;
-      document.getElementById("shrNome").value = nome;
-    }
-    else if(destinoModalConcurso==="exp"){
-      ctxExp = {ano,num,nome,tipo};
-      document.getElementById("expAno").value = ano;
-      document.getElementById("expNum").value = num;
-      document.getElementById("expNome").value = nome;
-    }
-    else if(destinoModalConcurso==="pmr"){
-      ctxPMR = {ano,num,nome,tipo};
-      document.getElementById("pmrAno").value = ano;
-      document.getElementById("pmrNum").value = num;
-      document.getElementById("pmrNomeConcurso").value = nome;
-      const mobConc = document.getElementById("mobNomeConcurso");
-      if(mobConc) mobConc.textContent = `Conc ${num}/${ano} - ${nome}`;
-      carregarLancamentosProva(ano,num,nome,tipo);
-      atualizarTabelaAuditoriaPMR();
-    }
-
-    fecharModalConcurso();
-  };
-
-  /* ================= LANÇAMENTOS ================= */
-  carregarLancamentosProva = function(ano,num,nome,tipo){
-    const curso = findCursoSeguro(ano,num,nome,tipo);
-    if(!curso){
-      return alert("Concurso não encontrado. Se houver concursos com mesmo número, selecione novamente pela lupa.");
-    }
-
-    provaAtual = {ano:curso.ano,num:curso.num,nome:curso.nome,tipo:curso.tipo,curso};
-    document.getElementById("lancAno").value = curso.ano;
-    document.getElementById("lancNum").value = curso.num;
-    document.getElementById("lancNomeConcurso").value = curso.nome;
-    document.getElementById("lancTipoTexto").textContent = (curso.tipo||"").toUpperCase();
-
-    document.getElementById("lancDataIni").value = curso.data || "";
-    document.getElementById("lancHoraIni").value = curso.horaSolta || "";
-    document.getElementById("lancPartida").value = curso.horaSolta || "";
-    document.getElementById("lancTMorto").value = curso.tm1 || "00:00:00";
-    document.getElementById("lancTMortoCalc").value = curso.tm1 || "00:00:00";
-
-    const key = concursoKey(curso.ano,curso.num,curso.tipo);
-    lancamentos = todosLancamentos[key] || [];
-    atualizarListaLancamentos();
-    limparLancamento(false,false);
-    setStatus("Prova: "+curso.ano+"/"+curso.num+" ["+curso.tipo+"]");
-    setTimeout(()=>document.getElementById("lancAnilha").focus(),100);
-  };
-
-  getCursoAtual = function(){
-    if(provaAtual?.curso) return provaAtual.curso;
-    if(!provaAtual) return null;
-    return findCursoSeguro(provaAtual.ano,provaAtual.num,provaAtual.nome,provaAtual.tipo);
-  };
-
-  salvarLancamentosProvaAtual = function(){
-    if(!provaAtual) return;
-    const key = concursoKey(provaAtual.ano,provaAtual.num,provaAtual.tipo);
-    todosLancamentos[key] = lancamentos;
-    salvarLancamentos();
-  };
-
-  atualizarListaLancamentos = function(){
-    const tb=document.querySelector("#tabelaLancamentos tbody");if(!tb)return;tb.innerHTML="";
-    if(!lancamentos.length){
-      tb.innerHTML='<tr><td colspan="3" style="text-align:center;color:#999">-</td></tr>';
-    }else{
-      lancamentos.forEach((l,i)=>{
-        const tr=document.createElement("tr");
-        const tag=l.pmrProvisorio?' <span style="color:#a67c00;font-weight:bold;">[PMR]</span>':"";
-        tr.innerHTML="<td>"+esc(l.anilha)+tag+"</td><td>"+esc(l.chegada||"")+'</td><td><button class="btn-editar" data-i="'+i+'">E</button> <button class="btn-excluir" data-i="'+i+'">X</button></td>';
-        tb.appendChild(tr);
-      });
-      document.querySelectorAll("#tabelaLancamentos .btn-editar").forEach(b=>b.onclick=()=>editarLancamento(+b.dataset.i));
-      document.querySelectorAll("#tabelaLancamentos .btn-excluir").forEach(b=>b.onclick=()=>excluirLancamento(+b.dataset.i));
-    }
-    document.getElementById("contProva").value=lancamentos.length;
-    const n=document.getElementById("lancNumConc").value.trim();
-    document.getElementById("contConc").value=lancamentos.filter(l=>l.concNum===n).length;
-  };
-
-  /* ================= CÁLCULO ================= */
-  const _resetarCalculoOld = resetarCalculo;
-  resetarCalculo = function(){
-    ctxCalc = null;
-    _resetarCalculoOld();
-  };
-
-  preencherDadosConcursoCalc = function(ano,num,tipo,nome){
-    const curso = findCursoSeguro(ano,num,nome,tipo) || ctxCalc && findCursoSeguro(ctxCalc.ano,ctxCalc.num,ctxCalc.nome,ctxCalc.tipo);
-    if(!curso) return;
-
-    document.getElementById("calcDadoTipo").value = curso.tipo || "";
-    document.getElementById("calcDadoData").value = curso.data || "/ /";
-    document.getElementById("calcDadoLat").value = (curso.latGrau||"0")+"° "+(curso.latMin||"0")+"' "+(curso.latSeg||"0")+'"';
-    document.getElementById("calcDadoLon").value = (curso.lonGrau||"0")+"° "+(curso.lonMin||"0")+"' "+(curso.lonSeg||"0")+'"';
-
-    const key = concursoKey(curso.ano,curso.num,curso.tipo);
-    const arr = todosLancamentos[key] || [];
-    const oficiais = arr.filter(lancamentoValidoParaCalculoV22);
-
-    document.getElementById("calcDadoPombos").value = oficiais.length;
-  };
-
-  executarCalculo = async function(){
-    const ano = document.getElementById("calcAno").value.trim();
-    const num = document.getElementById("calcNum").value.trim();
-    const nome = document.getElementById("calcNomeConcurso").value.trim();
-
-    if(!ano || ano==="0" || !num || num==="0") return alert("Selecione um concurso.");
-
-    const curso = findCursoSeguro(ano,num,nome,ctxCalc?.tipo);
-    if(!curso) return alert("Selecione o concurso pela lupa para definir corretamente o tipo da prova.");
-
-    const chave = concursoKey(curso.ano,curso.num,curso.tipo);
-    const todos = todosLancamentos[chave] || [];
-    const arr = todos.filter(lancamentoValidoParaCalculoV22);
-
-    if(!arr.length){
-      return alert("Sem lançamentos oficiais/homologados nesta prova.");
-    }
-
-    for(let i=1;i<=8;i++){
-      const el=document.getElementById("etapa"+i);
-      if(el){el.classList.remove("done");el.classList.add("pending")}
-    }
-
-    const marcaEtapa=(n,delay)=>new Promise(r=>{setTimeout(()=>{const el=document.getElementById("etapa"+n);el.classList.remove("pending");el.classList.add("done");setStatus("Etapa "+n+"...");r()},delay)});
-    await marcaEtapa(1,200);await marcaEtapa(2,300);await marcaEtapa(3,300);await marcaEtapa(4,400);
-
-    const ini=parseInt(curso?.ini)||1000;
-    const dec=parseInt(curso?.dec)||1;
-    const min=1;
-
-    arr.forEach(l=>{
-      const conc=concorrentesSalvos.find(c=>c.numero===l.concNum);
-      if(conc&&curso){
-        const latC=dmsDec(conc.latGrau,conc.latMin,conc.latSeg),lonC=dmsDec(conc.lonGrau,conc.lonMin,conc.lonSeg);
-        const latS=dmsDec(curso.latGrau,curso.latMin,curso.latSeg),lonS=dmsDec(curso.lonGrau,curso.lonMin,curso.lonSeg);
-        l.distancia=fmtBR(distM(latC,lonC,latS,lonS),1);
-
-        const dias=Math.max(1,parseInt(l.dias)||1);
-        const cheg=parseHora(l.chegada||"00:00:00");
-        const part=parseHora(l.partida||"00:00:00");
-        const mort=parseHora(l.tMorto||"00:00:00");
-        const corr=brN(l.correcao||0);
-
-        const mCheg=(((dias-1)*24)+cheg[0])*60+cheg[1]+cheg[2]/60;
-        const mPart=part[0]*60+part[1]+part[2]/60;
-        const mMort=mort[0]*60+mort[1]+mort[2]/60;
-        let totMin=mCheg-mPart-mMort+corr;if(totMin<0)totMin=0;
-        const distNum=brN(l.distancia);
-        l.media=fmtBR(totMin>0?distNum/totMin:0,4);
-      }
-    });
-
-    const groups={};
-    arr.forEach(l=>{(groups[l.concNum]=groups[l.concNum]||[]).push(Object.assign({},l))});
-    let filtrado=[];
-    Object.keys(groups).forEach(soc=>{
-      const g=groups[soc].sort((a,b)=>brN(b.media)-brN(a.media)).slice(0,param.top);
-      g.forEach((r,i)=>{r.marca=i<param.p?"P":"E";r.rankSocio=i+1});
-      filtrado=filtrado.concat(g);
-    });
-
-    filtrado.sort((a,b)=>brN(b.media)-brN(a.media));
-    filtrado.forEach((r,i)=>{
-      r.lugar=i+1;
-      r.pontosPombo=calcPts(i+1,ini,dec,min);
-      r.pontosSoc=r.marca==="P"?r.pontosPombo:0;
-      r.pontos=r.pontosPombo;
-    });
-
-    await marcaEtapa(5,400);await marcaEtapa(6,300);await marcaEtapa(7,300);await marcaEtapa(8,300);
-
-    window._ultimaClassificacao = {chave,ano:curso.ano,num:curso.num,tipo:curso.tipo,nome:curso.nome,lista:filtrado};
-
-    document.getElementById("calcResAno").value=curso.ano;
-    document.getElementById("calcResNum").value=curso.num;
-    document.getElementById("calcResNome").value=curso.nome;
-
-    const tb=document.querySelector("#tabelaClassificacao tbody");
-    tb.innerHTML="";
-    filtrado.forEach(l=>{
-      const conc=concorrentesSalvos.find(c=>c.numero===l.concNum);
-      const nomeConc=conc?conc.nome:"";
-      const tr=document.createElement("tr");
-      tr.innerHTML='<td class="lugar">'+l.lugar+"</td><td>"+esc(l.anilha)+"</td><td>"+esc(l.concNum)+"</td><td>"+esc(nomeConc)+"</td><td>"+esc(l.chegada||"")+"</td><td>"+esc(l.distancia||"")+"</td><td>"+esc(l.media||"")+'</td><td class="pontos">'+l.pontos+"</td><td>"+(l.marca==="P"?'<span class="tagP">P</span>':'<span class="tagE">E</span>')+"</td>";
-      tb.appendChild(tr);
-    });
-
-    setStatus("Concluído: "+filtrado.length+" pombos");
-    openWin("winCalculoResult");
-  };
-
-  /* ================= RELATÓRIO ================= */
-  const _resetarRelatorioOld = resetarRelatorio;
-  resetarRelatorio = function(){
-    ctxRel = null;
-    _resetarRelatorioOld();
-  };
-
-  gerarRelatorioPombos = function(){
-    const ano=document.getElementById("relAno").value.trim();
-    const num=document.getElementById("relNum").value.trim();
-    const nome=document.getElementById("relNome").value.trim();
-    if(!ano||!num)return alert("Selecione um concurso.");
-
-    const curso = findCursoSeguro(ano,num,nome,ctxRel?.tipo);
-    if(!curso) return alert("Selecione o concurso pela lupa para definir corretamente o tipo da prova.");
-
-    const chave = concursoKey(curso.ano,curso.num,curso.tipo);
-    let arr = classificacoesSalvas[chave];
-
-    if(!arr || !arr.length){
-      document.getElementById("calcAno").value = curso.ano;
-      document.getElementById("calcNum").value = curso.num;
-      document.getElementById("calcNomeConcurso").value = curso.nome;
-      ctxCalc = {ano:curso.ano,num:curso.num,nome:curso.nome,tipo:curso.tipo};
-      preencherDadosConcursoCalc(curso.ano,curso.num,curso.tipo,curso.nome);
-      executarCalculo();
-      arr = window._ultimaClassificacao?.lista || [];
-    }
-
-    if(!arr.length)return alert("Sem lançamentos.");
-    const totalConc=new Set(arr.map(x=>x.concNum)).size;
-
-    let html='<h1>CLUBE COLUMBÓFILO LIMEIRENSE</h1><div class="redTitle" style="font-size:18px;">Prova: '+esc(curso.tipo)+". "+esc(curso.nome)+"</div>";
-    html+='<div class="report-box"><b>Concurso:</b> '+esc(curso.ano)+" / "+esc(curso.num)+" &nbsp; <b>Nome:</b> "+esc(curso.nome)+"<br><b>Data:</b> "+esc(curso.data)+" &nbsp; <b>Tipo:</b> "+esc(curso.tipo)+" &nbsp; <b>Hora solta:</b> "+esc(curso.horaSolta)+" &nbsp; <b>Nº Concorrentes:</b> "+totalConc+"</div>";
-    html+='<table class="report-table"><tr><th>lugar</th><th>anilha</th><th>Sócio</th><th>nome_conco</th><th>horacheg</th><th>distancia</th><th>media</th><th>pontos</th><th>Marca</th></tr>';
-
-    arr.forEach((l,i)=>{
-      const conc=concorrentesSalvos.find(c=>c.numero===l.concNum);
-      const nomeConc=l.nome||(conc?conc.nome:"");
-      const lanc=(todosLancamentos[chave]||[]).find(x=>x.anilha===l.anilha)||{};
-      html+='<tr><td class="lugar">'+(l.lugar||i+1)+"</td><td>"+esc(l.anilha)+"</td><td>"+esc(l.concNum)+"</td><td>"+esc(nomeConc)+"</td><td>"+esc(lanc.chegada||l.chegada||"")+"</td><td>"+esc(lanc.distancia||l.distancia||"")+"</td><td>"+esc(lanc.media||l.media||"")+'</td><td class="pontos">'+(l.pontos||l.pontosPombo||0)+"</td><td>"+(l.marca==="P"?"P":"E")+"</td></tr>";
-    });
-
-    html+="</table>";
-    document.getElementById("conteudoRelatorio").innerHTML=html;
-  };
-
-  /* ================= FILTRO DE PROVAS ================= */
-  filtrarProvasPorFiltros = function(tipoFiltro,provasFiltro){
-    return Object.keys(classificacoesSalvas).filter(chave=>{
-      const p = parseConcursoKey(chave);
-      const curso = findCursoExato(p.ano,p.num,p.tipo);
-      if(!curso) return false;
-      if(provasFiltro==="oficiais" && curso.oficial!=="Sim") return false;
-      if(provasFiltro==="naooficiais" && curso.oficial==="Sim") return false;
-      if(tipoFiltro!=="Geral" && curso.tipo!==tipoFiltro) return false;
-      return true;
-    });
-  };
-
-  gerarClassConc = function(){
-    const tipo=getRadio("ccTipo","Velocidade Adulto");
-    const provas=getRadio("ccProvas","oficiais");
-    const zero=getRadio("ccZero","Nao");
-    const melhores=parseInt(document.getElementById("ccMelhores").value)||999999;
-    const realcar=parseInt(document.getElementById("ccRealcar").value)||0;
-    const titulo=document.getElementById("ccTitulo").value.trim();
-    const chaves=filtrarProvasPorFiltros(tipo,provas);
-
-    if(!chaves.length){
-      document.getElementById("areaClassConc").innerHTML='<div style="text-align:center;color:red;padding:20px;">Nenhuma prova encontrada.</div>';
-      return;
-    }
-
-    const map={};
-    chaves.forEach(chave=>{
-      classificacoesSalvas[chave].forEach(item=>{
-        const pts=brN(item.pontosSoc!=null?item.pontosSoc:(item.marca==="P"?item.pontos:0));
-        if(!map[item.concNum]){
-          const c=concorrentesSalvos.find(x=>x.numero===item.concNum);
-          map[item.concNum]={numero:item.concNum,nome:item.nome||(c?c.nome:""),assoc:c?c.assoc:"11",colec:c?c.colec:"33",pontos:0};
-        }
-        map[item.concNum].pontos+=pts;
-      });
-    });
-
-    let arr=Object.values(map);
-    if(zero!=="Sim")arr=arr.filter(x=>x.pontos>0);
-    arr.sort((a,b)=>b.pontos-a.pontos);
-    arr=arr.slice(0,melhores);
-
-    const chavesOrd=chaves.slice().sort((a,b)=>{
-      const pa=parseConcursoKey(a), pb=parseConcursoKey(b);
-      return (+pa.ano||0)-(+pb.ano||0)||(+pa.num||0)-(+pb.num||0)||String(pa.tipo||"").localeCompare(String(pb.tipo||""));
-    });
-
-    const ultimaProva=chavesOrd[chavesOrd.length-1];
-    const p=parseConcursoKey(ultimaProva);
-    const cursoUlt=findCursoExato(p.ano,p.num,p.tipo);
-    const ateProva=cursoUlt?`Até à prova ${p.ano}/${p.num} - ${cursoUlt.nome} (${cursoUlt.tipo})`:"";
-
-    let html=`<div class="gpc-header gpc-h1">CLUBE COLUMBÓFILO LIMEIRENSE</div><div class="gpc-header gpc-h2">${esc(titulo)}</div>`;
-    html+=`<table class="gpc-table"><thead><tr><th style="width:60px">Lugar</th><th>Concorrente</th><th style="text-align:right;width:80px">Pontos</th></tr></thead><tbody>`;
-    arr.forEach((r,i)=>{
-      const cls=realcar>0&&i<realcar?'class="gpc-highlight"':"";
-      html+=`<tr ${cls}><td>${i+1}</td><td>${esc(r.colec)} / ${esc(padNum(r.numero,4))} &nbsp;&nbsp;${esc(r.nome)}</td><td style="text-align:right">${r.pontos}</td></tr>`;
-    });
-    html+=`</tbody></table>`;
-    if(ateProva)html+=`<div class="gpc-footer">${esc(ateProva)}</div>`;
-    document.getElementById("areaClassConc").innerHTML=html;
-    setStatus("Concorrentes: "+arr.length);
-  };
-
-  gerarPalmares = function(){
-    const anilha=document.getElementById("palmAnilha").value.trim();
-    if(!anilha)return alert("Digite a anilha.");
-    const p=pombosSalvos.find(x=>x.anilha===anilha);
-    const historico=[];
-
-    Object.keys(classificacoesSalvas).forEach(chave=>{
-      const item=classificacoesSalvas[chave].find(x=>x.anilha===anilha);
-      if(item){
-        const pc=parseConcursoKey(chave);
-        const curso=findCursoExato(pc.ano,pc.num,pc.tipo);
-        historico.push({chave,ano:pc.ano,num:pc.num,tipo:pc.tipo,curso,item});
-      }
-    });
-
-    if(!historico.length){
-      document.getElementById("areaPalmares").innerHTML='<div style="text-align:center;color:red;padding:20px;">Nenhum registro para a anilha <b>'+esc(anilha)+'</b>.</div>';
-      return;
-    }
-
-    historico.sort((a,b)=>(+a.ano||0)-(+b.ano||0)||(+a.num||0)-(+b.num||0)||String(a.tipo||"").localeCompare(String(b.tipo||"")));
-    const conc=p?concorrentesSalvos.find(c=>c.numero===p.numero):null;
-    const totalProvas=historico.length;
-    const totalPontos=historico.reduce((s,h)=>s+brN(h.item.pontos),0);
-    const totalP=historico.filter(h=>h.item.marca==="P").length;
-    const totalE=historico.filter(h=>h.item.marca==="E").length;
-
-    let html=`<div class="tabPombo"><div class="as-header" style="background:#4a90e2;color:#fff;">📋 PALMARÉS DO POMBO ${esc(anilha)}</div>`;
-    if(p&&conc)html+='<div style="padding:8px;background:#f0f8ff;margin-top:4px;font-size:12px;"><b>Concorrente:</b> '+esc(conc.assoc)+"/"+esc(conc.colec)+"/"+esc(conc.numero)+" - "+esc(conc.nome)+' &nbsp; <b>Sexo:</b> '+esc(p.sexo)+'</div>';
-    html+='<div style="padding:8px;background:#fffacd;font-size:12px;font-weight:bold;">📊 '+totalProvas+' provas · '+totalP+' P · '+totalE+' E · <span class="pontos">'+totalPontos+' pts</span></div>';
-    html+=`<table class="gpc-table" style="margin-top:8px;"><thead><tr><th>Concurso</th><th>Prova</th><th>Tipo</th><th style="text-align:center">Lugar</th><th style="text-align:center">RankSócio</th><th style="text-align:right">Distância</th><th style="text-align:right">Média</th><th style="text-align:center">Marca</th><th style="text-align:right">Pontos</th></tr></thead><tbody>`;
-    historico.forEach(h=>{
-      const marca=h.item.marca==="P"?'<span class="tagP">P</span>':'<span class="tagE">E</span>';
-      html+=`<tr><td>${esc(h.ano)}/${esc(h.num)}</td><td>${esc(h.curso?h.curso.nome:"?")}</td><td>${esc(h.curso?h.curso.tipo:"?")}</td><td class="lugar" style="text-align:center">${h.item.lugar}</td><td style="text-align:center">${h.item.rankSocio||"-"}</td><td style="text-align:right">${esc(h.item.distancia||"-")}</td><td style="text-align:right">${esc(h.item.media||"-")}</td><td style="text-align:center">${marca}</td><td class="pontos" style="text-align:right">${h.item.pontos}</td></tr>`;
-    });
-    html+=`</tbody></table></div>`;
-    document.getElementById("areaPalmares").innerHTML=html;
-    setStatus("Palmarés: "+anilha);
-  };
-
-  /* ================= EXPORTAÇÃO ================= */
-  exportarMovimentosGPC = function(){
-    const ano=document.getElementById("expAno").value.trim();
-    const num=document.getElementById("expNum").value.trim();
-    const nome=document.getElementById("expNome").value.trim();
-    if(!ano||ano==="0")return alert("Selecione um concurso.");
-
-    const curso = findCursoSeguro(ano,num,nome,ctxExp?.tipo);
-    if(!curso) return alert("Selecione o concurso pela lupa para definir corretamente o tipo da prova.");
-
-    const chave=concursoKey(curso.ano,curso.num,curso.tipo);
-    const todos=todosLancamentos[chave]||[];
-    const arr=todos.filter(lancamentoValidoParaCalculoV22);
-
-    if(!arr.length)return alert("Sem lançamentos oficiais/homologados nesta prova.");
-
-    document.getElementById("expLog").innerHTML="";
-    const numPad=String(curso.num).padStart(3,"0");
-    let txt="";
-    arr.forEach(l=>{
-      const anilha=l.anilha||"",colec="33 ",conc=String(l.concNum||"").padStart(5," "),dias=l.dias||"1",cheg=l.chegada||"00:00:00";
-      const horaIni=l.horaIni||"18:00:00",horaFim=l.horaFim||"18:00:00",dataIni=l.dataIni||"",dataFim=l.dataFim||"",corr=String(l.correcao||"0").padStart(4," "),sexo=(l.sexo||"Macho").charAt(0);
-      txt+=numPad+","+anilha+","+colec+","+conc+","+dias+","+cheg+",S,S,N,N, ,N,N,"+horaIni+","+horaFim+","+dataIni+","+dataFim+","+corr+",11,"+curso.ano+","+sexo+",S\r\n";
-    });
-
-    const blob=new Blob([txt],{type:"text/plain;charset=utf-8"});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement("a");
-    a.href=url;a.download="ZDWMOV_T.TXT";a.click();URL.revokeObjectURL(url);
-    document.getElementById("expLog").innerHTML='<div class="ok">✅ Arquivo ZDWMOV_T.TXT gerado com '+arr.length+' movimentos.</div>';
-    setStatus("Exportação: "+arr.length);
-  };
-
-  /* ================= COMPARTILHAR ================= */
-  const _resetarCompartilharOld = resetarCompartilhar;
-  resetarCompartilhar = function(){
-    ctxShr = null;
-    _resetarCompartilharOld();
-  };
-
-  _getClassifShr = function(){
-    const ano=document.getElementById("shrAno").value.trim();
-    const num=document.getElementById("shrNum").value.trim();
-    const nome=document.getElementById("shrNome").value.trim();
-
-    if(!ano||ano==="0"||!num||num==="0"){
-      alert("Selecione um concurso primeiro (🔍).");
-      return null;
-    }
-
-    const curso = findCursoSeguro(ano,num,nome,ctxShr?.tipo);
-    if(!curso){
-      alert("Selecione o concurso pela lupa para definir corretamente o tipo da prova.");
-      return null;
-    }
-
-    const chave = concursoKey(curso.ano,curso.num,curso.tipo);
-    let arr = classificacoesSalvas[chave];
-    if(!arr||!arr.length){
-      alert("Prova não confirmada.");
-      return null;
-    }
-
-    return {ano:curso.ano,num:curso.num,curso,arr,chave};
-  };
-
-  /* ================= IMPORTAR MOVIMENTOS ================= */
-  importarMovimentos = function(){
-    const file=document.getElementById("impFileMov").files[0];
-    if(!file)return alert("Selecione o arquivo primeiro.");
-    limparLogImp("impLogMov");logImp("impLogMov","▶ Lendo: "+file.name);
-    const reader=new FileReader();
-    reader.onload=e=>{
-      const txt=e.target.result;
-      const linhas=txt.split(/\r?\n/).filter(l=>l.trim().length>0);
-      logImp("impLogMov","▶ Movimentos: "+linhas.length,"ok");
-      if(!linhas.length)return;
-
-      const primeira=linhas[0].split(",").map(x=>x.trim());
-      const numConcurso=primeira[0]||"";
-      const ano=primeira[19]||new Date().getFullYear();
-
-      let curso=cursosSalvos.find(c=>String(c.ano)===String(ano)&&String(c.num)===String(parseInt(numConcurso))&&String(c.tipo||"")==="Velocidade Adulto");
-      if(!curso){
-        curso={ano:String(ano),num:String(parseInt(numConcurso)),nome:"Prova "+ano+"/"+parseInt(numConcurso)+" (importada)",data:primeira[15]||"",tipo:"Velocidade Adulto",oficial:"Sim",ini:"1000",dec:"1",tm1:"00:00:00",tm2:"00:00:00",tm3:"00:00:00",horaSolta:primeira[13]||"07:00:00",obs:"Importado do GPC",latGrau:"020",latMin:"02",latSeg:"28.0",lonGrau:"047",lonMin:"44",lonSeg:"25.0"};
-        cursosSalvos.push(curso);
-        salvarCursos();
-        logImp("impLogMov","+ Concurso criado","ok");
-      }
-
-      const chave=concursoKey(curso.ano,curso.num,curso.tipo);
-      const novosLanc=[];let erros=0;
-
-      linhas.forEach(linha=>{
-        try{
-          const p=linha.split(",").map(x=>x.trim());if(p.length<20)return;
-          const anilha=p[1],concNum=p[3],dias=p[4]||"1",chegada=p[5],horaIni=p[13]||"18:00:00",horaFim=p[14]||"18:00:00",dataIni=p[15]||"",dataFim=p[16]||"",correcao=p[17]||"0",sexo=(p[20]||"M")==="M"?"Macho":(p[20]||"M")==="F"?"Femea":"????";
-          novosLanc.push({anilha,assoc:"11",colec:"33",concNum,sexo,dataIni,horaIni,dataFim,horaFim,dias,chegada,partida:curso.horaSolta,tMorto:curso.tm1||"00:00:00",correcao,distancia:"0",media:"0",tempoVoo:""});
-          logImp("impLogMov","✓ "+anilha+" ("+concNum+") "+chegada);
-        }catch(err){logImp("impLogMov","❌ "+err.message,"err");erros++}
-      });
-
-      todosLancamentos[chave]=novosLanc;
-      salvarLancamentos();
-      logImp("impLogMov","━━━━━━━━━","ok");
-      logImp("impLogMov","✅ "+novosLanc.length+" movimentos importados","ok");
-      logImp("impLogMov","💡 Agora: Cálculo de Prova → "+curso.ano+"/"+curso.num+" ("+curso.tipo+") → Confirmar","warn");
-      setStatus("Movimentos: "+novosLanc.length);
-    };
-    reader.readAsText(file,"UTF-8");
-  };
-
-  /* ================= PMR ================= */
-  const _openWinOldV22 = openWin;
-  openWin = function(id){
-    _openWinOldV22(id);
-    if(id==="winRemoteClock"){
-      if(provaAtual){
-        ctxPMR = {
-          ano:provaAtual.ano,
-          num:provaAtual.num,
-          nome:provaAtual.nome,
-          tipo:provaAtual.tipo || provaAtual.curso?.tipo || ""
-        };
-      }
-    }
-  };
-
-  gerarLinkPMR = async function(){
-    const concNum=document.getElementById("pmrSocioID").value||"81";
-    const socioNome=document.getElementById("pmrSocioNome").value||"";
-    const ano=document.getElementById("pmrAno").value||"2026";
-    const num=document.getElementById("pmrNum").value||"1";
-    const relogio=document.getElementById("pmrTipoRelogio").value||"Benzing";
-    const exigirGps=document.getElementById("pmrExigirGps").checked?"1":"0";
-    const nomeConcurso=document.getElementById("pmrNomeConcurso").value||"";
-    const tipoConcurso = ctxPMR?.tipo || provaAtual?.tipo || "";
-
-    if(!tipoConcurso){
-      const curso = findCursoSeguro(ano,num,nomeConcurso);
-      if(!curso){
-        return alert("Selecione o concurso pela lupa do PMR para definir corretamente o tipo da prova.");
-      }
-      ctxPMR = {ano:curso.ano,num:curso.num,nome:curso.nome,tipo:curso.tipo};
-    }
-
-    const tipoFinal = ctxPMR?.tipo || tipoConcurso || "";
-    const tokenBase=`ano=${ano}&num=${num}&tipo=${tipoFinal}&socio=${concNum}&relogio=${relogio}&gps=${exigirGps}&nome=${nomeConcurso}`;
-    const hashToken=await gerarHashPMR(tokenBase);
-
-    const base=window.location.href.split("?")[0];
-    const params=new URLSearchParams();
-    params.set("pmr","1");
-    params.set("ano",ano);
-    params.set("num",num);
-    params.set("tipo",tipoFinal);
-    params.set("socio",concNum);
-    params.set("socioNome",socioNome);
-    params.set("relogio",relogio);
-    params.set("gps",exigirGps);
-    params.set("nome",nomeConcurso);
-    params.set("h",hashToken.substring(0,12));
-
-    const linkFinal=`${base}?${params.toString()}`;
-    document.getElementById("pmrLinkGerado").value=linkFinal;
-
-    const mobRel=document.getElementById("mobTipoRelogio");
-    const mobConc=document.getElementById("mobNomeConcurso");
-    const mobSoc=document.getElementById("mobNomeSocio");
-    if(mobRel)mobRel.textContent=relogio;
-    if(mobConc)mobConc.textContent=`Conc ${num}/${ano} - ${nomeConcurso}`;
-    if(mobSoc)mobSoc.textContent=`${concNum} - ${socioNome}`;
-
-    const isLocalFile=window.location.protocol==="file:";
-    if(isLocalFile){
-      alert("🔗 Link gerado com sucesso!\n\nATENÇÃO: em file:/// ele serve só para teste local.\nPara o celular do sócio funcionar, use o link do GitHub Pages.");
-    }else{
-      alert("🔗 Link seguro PMR gerado com sucesso!");
-    }
-  };
-
-  gerarEBaixarArquivoPMR = async function(){
-    if(!pmrAnilhasMobile.length)return alert("Adicione pelo menos 1 pombo na lista!");
-    const ano=document.getElementById("pmrAno").value||"2026";
-    const num=document.getElementById("pmrNum").value||"1";
-    const socioNum=document.getElementById("pmrSocioID").value||"81";
-    const socioNome=document.getElementById("pmrSocioNome").value||"Carlos Silva";
-    const relogio=document.getElementById("mobTipoRelogio").textContent||"Benzing";
-    const tipoConcurso = ctxPMR?.tipo || provaAtual?.tipo || "";
-    const gpsEl=document.getElementById("mobStatusGps");
-    const lat=gpsEl?.dataset?.lat||"-22.564100";
-    const lon=gpsEl?.dataset?.lon||"-47.401100";
-    const horaServidor=new Date().toISOString();
-
-    let payloadDados=`Version=2.2.2026\nConcurso=${ano}/${num}\nTipoConcurso=${tipoConcurso}\nSocioID=${socioNum}\nSocioNome=${socioNome}\nRelogio=${relogio}\nLatLong=${lat},${lon}\nHoraEnvio=${horaServidor}\n[ANILHAS]\n`;
-    pmrAnilhasMobile.forEach((p,i)=>{payloadDados+=`Band${i+1}=${p.anilha}|${p.hora}|${p.obs}\n`});
-    const hashSeguranca=await gerarHashPMR(payloadDados.trim());
-    const arquivoConteudo=`[PIGEON_MASTER_RACE_CLOCK]\n${payloadDados}[SECURITY]\nHash=${hashSeguranca}\n`;
-
-    const blob=new Blob([arquivoConteudo],{type:"text/plain;charset=utf-8"});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement("a");
-    a.href=url;
-    a.download=`CONC${num}_${tipoConcurso.replace(/\s+/g,"_")}_SOCIO${socioNum}_${ano}.PMR`;
-    a.click();
-    URL.revokeObjectURL(url);
-
-    setStatus("Arquivo oficial inviolável .PMR gerado com Hash SHA-256!");
-    alert(`🛡️ ARQUIVO .PMR GERADO COM SUCESSO!\n\nHash:\n${hashSeguranca.substring(0,20)}...`);
-  };
-
-  lerArquivoPMR = async function(event){
-    const file=event.target.files[0];
-    if(!file)return;
-    const reader=new FileReader();
-    reader.onload=async e=>{
-      const textoCompleto=e.target.result;
-      const partes=textoCompleto.split("[SECURITY]");
-      if(partes.length<2||!partes[1].includes("Hash=")){
-        return alert("🚨 ARQUIVO INVÁLIDO OU CORROMPIDO!");
-      }
-
-      const payloadDados=partes[0].replace("[PIGEON_MASTER_RACE_CLOCK]\n","").trim();
-      const hashNoArquivo=partes[1].split("Hash=")[1]?.trim();
-      const hashRecalculado=await gerarHashPMR(payloadDados);
-
-      const statusBadge=document.getElementById("impPmrStatusHash");
-      const btnLancar=document.getElementById("btnLancarProvisorio");
-
-      if(hashNoArquivo!==hashRecalculado){
-        statusBadge.className="pmr-badge-err";
-        statusBadge.textContent="🚨 ADULTERADO! HASH INVÁLIDO";
-        btnLancar.disabled=true;
-        alert("🛑 ERRO GRAVE DE SEGURANÇA:\n\nO sistema detectou alteração manual no arquivo .PMR.");
-      }else{
-        statusBadge.className="pmr-badge-ok";
-        statusBadge.textContent="✔ HASH SHA-256 AUTENTICADO E ÍNTEGRO";
-        btnLancar.disabled=false;
-      }
-
-      const linhas=payloadDados.split("\n");
-      let objPmr={pombos:[]};
-
-      linhas.forEach(l=>{
-        if(l.startsWith("Concurso=")) objPmr.concurso=l.split("=")[1];
-        if(l.startsWith("TipoConcurso=")) objPmr.tipoConcurso=l.split("=")[1];
-        if(l.startsWith("SocioID=")) objPmr.socioID=l.split("=")[1];
-        if(l.startsWith("Relogio=")) objPmr.relogio=l.split("=")[1];
-        if(l.startsWith("LatLong=")) objPmr.latlong=l.split("=")[1];
-        if(l.startsWith("HoraEnvio=")) objPmr.horaEnvio=l.split("=")[1];
-        if(l.startsWith("Band")){
-          const d=l.split("=")[1]?.split("|");
-          if(d&&d.length>=2)objPmr.pombos.push({anilha:d[0],hora:d[1],obs:d[2]||"Normal"});
-        }
-      });
-
-      pmrDadosImportadosAtual=objPmr;
-
-      document.getElementById("impPmrConcurso").textContent=(objPmr.concurso||"-")+" "+(objPmr.tipoConcurso?`[${objPmr.tipoConcurso}]`:"");
-      document.getElementById("impPmrSocio").textContent=objPmr.socioID||"-";
-      document.getElementById("impPmrRelogio").textContent=objPmr.relogio||"-";
-      document.getElementById("impPmrGps").textContent=objPmr.latlong||"Não informado";
-      document.getElementById("impPmrHoraEnv").textContent=objPmr.horaEnvio?new Date(objPmr.horaEnvio).toLocaleTimeString():"-";
-
-      const concSalvo=concorrentesSalvos.find(c=>c.numero===objPmr.socioID);
-      if(concSalvo&&objPmr.latlong&&objPmr.latlong.includes(",")){
-        const coords=objPmr.latlong.split(",");
-        const latCel=parseFloat(coords[0]),lonCel=parseFloat(coords[1]);
-        const latPombal=dmsDec(concSalvo.latGrau,concSalvo.latMin,concSalvo.latSeg);
-        const lonPombal=dmsDec(concSalvo.lonGrau,concSalvo.lonMin,concSalvo.lonSeg);
-        const distMetros=distM(latPombal,lonPombal,latCel,lonCel);
-        if(distMetros>500&&!isNaN(distMetros)){
-          alert(`⚠ ALERTA DE GEOLOCALIZAÇÃO:\n\nO GPS de envio está a ${fmtBR(distMetros,0)}m do pombal cadastrado.`);
-        }
-      }
-
-      const tbLidos=document.querySelector("#tabelaPmrLidos tbody");
-      tbLidos.innerHTML="";
-      objPmr.pombos.forEach(p=>{
-        const pCad=pombosSalvos.find(x=>x.anilha===p.anilha);
-        const tr=document.createElement("tr");
-        tr.innerHTML=`<td><b>${esc(p.anilha)}</b></td><td style="font-family:Consolas;color:#005500;font-weight:bold;">${esc(p.hora)}</td><td>${esc(p.obs)}</td><td>${pCad?'<span style="color:#008000;font-weight:bold;">✔ Cadastrado</span>':'<span style="color:#a00000;font-weight:bold;">⚠ Não cadastrado</span>'}</td>`;
-        tbLidos.appendChild(tr);
-      });
-
-      document.getElementById("pmrDadosArquivo").style.display="block";
-      setStatus("Arquivo .PMR analisado. Pombos lidos: "+objPmr.pombos.length);
-    };
-    reader.readAsText(file);
-  };
-
-  importarParaLancamentoProvisorio = function(){
-    if(!pmrDadosImportadosAtual || !pmrDadosImportadosAtual.pombos.length) return;
-
-    let ano="",num="";
-    if((pmrDadosImportadosAtual.concurso||"").includes("/")){
-      const partes = pmrDadosImportadosAtual.concurso.split("/");
-      ano = partes[0] || "";
-      num = partes[1] || "";
-    }else{
-      ano = document.getElementById("pmrAno").value || document.getElementById("lancAno").value || "2026";
-      num = document.getElementById("pmrNum").value || document.getElementById("lancNum").value || "1";
-    }
-
-    const tipo = pmrDadosImportadosAtual.tipoConcurso || ctxPMR?.tipo || provaAtual?.tipo || "";
-    const curso = findCursoSeguro(ano,num,document.getElementById("pmrNomeConcurso").value,tipo);
-
-    if(!curso){
-      return alert("Não foi possível localizar o concurso correto para este PMR.\nSelecione o concurso pela lupa do PMR e tente novamente.");
-    }
-
-    if(!provaAtual || String(provaAtual.ano)!==String(curso.ano) || String(provaAtual.num)!==String(curso.num) || String(provaAtual.tipo||"")!==String(curso.tipo||"")){
-      carregarLancamentosProva(curso.ano,curso.num,curso.nome,curso.tipo);
-    }
-
-    let importadosCont=0;
-    pmrDadosImportadosAtual.pombos.forEach(p=>{
-      if(!lancamentos.some(l=>l.anilha===p.anilha)){
-        const pCad=pombosSalvos.find(x=>x.anilha===p.anilha);
-        lancamentos.push({
-          anilha:p.anilha,
-          assoc:pCad?pCad.assoc:"11",
-          colec:pCad?pCad.colec:"33",
-          concNum:pmrDadosImportadosAtual.socioID||"81",
-          sexo:pCad?pCad.sexo:"Macho",
-          chegada:p.hora,
-          dias:"1",
-          tMorto:"00:00:00",
-          correcao:"0",
-          distancia:"0,0",
-          media:"0,0000",
-          tempoVoo:"",
-          pmrProvisorio:true
-        });
-        importadosCont++;
-      }
-    });
-
-    salvarLancamentosProvaAtual();
-    atualizarListaLancamentos();
-    atualizarTabelaAuditoriaPMR();
-    alert(`⚡ SUCESSO! ${importadosCont} constatação(ões) provisória(s) foram lançadas na prova.`);
-    closeWin("winRemoteClock");
-    openWin("winLancamento");
-  };
-
-  initPMRFromUrl = function(){
-    const params=new URLSearchParams(window.location.search);
-    if(params.get("pmr")!=="1")return;
-
-    const ano=params.get("ano")||"2026";
-    const num=params.get("num")||"1";
-    const tipo=params.get("tipo")||"";
-    const socio=params.get("socio")||"";
-    const socioNome=params.get("socioNome")||"";
-    const relogio=params.get("relogio")||"Benzing";
-    const nomeConcurso=params.get("nome")||"Concurso";
-
-    ctxPMR = {ano,num,tipo,nome:nomeConcurso};
-
-    const mobConc=document.getElementById("mobNomeConcurso");
-    const mobSoc=document.getElementById("mobNomeSocio");
-    const mobRel=document.getElementById("mobTipoRelogio");
-
-    const pmrAno=document.getElementById("pmrAno");
-    const pmrNum=document.getElementById("pmrNum");
-    const pmrSocio=document.getElementById("pmrSocioID");
-    const pmrSocioNome=document.getElementById("pmrSocioNome");
-    const pmrNomeConcurso=document.getElementById("pmrNomeConcurso");
-
-    if(pmrAno)pmrAno.value=ano;
-    if(pmrNum)pmrNum.value=num;
-    if(pmrSocio)pmrSocio.value=socio;
-    if(pmrSocioNome)pmrSocioNome.value=socioNome;
-    if(pmrNomeConcurso)pmrNomeConcurso.value=nomeConcurso;
-    if(mobConc)mobConc.textContent=`Conc ${num}/${ano} - ${nomeConcurso}`;
-    if(mobSoc)mobSoc.textContent=`${socio} - ${socioNome}`;
-    if(mobRel)mobRel.textContent=relogio;
-
-    document.querySelectorAll("#workspace>.child-window.active").forEach(x=>x.classList.remove("active"));
-    abrirTelaCelularSocio();
-  };
-
-  /* ================= REBIND BOTÕES ================= */
-  function rebindButtons(){
-    if(document.getElementById("btnSelConcurso")) document.getElementById("btnSelConcurso").onclick = selecionarConcursoModal;
-    if(document.getElementById("btnCalcular")) document.getElementById("btnCalcular").onclick = executarCalculo;
-    if(document.getElementById("btnGerarRel")) document.getElementById("btnGerarRel").onclick = gerarRelatorioPombos;
-  }
-
-  function patchReady(){
-    if(typeof cursosSalvos==="undefined" || typeof todosLancamentos==="undefined") {
-      setTimeout(patchReady,200);
-      return;
-    }
-    migrateLegacyKeys();
-    rebindButtons();
-    console.log("PATCH v2.2 concursos paralelos por tipo ativo.");
-  }
-
-  if(document.readyState==="complete" || document.readyState==="interactive"){
-    setTimeout(patchReady,200);
-  }else{
-    window.addEventListener("load",()=>setTimeout(patchReady,200));
-  }
-})();
-</script>
-</body>
-</html>
+ <div class="child-window" id="winClassConc" style="left:30px;top:20px;width:680px;height:600px;">
+      <div class="win-title"><div class="win-title-left"><span class="small-icon"></span> Classificação de Concorrentes (Totais)</div><button class="win-close" onclick="closeWin('winClassConc')">X</button></div>
+      <div class="win-body">
+        <div class="row"><span class="lbl">Provas :</span>
+          <label><input type="radio" name="ccProvas" value="oficiais" checked> Oficiais</label>
+          <label><input type="radio" name="ccProvas" value="naooficiais"> Não Oficiais</label>
+          <label><input type="radio" name="ccProvas" value="todas"> Todas</label>
+        </div>
+        <div class="row"><span class="lbl">Tipo de prova :</span>
+          <label><input type="radio" name="ccTipo" value="Velocidade Adulto" checked onclick="ccAtualizaTitulo()"> Velocidade</label>
+          <label><input type="radio" name="ccTipo" value="Meio-fundo" onclick="ccAtualizaTitulo()"> Meio Fundo</label>
+          <label><input type="radio" name="ccTipo" value="Fundo" onclick="ccAtualizaTitulo()"> Fundo</label>
+          <label><input type="radio" name="ccTipo" value="Filhotes" onclick="ccAtualizaTitulo()"> Filhotes</label>
+          <label><input type="radio" name="ccTipo" value="Geral" onclick="ccAtualizaTitulo()"> Geral</label>
+        </div>
+        <div class="row"><span class="lbl">Título :</span><input class="inp xl" id="ccTitulo" value="Classificação de Concorrentes - Velocidade"></div>
+        <div class="row"><span class="lbl">Os melhores :</span><input class="inp sm" id="ccMelhores" value="999999">
+          <span style="margin-left:20px;">Com zero pontos?</span>
+          <label><input type="radio" name="ccZero" value="Nao" checked> Não</label>
+          <label><input type="radio" name="ccZero" value="Sim"> Sim</label>
+        </div>
+        <div class="row"><span class="lbl">Realçar os :</span><input class="inp xs" id="ccRealcar" value="0"> melhores</div>
+        <div class="btn-bar">
+          <button class="classic-btn" onclick="gerarClassConc()">▣<br>Confirmar</button>
+          <button class="classic-btn" onclick="window.print()">🖨<br>Imprimir</button>
+          <button class="classic-btn" onclick="closeWin('winClassConc')">▣<br>Sair</button>
+        </div>
+        <div id="areaClassConc" style="max-height:340px;overflow:auto;background:#fff;margin-top:8px;padding:14px;"></div>
+      </div>
+    </div>
+
+    <div class="child-window" id="winClassPombos" style="left:30px;top:20px;width:720px;height:600px;">
+      <div class="win-title"><div class="win-title-left"><span class="small-icon"></span> Classificação de Pombos (Totais)</div><button class="win-close" onclick="closeWin('winClassPombos')">X</button></div>
+      <div class="win-body">
+        <div class="row"><span class="lbl">Provas :</span>
+          <label><input type="radio" name="cpProvas" value="oficiais" checked> Oficiais</label>
+          <label><input type="radio" name="cpProvas" value="naooficiais"> Não Oficiais</label>
+          <label><input type="radio" name="cpProvas" value="todas"> Todas</label>
+        </div>
+        <div class="row"><span class="lbl">Tipo de prova :</span>
+          <label><input type="radio" name="cpTipo" value="Velocidade Adulto" checked> Velocidade</label>
+          <label><input type="radio" name="cpTipo" value="Meio-fundo"> Meio Fundo</label>
+          <label><input type="radio" name="cpTipo" value="Fundo"> Fundo</label>
+          <label><input type="radio" name="cpTipo" value="Filhotes"> Filhotes</label>
+          <label><input type="radio" name="cpTipo" value="Geral"> Geral</label>
+        </div>
+        <div class="row"><span class="lbl">Os melhores :</span><input class="inp sm" id="cpMelhores" value="999999"><span style="margin-left:20px;">Realçar :</span><input class="inp xs" id="cpRealcar" value="0"></div>
+        <div class="btn-bar">
+          <button class="classic-btn" onclick="gerarClassPombos()">▣<br>Confirmar</button>
+          <button class="classic-btn" onclick="window.print()">🖨<br>Imprimir</button>
+          <button class="classic-btn" onclick="closeWin('winClassPombos')">▣<br>Sair</button>
+        </div>
+        <div id="areaClassPombos" style="max-height:380px;overflow:auto;background:#fff;margin-top:8px;padding:14px;"></div>
+      </div>
+    </div>
+
+    <div class="child-window" id="winPomboAs" style="left:30px;top:20px;width:720px;height:600px;">
+      <div class="win-title"><div class="win-title-left"><span class="small-icon"></span> 🏆 Análise Pombo Ás</div><button class="win-close" onclick="closeWin('winPomboAs')">X</button></div>
+      <div class="win-body">
+        <div class="row"><span class="lbl">Modalidade :</span>
+          <label><input type="radio" name="asTipo" value="Velocidade Adulto" checked> Velocidade Adulto</label>
+          <label><input type="radio" name="asTipo" value="Filhotes"> Filhotes</label>
+          <label><input type="radio" name="asTipo" value="Meio-fundo"> Meio-fundo</label>
+          <label><input type="radio" name="asTipo" value="Fundo"> Fundo</label>
+        </div>
+        <div class="row"><span class="lbl">Provas :</span>
+          <label><input type="radio" name="asProvas" value="oficiais" checked> Oficiais</label>
+          <label><input type="radio" name="asProvas" value="todas"> Todas</label>
+        </div>
+        <div class="row" style="color:#804000;font-weight:bold;padding:6px;background:#fffacd;border:1px solid #d4b800;">
+          ⭐ Pombo Ás = classificou entre os 6 primeiros do sócio em <b>TODAS as provas</b> da modalidade
+        </div>
+        <div class="btn-bar">
+          <button class="classic-btn" onclick="gerarPomboAs()">🏆<br>Gerar Ranking</button>
+          <button class="classic-btn" onclick="window.print()">🖨<br>Imprimir</button>
+          <button class="classic-btn" onclick="closeWin('winPomboAs')">▣<br>Sair</button>
+        </div>
+        <div id="areaPomboAs" style="max-height:380px;overflow:auto;background:#fff;margin-top:8px;padding:14px;">Selecione a modalidade e clique em Gerar Ranking</div>
+      </div>
+    </div>
+
+    <div class="child-window" id="winPalmares" style="left:30px;top:20px;width:820px;height:600px;">
+      <div class="win-title"><div class="win-title-left"><span class="small-icon"></span> 📋 Palmarés do Pombo</div><button class="win-close" onclick="closeWin('winPalmares')">X</button></div>
+      <div class="win-body">
+        <div class="row"><span class="lbl">Anilha :</span><input class="inp md" id="palmAnilha" placeholder="0000000/00" maxlength="10"><button class="small-btn" onclick="gerarPalmares()">📋 Buscar</button></div>
+        <div id="areaPalmares" style="max-height:450px;overflow:auto;background:#fff;margin-top:8px;padding:14px;">Digite a anilha e clique em Buscar</div>
+      </div>
+    </div>
+
+    <div class="child-window" id="winImportar" style="left:30px;top:20px;width:700px;height:580px;">
+      <div class="win-title"><div class="win-title-left"><span class="small-icon"></span> 📥 Importar do GPC</div><button class="win-close" onclick="closeWin('winImportar')">X</button></div>
+      <div class="win-body">
+        <div class="share-tabs">
+          <div class="share-tab active" onclick="impTab('conc')" id="impTabConc">👥 Concorrentes</div>
+          <div class="share-tab" onclick="impTab('pomb')" id="impTabPomb">🕊️ Pombos</div>
+          <div class="share-tab" onclick="impTab('mov')" id="impTabMov">📊 Movimentos</div>
+        </div>
+        <div id="impPageConc" class="imp-page">
+          <div class="small" style="color:#000080;padding:6px;">Importa arquivo de concorrentes do GPC</div>
+          <input type="file" id="impFileConc" accept=".txt,.dbf,.dat" style="margin:8px 0;">
+          <button class="small-btn" onclick="importarConcorrentes()" style="background:#804000;color:#fff;">📥 Importar Concorrentes</button>
+          <div class="import-log" id="impLogConc">Selecione o arquivo e clique em Importar...</div>
+        </div>
+        <div id="impPagePomb" class="imp-page" style="display:none;">
+          <div class="small" style="color:#000080;padding:6px;">Importa arquivo de pombos do GPC</div>
+          <input type="file" id="impFilePomb" accept=".txt,.dbf,.dat" style="margin:8px 0;">
+          <button class="small-btn" onclick="importarPombos()" style="background:#804000;color:#fff;">📥 Importar Pombos</button>
+          <div class="import-log" id="impLogPomb">Selecione o arquivo e clique em Importar...</div>
+        </div>
+        <div id="impPageMov" class="imp-page" style="display:none;">
+          <div class="small" style="color:#000080;padding:6px;">Importa ZDWMOV_T.TXT (movimentos de uma prova)</div>
+          <input type="file" id="impFileMov" accept=".txt,.dat" style="margin:8px 0;">
+          <button class="small-btn" onclick="importarMovimentos()" style="background:#804000;color:#fff;">📥 Importar Movimentos</button>
+          <div class="import-log" id="impLogMov">Selecione o arquivo e clique em Importar...</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="child-window" id="winExportar" style="left:60px;top:60px;width:500px;height:340px;">
+      <div class="win-title"><div class="win-title-left"><span class="small-icon"></span> 📤 Exportar pro GPC (ZDWMOV_T.TXT)</div><button class="win-close" onclick="closeWin('winExportar')">X</button></div>
+      <div class="win-body">
+        <div class="row"><span class="lbl">Concurso :</span><input class="inp sm blue" id="expAno" value="0" readonly>/<input class="inp xs blue" id="expNum" value="0" readonly><button class="small-btn" id="btnBuscarConcursoExp">🔍</button><input class="inp lg italic-blue" id="expNome" readonly></div>
+        <div class="btn-bar">
+          <button class="classic-btn" style="background:#804000;color:#fff;" onclick="exportarMovimentosGPC()">📤<br>Baixar TXT</button>
+          <button class="classic-btn" onclick="closeWin('winExportar')">▣<br>Sair</button>
+        </div>
+        <div class="import-log" id="expLog" style="margin-top:10px;">Aguardando...</div>
+      </div>
+    </div>
+
+    <div class="child-window" id="winParam" style="left:90px;top:80px;width:420px;height:240px;">
+      <div class="win-title"><div class="win-title-left"><span class="small-icon"></span> Parametrização</div><button class="win-close" onclick="closeWin('winParam')">X</button></div>
+      <div class="win-body">
+        <div class="group"><div class="group-title">Apuração por Sócio</div>
+          <div class="row">Máx embarcados por sócio: <input class="inp xs" id="paramMax" value="25"></div>
+          <div class="row">Apura os primeiros: <input class="inp xs" id="paramTop" value="6"></div>
+          <div class="row">Pontuam (P): <input class="inp xs" id="paramP" value="3"> Empurram (E): <input class="inp xs" id="paramE" value="3"></div>
+        </div>
+        <div class="btn-bar"><button class="classic-btn" onclick="salvarParam()">▣<br>Guardar</button><button class="classic-btn" onclick="closeWin('winParam')">▣<br>Sair</button></div>
+      </div>
+    </div>
+
+    <div class="child-window" id="winCompartilhar" style="left:20px;top:20px;width:820px;height:640px;">
+      <div class="win-title"><div class="win-title-left"><span class="small-icon"></span> 📱 Compartilhar Resultados</div><button class="win-close" onclick="closeWin('winCompartilhar')">X</button></div>
+      <div class="win-body">
+        <div class="row"><span class="lbl-left">Concurso :</span><input class="inp sm blue" id="shrAno" value="0" readonly><span>/</span><input class="inp xs blue" id="shrNum" value="0" readonly><button class="small-btn" id="btnBuscarConcursoShr">🔍</button><input class="inp lg italic-blue" id="shrNome" readonly></div>
+        <div class="share-tabs" style="margin-top:10px;">
+          <div class="share-tab active" onclick="shrTab('wpp')" id="shrTabWpp">📱 WhatsApp</div>
+          <div class="share-tab" onclick="shrTab('site')" id="shrTabSite">🌐 Site do Clube</div>
+          <div class="share-tab" onclick="shrTab('txt')" id="shrTabTxt">📄 Texto Simples</div>
+        </div>
+        <div id="shrPageWpp" class="shr-page">
+          <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
+            <button class="small-btn" onclick="gerarWpp('completo')">Completo</button>
+            <button class="small-btn" onclick="gerarWpp('top3')">Só TOP 3</button>
+            <button class="small-btn" onclick="gerarWpp('top10')">TOP 10</button>
+            <button class="small-btn" onclick="gerarWpp('vencedor')">Só Vencedor</button>
+            <button class="small-btn" style="background:#25d366;color:#fff;font-weight:bold;margin-left:auto;" onclick="copiarWpp()">📋 Copiar</button>
+            <button class="small-btn" style="background:#25d366;color:#fff;font-weight:bold;" onclick="abrirWhatsApp()">📱 WhatsApp</button>
+          </div>
+          <div class="wpp-preview"><div class="wpp-msg" id="wppPreview">Selecione um concurso.</div></div>
+        </div>
+        <div id="shrPageSite" class="shr-page" style="display:none;">
+          <div style="display:flex;gap:6px;margin-bottom:8px;">
+            <button class="small-btn" onclick="gerarSite()">🌐 Gerar HTML</button>
+            <button class="small-btn" style="background:#0084ff;color:#fff;font-weight:bold;margin-left:auto;" onclick="copiarSite()">📋 Copiar HTML</button>
+            <button class="small-btn" onclick="baixarSite()">💾 Baixar</button>
+          </div>
+          <div style="max-height:400px;overflow:auto;background:#fff;border:1px solid #808080;padding:10px;"><div id="sitePreview">Clique em Gerar HTML</div></div>
+        </div>
+        <div id="shrPageTxt" class="shr-page" style="display:none;">
+          <div style="display:flex;gap:6px;margin-bottom:8px;">
+            <button class="small-btn" onclick="gerarTxt()">📄 Gerar Texto</button>
+            <button class="small-btn" style="margin-left:auto;" onclick="copiarTxt()">📋 Copiar</button>
+            <button class="small-btn" onclick="baixarTxt()">💾 Baixar</button>
+          </div>
+          <textarea id="txtPreview" style="width:100%;height:400px;font-family:Consolas,monospace;font-size:11px;">Clique em Gerar Texto</textarea>
+        </div>
+        <div class="btn-bar"><button class="classic-btn" onclick="closeWin('winCompartilhar')">▣<br>Sair</button></div>
+      </div>
+    </div>
+
+    <div class="child-window" id="winRemoteClock" style="left:35px;top:25px;width:840px;height:610px;">
+      <div class="win-title">
+        <div class="win-title-left"><span class="small-icon" style="background:linear-gradient(45deg,#008080,#00ffcc);"></span> ⏱️ PigeonMaster Remote Clock (.PMR) - Central do Operador</div>
+        <button class="win-close" onclick="closeWin('winRemoteClock')">X</button>
+      </div>
+      <div class="win-body">
+        <div class="inner-tabs">
+          <div class="inner-tab active" onclick="showInnerTab(this,'pmrLiberar')">1. Liberar & Link WhatsApp</div>
+          <div class="inner-tab" onclick="showInnerTab(this,'pmrImportar')">2. 📥 Importar Arquivo .PMR</div>
+          <div class="inner-tab" onclick="showInnerTab(this,'pmrAuditoria')">3. 🛡️ Auditoria & Homologação</div>
+        </div>
+
+        <div class="inner-page active" id="pmrLiberar">
+          <div class="row">
+            <span class="lbl-left">Concurso :</span>
+            <input class="inp sm blue" id="pmrAno" value="2026" readonly>/<input class="inp xs blue" id="pmrNum" value="1" readonly>
+            <button class="small-btn" id="btnBuscarConcursoPmr">🔍</button>
+            <input class="inp lg italic-blue" id="pmrNomeConcurso" value="Prova Vel. Adultos Igarapava S.P" readonly>
+          </div>
+          <div class="row">
+            <span class="lbl-left">Sócio :</span>
+            <input class="inp sm" id="pmrSocioID" value="81">
+            <button class="small-btn" onclick="selecionarSocioPMR()">🔍</button>
+            <input class="inp xl italic-blue" id="pmrSocioNome" value="VILMAR ALMEIDA PORTA DO SOL" readonly>
+          </div>
+          
+          <div class="group" style="margin-top:12px;">
+            <div class="group-title" style="background:#e0f7fa;color:#008080;">🔗 Geração do Token Seguro e Convite WhatsApp</div>
+            <div style="padding:6px;font-size:11px;line-height:1.5;">
+              Ao clicar em <b>Gerar Link</b>, o sistema cria uma chave criptográfica vinculada ao Sócio e ao Concurso. O columbófilo abre o link no celular, registra os pombos e envia o arquivo oficial <b>.PMR</b> inviolável.
+            </div>
+            <div class="row" style="margin-top:8px;">
+              <span class="lbl">Relógio Autorizado :</span>
+              <select class="inp md" id="pmrTipoRelogio">
+                <option value="Benzing">Benzing</option>
+                <option value="Mega">Mega</option>
+                <option value="Tipes">Tipes</option>
+                <option value="Bricon">Bricon</option>
+                <option value="Constatação Manual">Constatação Manual</option>
+              </select>
+              <span style="margin-left:15px;">Capturar GPS Obrigatório?</span>
+              <label><input type="checkbox" id="pmrExigirGps" checked> Sim (Antifraude)</label>
+            </div>
+            <div class="row" style="margin-top:10px;">
+              <input class="inp" style="width:100%;font-family:Consolas;color:#005500;font-weight:bold;" id="pmrLinkGerado" readonly placeholder="Clique no botão abaixo para gerar o link único...">
+            </div>
+            <div style="display:flex;gap:6px;margin-top:10px;justify-content:center;">
+              <button class="classic-btn" style="background:#cce8ff;font-weight:bold;" onclick="gerarLinkPMR()">⚡ Gerar Link de Constatação</button>
+              <button class="classic-btn" style="background:#25d366;color:#fff;font-weight:bold;" onclick="enviarLinkWhatsAppPMR()">📱 Enviar no WhatsApp do Sócio</button>
+              <button class="classic-btn" onclick="abrirTelaCelularSocio()">📱 Simular Tela do Sócio</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="inner-page" id="pmrImportar">
+          <div class="dropzone-pmr" onclick="document.getElementById('filePmrInput').click()">
+            <div style="font-size:24px;">📥</div>
+            <div style="font-weight:bold;color:#008080;margin-top:4px;">Clique para selecionar o arquivo .PMR</div>
+            <div class="small" style="color:#666;">Validação automática do Hash SHA-256</div>
+            <input type="file" id="filePmrInput" accept=".pmr,.txt" style="display:none" onchange="lerArquivoPMR(event)">
+          </div>
+
+          <div class="group" id="pmrDadosArquivo" style="display:none;min-height:220px;">
+            <div class="group-title">Integridade do Arquivo PMR</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:4px;background:#eee;border:1px solid #ccc;">
+              <div>
+                <b>Concurso:</b> <span id="impPmrConcurso" class="bold-blue">-</span> |
+                <b>Sócio:</b> <span id="impPmrSocio" class="bold-blue">-</span> |
+                <b>Relógio:</b> <span id="impPmrRelogio">-</span>
+              </div>
+              <div id="impPmrStatusHash" class="pmr-badge-ok">✔ HASH INTEGRAL (AUTENTICADO)</div>
+            </div>
+            <div style="margin-top:6px;font-size:10px;color:#555;">
+              <b>🌐 Coordenadas GPS:</b> <span id="impPmrGps">-</span> |
+              <b>⏰ Hora de Envio:</b> <span id="impPmrHoraEnv">-</span>
+            </div>
+            <div style="max-height:160px;overflow-y:auto;margin-top:6px;border:1px solid #808080;">
+              <table class="classic-table" id="tabelaPmrLidos">
+                <thead><tr><th>Anilha</th><th>Hora Constatação</th><th>Obs / Estado</th><th>Validação</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="btn-bar">
+            <button class="classic-btn" style="background:#008080;color:#fff;font-weight:bold;" id="btnLancarProvisorio" onclick="importarParaLancamentoProvisorio()" disabled>⚡ Lançar Provisório</button>
+            <button class="classic-btn" onclick="limparImportacaoPMR()">▧<br>Limpar</button>
+          </div>
+        </div>
+
+        <div class="inner-page" id="pmrAuditoria">
+          <div style="font-weight:bold;color:#804000;margin-bottom:6px;">🛡️ Comparação de Segurança: Horário Remoto (PMR) vs Leitura do Relógio Físico</div>
+          <div style="max-height:360px;overflow-y:auto;border:1px solid #808080;">
+            <table class="classic-table" id="tabelaPmrAuditoria">
+              <thead>
+                <tr style="background:#d0d0d0;">
+                  <th>Sócio</th><th>Anilha</th><th>Hora Remota</th><th>Hora Relógio Físico</th><th>Diferença</th><th>Status Oficial</th><th>Ação</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="7" style="text-align:center;padding:15px;color:#666">Nenhuma constatação remota provisória pendente.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="btn-bar">
+            <button class="classic-btn" style="background:#28a745;color:#fff;font-weight:bold;" onclick="homologarTodosExatos()">✔ Homologar Todos Corretos</button>
+          </div>
+        </div>
+
+        <div class="btn-bar" style="border-top:1px solid #a0a0a0;padding-top:4px;">
+          <button class="classic-btn" onclick="closeWin('winRemoteClock')">▣<br>Sair</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="child-window" id="winMobileApp" style="left:460px;top:10px;width:390px;height:670px;background:transparent;border:none;box-shadow:none;">
+      <div class="mobile-device-frame">
+        <div style="color:#fff;font-size:11px;display:flex;justify-content:space-between;padding:0 8px 6px;">
+          <span>11:34 📶</span><span>🔒 PigeonMaster Mobile</span><span style="cursor:pointer;background:#ff4444;padding:0 6px;border-radius:4px;" onclick="closeWin('winMobileApp')">X</span>
+        </div>
+        <div class="mobile-screen">
+          <div class="mobile-header">
+            PigeonMaster - Remote Clock<br>
+            <span style="font-size:11px;font-weight:normal;color:#cce8ff;" id="mobNomeConcurso">Conc 1/2026 - Prova Igarapava</span>
+          </div>
+          <div class="mobile-body">
+            <div class="mobile-card" style="background:#e0f7fa;border-color:#b2ebf2;">
+              <b>👤 Sócio:</b> <span id="mobNomeSocio">81 - VILMAR ALMEIDA PORTA DO SOL</span><br>
+              <b>⌚ Relógio:</b> <span id="mobTipoRelogio">Benzing</span><br>
+              <span style="font-size:11px;color:#00796b;" id="mobStatusGps">📍 GPS: Capturando localização...</span>
+            </div>
+
+            <div class="mobile-card">
+              <label style="font-weight:bold;color:#333;">Número da Anilha:</label>
+              <input type="text" class="mobile-input" id="mobAnilhaInput" placeholder="Ex: 2335027/23" value="">
+              
+              <label style="font-weight:bold;color:#333;margin-top:8px;display:block;">Hora da Constatação:</label>
+              <div style="display:flex;gap:4px;">
+                <input type="text" class="mobile-input" id="mobHoraInput" placeholder="HH:MM:SS" style="font-family:Consolas;text-align:center;font-weight:bold;font-size:15px;" value="">
+                <button class="small-btn" style="margin-top:4px;height:34px;background:#d4edda;" onclick="capturarHoraAtualCelular()" title="Hora Exata Agora">⏰ Exata</button>
+              </div>
+
+              <label style="font-weight:bold;color:#333;margin-top:8px;display:block;">Observações (Opcional):</label>
+              <input type="text" class="mobile-input" id="mobObsInput" placeholder="Ex: Pombo chegou normal">
+
+              <button class="mobile-btn" style="margin-top:12px;padding:8px;" onclick="adicionarAnilhaListaMobile()">+ ADICIONAR À LISTA</button>
+            </div>
+
+            <div class="mobile-card" style="flex:1;display:flex;flex-direction:column;">
+              <b style="color:#008080;">Pombos Registrados (<span id="mobCountAnilhas">0</span>):</b>
+              <div style="flex:1;max-height:140px;overflow-y:auto;margin-top:6px;border-top:1px solid #eee;" id="mobListaAnilhas"></div>
+
+              <button class="mobile-btn" style="background:#006699;margin-top:10px;" onclick="gerarEBaixarArquivoPMR()">🔒 GERAR E BAIXAR (.PMR)</button>
+              <button class="mobile-btn mobile-btn-wpp" style="margin-top:6px;" onclick="enviarPmrDiretoWhatsApp()">💬 Enviar Resumo p/ WhatsApp</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-cover" id="modalConcurso">
+      <div class="child-window active" style="position:relative;width:520px;height:360px;">
+        <div class="win-title"><div class="win-title-left"><span class="small-icon"></span> Visualização de tabela de Concursos</div><button class="win-close" onclick="fecharModalConcurso()">X</button></div>
+        <div class="win-body">
+          <div class="calc-titulo-modal">Visualização de tabela de Concursos</div>
+          <div class="row" style="margin-top:6px;"><span class="lbl-left">Filtrar:</span><input class="inp lg" id="filtroConcurso" placeholder="Ano, número ou nome"></div>
+          <div style="max-height:220px;overflow:auto;border:1px solid #808080;">
+            <table class="classic-table" id="tabelaConcursos">
+              <thead><tr><th style="width:50px">Ano</th><th style="width:60px">Numero</th><th>Nome</th><th style="width:30px">T</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="btn-bar"><button class="classic-btn" id="btnSelConcurso">Selecionar</button><button class="classic-btn" onclick="fecharModalConcurso()">Cancelar</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-cover" id="modalConcorrente">
+      <div class="child-window active" style="position:relative;width:420px;height:340px;">
+        <div class="win-title"><div class="win-title-left"><span class="small-icon"></span> Selecionar Concorrente</div><button class="win-close" onclick="fecharModalConcorrente()">X</button></div>
+        <div class="win-body">
+          <div class="row"><span class="lbl-left">Filtrar:</span><input class="inp lg" id="filtroConcorrente"></div>
+          <div style="max-height:210px;overflow:auto;">
+            <table class="classic-table" id="tabelaConcorrentesModal">
+              <thead><tr><th>Nº</th><th>Nome</th><th>Assoc/Colec</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="btn-bar"><button class="classic-btn" id="btnSelConcorrente">Selecionar</button><button class="classic-btn" onclick="fecharModalConcorrente()">Cancelar</button></div>
+        </div>
+      </div>
+    </div>
