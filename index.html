@@ -101,8 +101,6 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
 .import-log .ok{color:#0f0}.import-log .err{color:#f66}.import-log .warn{color:#ff0}
 .tabPombo{font-family:Arial;font-size:12px}
 .tabPombo .as-header{background:#ffd700;color:#000;text-align:center;font-size:16px;font-weight:bold;padding:8px}
-
-/* PMR */
 .pmr-badge-ok{background:#d4edda;color:#155724;border:1px solid #c3e6cb;padding:2px 6px;font-weight:bold;border-radius:3px}
 .pmr-badge-err{background:#f8d7da;color:#721c24;border:1px solid #f5c6cb;padding:2px 6px;font-weight:bold;border-radius:3px;animation:blink 1s infinite}
 .pmr-badge-prov{background:#fff3cd;color:#856404;border:1px solid #ffeeba;padding:2px 6px;font-weight:bold;border-radius:3px}
@@ -908,6 +906,11 @@ function setPtsMod(tipo){const ini=document.getElementById("cursoIni"),dec=docum
 function padNum(n,w){return String(n||"").padStart(w," ")}
 function tipoAbrev(tipo){const m={"Velocidade Adulto":"V","Meio-fundo":"M","Fundo":"F","Filhotes":"J"};return m[tipo]||"G"}
 
+/* ===== NOVA REGRA: PROVISÓRIO NÃO ENTRA NO CÁLCULO ===== */
+function lancamentoValidoParaCalculo(l){
+  return !l.pmrProvisorio || l.homologado===true;
+}
+
 const menuData={
   movimentos:[{t:"Lançamento da Prova",win:"winLancamento"},{t:"Cálculo de Prova",win:"winCalculo"},"sep",{t:"📱 Compartilhar (WhatsApp/Site)",win:"winCompartilhar"}],
   pombos:[{t:"Pombos",win:"winPombos"},"sep",{t:"📋 Palmarés do Pombo",win:"winPalmares"}],
@@ -1472,7 +1475,8 @@ function atualizarListaLancamentos(){
   }else{
     lancamentos.forEach((l,i)=>{
       const tr=document.createElement("tr");
-      tr.innerHTML="<td>"+esc(l.anilha)+"</td><td>"+esc(l.chegada||"")+'</td><td><button class="btn-editar" data-i="'+i+'">E</button> <button class="btn-excluir" data-i="'+i+'">X</button></td>';
+      const tag=l.pmrProvisorio?' <span style="color:#a67c00;font-weight:bold;">[PMR]</span>':"";
+      tr.innerHTML="<td>"+esc(l.anilha)+tag+"</td><td>"+esc(l.chegada||"")+'</td><td><button class="btn-editar" data-i="'+i+'">E</button> <button class="btn-excluir" data-i="'+i+'">X</button></td>';
       tb.appendChild(tr);
     });
     document.querySelectorAll("#tabelaLancamentos .btn-editar").forEach(b=>b.onclick=()=>editarLancamento(+b.dataset.i));
@@ -1712,21 +1716,26 @@ function resetarCalculo(){
   }
 }
 function preencherDadosConcursoCalc(ano,num){
-  const c=cursosSalvos.find(x=>x.ano===ano&&x.num===num);if(!c)return;
+  const c=cursosSalvos.find(x=>x.ano===ano&&x.num===num);
+  if(!c)return;
   document.getElementById("calcDadoTipo").value=c.tipo||"";
   document.getElementById("calcDadoData").value=c.data||"/ /";
   document.getElementById("calcDadoLat").value=(c.latGrau||"0")+"° "+(c.latMin||"0")+"' "+(c.latSeg||"0")+'"';
   document.getElementById("calcDadoLon").value=(c.lonGrau||"0")+"° "+(c.lonMin||"0")+"' "+(c.lonSeg||"0")+'"';
   const arr=todosLancamentos[ano+"/"+num]||[];
-  document.getElementById("calcDadoPombos").value=arr.length;
+  const oficiais=arr.filter(lancamentoValidoParaCalculo);
+  document.getElementById("calcDadoPombos").value=oficiais.length;
 }
 async function executarCalculo(){
   const ano=document.getElementById("calcAno").value.trim();
   const num=document.getElementById("calcNum").value.trim();
   if(!ano||ano==="0"||!num||num==="0")return alert("Selecione um concurso.");
+
   const chave=ano+"/"+num;
-  const arr=todosLancamentos[chave]||[];
-  if(!arr.length)return alert("Sem lançamentos nesta prova.");
+  const todos=todosLancamentos[chave]||[];
+  const arr=todos.filter(lancamentoValidoParaCalculo);
+
+  if(!arr.length)return alert("Sem lançamentos oficiais/homologados nesta prova.");
 
   for(let i=1;i<=8;i++){
     const el=document.getElementById("etapa"+i);
@@ -2112,8 +2121,9 @@ function exportarMovimentosGPC(){
   const num=document.getElementById("expNum").value.trim();
   if(!ano||ano==="0")return alert("Selecione um concurso.");
   const chave=ano+"/"+num;
-  const arr=todosLancamentos[chave]||[];
-  if(!arr.length)return alert("Sem lançamentos nesta prova.");
+  const todos=todosLancamentos[chave]||[];
+  const arr=todos.filter(lancamentoValidoParaCalculo);
+  if(!arr.length)return alert("Sem lançamentos oficiais/homologados nesta prova.");
   document.getElementById("expLog").innerHTML="";
   const numPad=String(num).padStart(3,"0");
   let txt="";
