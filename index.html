@@ -2776,7 +2776,7 @@ window.addEventListener("load",function(){
   const alt=document.getElementById("edtAltText");if(alt)alt.hidden=true;
   const altC=document.getElementById("cursoAlteracaoText");if(altC)altC.hidden=true;
   setStatus("Pronto | v2.1 | PigeonMaster Remote Clock (.PMR) Ativo");
-  openWin("winPombos");
+  
   initPMRFromUrl();
 });
 </script>
@@ -6223,6 +6223,323 @@ h1,h2{text-align:center;color:#008080}
   };
 
   console.log("Patch final de Importação PMR por Categoria Nativa Ativo (BUG CORRIGIDO).");
+})();
+</script>
+<script>
+(function(){
+  if(window.__PATCH_CORRIGIR_JANELA_POMBOS__) return;
+  window.__PATCH_CORRIGIR_JANELA_POMBOS__ = true;
+
+  // 1. Desativa as funções que ficavam fechando a janela de Pombos sem querer
+  window.esconderJanelaPombosSeAbrirSozinha = function(){};
+  window.fecharJanelaPombosAoAbrir = function(){};
+  window.fecharJanelaPombosSeSozinha = function(){};
+
+  // 2. Garante que ao abrir qualquer janela (incluindo Pombos), a tela inicial suma
+  const _openWinCorrigido = window.openWin;
+  window.openWin = function(id){
+    _openWinCorrigido.apply(this, arguments);
+    const home = document.getElementById("homeScreenPMFinal");
+    if(home){
+      const abertas = document.querySelectorAll("#workspace > .child-window.active").length;
+      home.style.display = abertas > 0 ? "none" : "flex";
+    }
+  };
+
+  // 3. Garante que ao fechar as janelas, a tela inicial do clube volte
+  const _closeWinCorrigido = window.closeWin;
+  window.closeWin = function(id){
+    _closeWinCorrigido.apply(this, arguments);
+    const home = document.getElementById("homeScreenPMFinal");
+    if(home){
+      setTimeout(function(){
+        const abertas = document.querySelectorAll("#workspace > .child-window.active").length;
+        home.style.display = abertas > 0 ? "none" : "flex";
+      }, 50);
+    }
+  };
+
+  console.log("Correção da janela de Pombos aplicada com sucesso!");
+})();
+</script>
+<script>
+(function(){
+  if(window.__PATCH_CORRIGIR_JANELA_POMBOS_V2__) return;
+  window.__PATCH_CORRIGIR_JANELA_POMBOS_V2__ = true;
+
+  // Flag para sabermos se o usuário quer a janela de Pombos aberta
+  let pombosAbertoPeloUsuario = false;
+
+  // Sobrescreve o openWin para marcar a flag e esconder a Home Screen
+  const _openWinOriginal = window.openWin;
+  window.openWin = function(id){
+    _openWinOriginal(id);
+    
+    if(id === "winPombos") pombosAbertoPeloUsuario = true;
+
+    // Garante que a tela inicial do clube suma ao abrir qualquer janela
+    const home = document.getElementById("homeScreenPMFinal");
+    if(home){
+      const abertas = document.querySelectorAll("#workspace > .child-window.active").length;
+      home.style.display = abertas > 0 ? "none" : "flex";
+    }
+  };
+
+  // Sobrescreve o closeWin para desmarcar a flag e mostrar a Home Screen
+  const _closeWinOriginal = window.closeWin;
+  window.closeWin = function(id){
+    _closeWinOriginal(id);
+
+    if(id === "winPombos") pombosAbertoPeloUsuario = false;
+
+    // Garante que a tela inicial do clube volte se não houver janelas
+    const home = document.getElementById("homeScreenPMFinal");
+    if(home){
+      setTimeout(function(){
+        const abertas = document.querySelectorAll("#workspace > .child-window.active").length;
+        home.style.display = abertas > 0 ? "none" : "flex";
+      }, 50);
+    }
+  };
+
+  // Escudo protetor: a cada 100ms, se o usuário abriu Pombos, mas o bug fechou, reabrimos!
+  setInterval(function(){
+    if(pombosAbertoPeloUsuario){
+      const wp = document.getElementById("winPombos");
+      if(wp && !wp.classList.contains("active")){
+        wp.classList.add("active");
+        wp.style.zIndex = ++zCounter;
+      }
+    }
+  }, 100);
+
+  console.log("Correção da janela de Pombos (V2 - Escudo Protetor) aplicada com sucesso!");
+})();
+</script>
+<script>
+(function(){
+  if(window.__PATCH_CORRIGIR_JANELA_POMBOS_FINAL__) return;
+  window.__PATCH_CORRIGIR_JANELA_POMBOS_FINAL__ = true;
+
+  // 1. Desativa as funções antigas que ficavam fechando a janela de Pombos
+  // Agora, quando o código antigo chamar essas funções, elas não farão nada.
+  window.esconderJanelaPombosSeAbrirSozinha = function(){};
+  window.fecharJanelaPombosSeSozinha = function(){};
+  window.fecharJanelaPombosAoAbrir = function(){};
+
+  // 2. Gerencia a tela inicial do clube de forma correta, sem brigar
+  const _openWinCorrigido = window.openWin;
+  window.openWin = function(id){
+    _openWinCorrigido(id);
+    const home = document.getElementById("homeScreenPMFinal");
+    if(home){
+      const abertas = document.querySelectorAll("#workspace > .child-window.active").length;
+      home.style.display = abertas > 0 ? "none" : "flex";
+    }
+  };
+
+  const _closeWinCorrigido = window.closeWin;
+  window.closeWin = function(id){
+    _closeWinCorrigido(id);
+    const home = document.getElementById("homeScreenPMFinal");
+    if(home){
+      setTimeout(function(){
+        const abertas = document.querySelectorAll("#workspace > .child-window.active").length;
+        home.style.display = abertas > 0 ? "none" : "flex";
+      }, 50);
+    }
+  };
+
+  console.log("Correção FINAL da janela de Pombos aplicada!");
+})();
+</script>
+<script>
+(function(){
+  if(window.__PATCH_BLINDAGEM_JANELA_POMBOS__) return;
+  window.__PATCH_BLINDAGEM_JANELA_POMBOS__ = true;
+
+  let pombosDeveFicarAberto = false;
+  const wp = document.getElementById("winPombos");
+
+  if(wp){
+    // O "Guarda" da janela: intercepta quando alguém tenta fechar
+    const removeOriginal = wp.classList.remove.bind(wp.classList);
+    wp.classList.remove = function(...args){
+      // Se o sistema tentar remover o 'active' mas o usuário quer a janela aberta, BLOQUEIA
+      if(args.includes('active') && pombosDeveFicarAberto){
+        return; 
+      }
+      return removeOriginal(...args);
+    };
+  }
+
+  // Quando abrir a janela de Pombos, liga a proteção
+  const _openWinBlindado = window.openWin;
+  window.openWin = function(id){
+    _openWinBlindado(id);
+    if(id === "winPombos") pombosDeveFicarAberto = true;
+    
+    const home = document.getElementById("homeScreenPMFinal");
+    if(home) home.style.display = "none";
+  };
+
+  // Quando o usuário clicar no X para fechar, desliga a proteção e deixa fechar
+  const _closeWinBlindado = window.closeWin;
+  window.closeWin = function(id){
+    if(id === "winPombos") pombosDeveFicarAberto = false;
+    _closeWinBlindado(id);
+    
+    const home = document.getElementById("homeScreenPMFinal");
+    if(home){
+      setTimeout(function(){
+        const abertas = document.querySelectorAll("#workspace > .child-window.active").length;
+        home.style.display = abertas > 0 ? "none" : "flex";
+      }, 50);
+    }
+  };
+
+  console.log("Blindagem da janela de Pombos ativada!");
+})();
+</script>
+<script>
+(function(){
+  if(window.__PATCH_SYSTEM_WHOLSOME_FINISH__) return;
+  window.__PATCH_SYSTEM_WHOLSOME_FINISH__ = true;
+
+  // 1. Desativa as funções que ficavam fechando a janela de Pombos indevidamente
+  window.esconderJanelaPombosSeAbrirSozinha = function(){};
+  window.fecharJanelaPombosSeSozinha = function(){};
+  
+  // 2. Mostra a Tela Inicial do Clube (logo) quando o programa carrega
+  const home = document.getElementById("homeScreenPMFinal");
+  if(home) home.style.display = "flex";
+
+  // 3. Garante que a janela de Pombos esteja fechada no início
+  const wp = document.getElementById("winPombos");
+  if(wp) wp.classList.remove("active");
+
+  // 4. Quando o usuário abrir qualquer janela do menu, a Tela Inicial deve sumir para dar lugar
+  const _openWinClean = window.openWin;
+  window.openWin = function(id){
+    _openWinClean(id);
+    if(home) home.style.display = "none";
+    if(id === "winPombos") {
+      // Opcional: Se quiser, podemos focar na anilha
+      const edt = document.getElementById("edtAnilha");
+      if(edt)setTimeout(()=>edt.focus(), 100);
+    }
+  };
+
+  // 5. Quando fechar a última janela aberta, a Tela Inicial volta (como um menu principal)
+  const _closeWinClean = window.closeWin;
+  window.closeWin = function(id){
+    _closeWinClean(id);
+    setTimeout(function(){
+      const abertas = document.querySelectorAll("#workspace > .child-window.active").length;
+      if(home) home.style.display = abertas > 0 ? "none" : "flex";
+    }, 50);
+  };
+
+  console.log("Sistema iniciado na tela de Boas-vindas!");
+})();
+</script>
+<script>
+(function(){
+  if(window.__PATCH_INICIO_CORRETO__) return;
+  window.__PATCH_INICIO_CORRETO__ = true;
+
+  // O "Vigilante": Fica verificando a cada meio segundo (500ms) se o sistema está obedecendo à regra
+  setInterval(function(){
+    const home = document.getElementById("homeScreenPMFinal");
+
+    // Verifica se a Tela Inicial (logo) está aparecendo
+    const homeEstaAparecendo = home && home.style.display !== "none";
+
+    // Verifica quantas janelas do sistema estão abertas
+    const abertas = document.querySelectorAll("#workspace > .child-window.active").length;
+
+    // Se a logo estiver aparecendo e por acaso houver janelas abertas bagunçando o fundo,
+    // ele fecha tudo automaticamente para garantir que o programa inicie limpo.
+    if(homeEstaAparecendo && abertas > 0){
+      document.querySelectorAll("#workspace > .child-window.active").forEach(w => {
+        w.classList.remove("active");
+      });
+    }
+  }, 500);
+
+  // Mantém o resto funcionando: ao abrir qualquer janela, a logo some (comportamento padrão)
+  // E ao fechar todas as janelas, a logo volta (comportamento padrão)
+  if(typeof window.openWin === 'function'){
+    const _openWinInicio = window.openWin;
+    window.openWin = function(id){
+      _openWinInicio(id);
+      const home = document.getElementById("homeScreenPMFinal");
+      if(home) home.style.display = "none";
+    };
+  }
+  
+  if(typeof window.closeWin === 'function'){
+    const _closeWinInicio = window.closeWin;
+    window.closeWin = function(id){
+      _closeWinInicio(id);
+      setTimeout(function(){
+        const abertas = document.querySelectorAll("#workspace > .child-window.active").length;
+        const home = document.getElementById("homeScreenPMFinal");
+        if(home) home.style.display = abertas > 0 ? "none" : "flex";
+      }, 50);
+    };
+  }
+
+  console.log("Regra de Início Limpo aplicada!");
+})();
+</script>
+<script>
+(function(){
+  if(window.__PATCH_ARRUMA_INICIO_FINAL__) return;
+  window.__PATCH_ARRUMA_INICIO_FINAL__ = true;
+
+  // 1. Força o comportamento ideal: Ganha a homeScreen, perde as outras janelas.
+  function prepararInicioCorretamente(){
+    const home = document.getElementById("homeScreenPMFinal");
+    if(home) home.style.display = "flex"; // Mostra a logo
+
+    // Fecha todas as janelas que o sistema tentar abrir sozinho no início
+    document.querySelectorAll("#workspace > .child-window.active").forEach(w => {
+      w.classList.remove("active");
+    });
+  }
+
+  // 2. Conecta a função na carga da tela com prioridade máxima
+  window.addEventListener("load", function(){
+    setTimeout(function(){
+      prepararInicioCorretamente();
+    }, 50); // Um delay de 50ms garante que essa linha roda DEPOIS do openWin("winPombos")
+  });
+
+  // 3. Mantém o sistema vivo: Ao abrir qualquer janela, some a logo!
+  if(typeof window.openWin === 'function'){
+    const _openWinDef = window.openWin;
+    window.openWin = function(id){
+      _openWinDef(id);
+      const home = document.getElementById("homeScreenPMFinal");
+      if(home) home.style.display = "none";
+    };
+  }
+
+  // 4. Ao fechar a última janela, volta a logo!
+  if(typeof window.closeWin === 'function'){
+    const _closeWinDef = window.closeWin;
+    window.closeWin = function(id){
+      _closeWinDef(id);
+      setTimeout(function(){
+        const abertas = document.querySelectorAll("#workspace > .child-window.active").length;
+        const home = document.getElementById("homeScreenPMFinal");
+        if(home) home.style.display = abertas > 0 ? "none" : "flex";
+      }, 50);
+    };
+  }
+
+  console.log("Regra do início limpo para a roda do domingo aplicada!");
 })();
 </script>
 </body>
