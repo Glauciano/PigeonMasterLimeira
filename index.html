@@ -6542,5 +6542,92 @@ h1,h2{text-align:center;color:#008080}
   console.log("Regra do início limpo para a roda do domingo aplicada!");
 })();
 </script>
+   <script>
+(function(){
+  if(window.__FIX_IMPORTA_LON_SEG__) return;
+  window.__FIX_IMPORTA_LON_SEG__ = true;
+
+  window.importarConcorrentes = function(){
+    const file = document.getElementById("impFileConc").files[0];
+    if(!file) return alert("Selecione o arquivo primeiro.");
+    
+    limparLogImp("impLogConc");
+    logImp("impLogConc","▶ Lendo: " + file.name);
+    
+    const reader = new FileReader();
+    reader.onload = e => {
+      const txt = e.target.result;
+      const linhas = txt.split(/\r?\n/).filter(l => l.trim().length > 0);
+      logImp("impLogConc","▶ Linhas: " + linhas.length, "ok");
+      
+      let novos = 0, atualizados = 0, erros = 0;
+      
+      for(let i = 0; i < linhas.length; i += 2){
+        try{
+          const l1 = linhas[i] || "";
+          const l2 = linhas[i+1] || "";
+          const p1 = l1.split(",").map(x => x.trim());
+          const p2 = l2.split(",").map(x => x.trim());
+          
+          if(p1.length < 10) continue;
+          
+          const colec = p1[0] || "33";
+          const numero = p1[1] || "";
+          const nome = (p1[3] || "").trim();
+          const morada = (p1[4] || "").trim();
+          const localidade = (p1[5] || "").trim();
+          
+          // ✅ CORREÇÃO DO BUG: lonSeg agora é p2[8] (era p2[7])
+          const latGrau = p2[3] || "022";
+          const latMin  = p2[4] || "33";
+          const latSeg  = p2[5] || "46.4";
+          const lonGrau = p2[6] || "047";
+          const lonMin  = p2[7] || "22";
+          const lonSeg  = p2[8] || "55.1";   // ← BUG CORRIGIDO AQUI!
+          
+          if(!numero || !nome){
+            logImp("impLogConc","⚠️ Linha " + (i+1) + ": faltando dados", "warn");
+            erros++;
+            continue;
+          }
+          
+          const conc = {
+            assoc: "11",
+            colec: colec.trim(),
+            numero: numero.trim(),
+            nome, morada, localidade,
+            telefone: "", email: "",
+            latGrau, latMin, latSeg,
+            lonGrau, lonMin, lonSeg
+          };
+          
+          const idx = concorrentesSalvos.findIndex(c => c.numero === conc.numero);
+          if(idx >= 0){
+            concorrentesSalvos[idx] = conc;
+            atualizados++;
+            logImp("impLogConc","♻ " + conc.numero + " " + conc.nome + " [" + latGrau + "-" + latMin + "-" + latSeg + " / " + lonGrau + "-" + lonMin + "-" + lonSeg + "]");
+          } else {
+            concorrentesSalvos.push(conc);
+            novos++;
+            logImp("impLogConc","✓ " + conc.numero + " " + conc.nome + " [" + latGrau + "-" + latMin + "-" + latSeg + " / " + lonGrau + "-" + lonMin + "-" + lonSeg + "]", "ok");
+          }
+        } catch(err){
+          logImp("impLogConc","❌ " + err.message, "err");
+          erros++;
+        }
+      }
+      
+      salvarConcorrentes();
+      atualizarTabelaConcorrentes();
+      logImp("impLogConc","━━━━━━━━━", "ok");
+      logImp("impLogConc","✅ " + novos + " novos, " + atualizados + " atualizados, " + erros + " erros", "ok");
+      setStatus("Concorrentes importados: " + (novos + atualizados));
+    };
+    reader.readAsText(file, "UTF-8");
+  };
+  
+  console.log("✅ FIX: Importação GPC corrigida (lonSeg agora pega p2[8])");
+})();
+</script>     
 </body>
 </html>
