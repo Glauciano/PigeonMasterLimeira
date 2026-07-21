@@ -1,4 +1,144 @@
-<!DOCTYPE html>
+<script>
+(function(){
+  /* ========== ORGANIZA O MENU COMPACTO ========== */
+  const css = document.createElement("style");
+  css.textContent = `
+    /* Menu compacto */
+    .menu-strip{
+      height:26px !important;
+      background:linear-gradient(to bottom,#eef4f7,#dde7ec) !important;
+      border-bottom:2px solid #008080 !important;
+      padding:2px !important;
+      gap:1px !important;
+    }
+    .menu-title{
+      height:22px !important;
+      padding:3px 8px !important;
+      font-size:11px !important;
+      border-radius:4px !important;
+      font-weight:500 !important;
+      transition:all .15s !important;
+    }
+    .menu-title:hover{
+      background:#008080 !important;
+      color:#fff !important;
+      border:1px solid #005959 !important;
+    }
+    .menu-brand{
+      background:#008080 !important;
+      color:#fff !important;
+      font-weight:bold !important;
+      padding:3px 10px !important;
+      border-radius:4px !important;
+    }
+  `;
+  document.head.appendChild(css);
+
+  /* ========== REORGANIZA OS BOTÕES ========== */
+  window.addEventListener("load", function(){
+    setTimeout(function(){
+      const menu = document.getElementById("menuStrip");
+      if(!menu) return;
+
+      /* Remove botões duplicados de ajuda que possam ter sido criados */
+      ["menuAjudaSocioBtn","menuAjudaOperadorBtn"].forEach(id => {
+        const btn = document.getElementById(id);
+        if(btn) btn.remove();
+      });
+
+      /* Encontra os botões existentes */
+      const todos = Array.from(menu.querySelectorAll(".menu-title"));
+
+      /* Cria botões de Ajuda */
+      const btnAjudaSocio = document.createElement("div");
+      btnAjudaSocio.id = "menuAjudaSocioBtn";
+      btnAjudaSocio.className = "menu-title";
+      btnAjudaSocio.style.background = "#25d366";
+      btnAjudaSocio.style.color = "#fff";
+      btnAjudaSocio.style.fontWeight = "bold";
+      btnAjudaSocio.textContent = "❓ Sócio";
+      btnAjudaSocio.title = "Manual de Ajuda para o Sócio";
+      btnAjudaSocio.onclick = function(){ openWin("winAjudaSocio"); };
+
+      const btnAjudaOp = document.createElement("div");
+      btnAjudaOp.id = "menuAjudaOperadorBtn";
+      btnAjudaOp.className = "menu-title";
+      btnAjudaOp.style.background = "#0084ff";
+      btnAjudaOp.style.color = "#fff";
+      btnAjudaOp.style.fontWeight = "bold";
+      btnAjudaOp.textContent = "📖 Operador";
+      btnAjudaOp.title = "Manual de Ajuda para o Operador";
+      btnAjudaOp.onclick = function(){ openWin("winAjudaOperador"); };
+
+      /* Encontra o botão "Sobre" para inserir antes */
+      const sobre = todos.find(x => x.textContent.trim() === "Sobre");
+      if(sobre){
+        menu.insertBefore(btnAjudaSocio, sobre);
+        menu.insertBefore(btnAjudaOp, sobre);
+      } else {
+        menu.appendChild(btnAjudaSocio);
+        menu.appendChild(btnAjudaOp);
+      }
+
+      /* ========== RENOMEIA BOTÕES PARA FICAR COMPACTO ========== */
+      todos.forEach(btn => {
+        const txt = btn.textContent.trim();
+        /* Renomeia botões longos para versão curta */
+        if(txt === "📥 Importar/Exportar GPC"){
+          btn.textContent = "📥 GPC";
+          btn.title = "Importar/Exportar GPC";
+        }
+        if(txt === "📱 Compartilhar"){
+          btn.textContent = "📱 WhatsApp";
+          btn.title = "Compartilhar Resultados";
+        }
+        if(txt === "💾 Backup"){
+          btn.textContent = "💾 Backup";
+          btn.title = "Backup e Restauração";
+        }
+        if(txt.includes("PM Remote Clock")){
+          btn.textContent = "⏱️ PMR";
+          btn.title = "PM Remote Clock (.PMR)";
+        }
+        if(txt === "📱 App Celular"){
+          btn.textContent = "📱 Celular";
+          btn.title = "Abrir Tela do Celular Simulada";
+        }
+        if(txt === "Parametrização"){
+          btn.textContent = "⚙️ Config";
+          btn.title = "Parametrização";
+        }
+        if(txt === "Listar provas"){
+          btn.textContent = "📊 Provas";
+          btn.title = "Listar Provas";
+        }
+        if(txt === "Listar Totais"){
+          btn.textContent = "🏆 Totais";
+          btn.title = "Listar Totais";
+        }
+        if(txt === "Concorrente"){
+          btn.textContent = "👥 Sócios";
+          btn.title = "Concorrentes/Sócios";
+        }
+        if(txt === "Movimentos"){
+          btn.textContent = "🕊️ Provas";
+          btn.title = "Movimentos/Provas";
+        }
+        if(txt === "Pombos"){
+          btn.textContent = "🕊️ Pombos";
+          btn.title = "Cadastro de Pombos";
+        }
+        if(txt === "Concurso"){
+          btn.textContent = "🏁 Concurso";
+          btn.title = "Cadastro de Concursos";
+        }
+      });
+    }, 500);
+  });
+
+  console.log("✅ Menu compacto e organizado!");
+})();
+</script><!DOCTYPE html>
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
