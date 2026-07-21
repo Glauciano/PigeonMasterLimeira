@@ -2115,5 +2115,442 @@ window.addEventListener("load",function(){
 
 })();
 </script>
+<script>
+(function(){
+  /* ===== CSS DOS MANUAIS ===== */
+  const css = document.createElement("style");
+  css.textContent = `
+    .manual-body{padding:0;background:#f4f6f9;max-height:520px;overflow-y:auto}
+    .manual-hero{background:linear-gradient(135deg,#008080,#25d366);color:#fff;padding:20px;text-align:center}
+    .manual-hero h1{margin:0;font-size:22px;font-weight:bold}
+    .manual-hero p{margin:8px 0 0;font-size:14px;opacity:.95;font-style:italic}
+    .manual-passo{background:#fff;margin:14px;padding:16px;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,.08);border-left:6px solid #008080}
+    .manual-passo-num{display:inline-block;background:#008080;color:#fff;width:38px;height:38px;border-radius:50%;text-align:center;line-height:38px;font-size:18px;font-weight:bold;margin-right:10px;vertical-align:middle}
+    .manual-passo-titulo{font-size:17px;font-weight:bold;color:#004d4d;display:inline-block;vertical-align:middle}
+    .manual-passo-texto{margin-top:10px;font-size:14px;line-height:1.6;color:#333}
+    .manual-tip{background:#fffacd;border:1px solid #d4b800;border-radius:8px;padding:10px;margin-top:10px;font-size:13px;color:#8b6914}
+    .manual-warning{background:#f8d7da;border:1px solid #f5c6cb;border-radius:8px;padding:10px;margin-top:10px;font-size:13px;color:#721c24;font-weight:bold}
+    .manual-success{background:#d4edda;border:1px solid #c3e6cb;border-radius:8px;padding:10px;margin-top:10px;font-size:13px;color:#155724}
+    .manual-fake-tela{background:#e8f4f8;border:3px dashed #008080;border-radius:12px;padding:14px;margin-top:12px;text-align:center;font-family:'Segoe UI',Arial;font-size:13px}
+    .manual-fake-btn{display:inline-block;background:#008080;color:#fff;padding:10px 20px;border-radius:6px;font-weight:bold;margin:5px;font-size:14px}
+    .manual-fake-btn-verde{background:#25D366}
+    .manual-fake-btn-azul{background:#0084ff}
+    .manual-seta{font-size:24px;color:#c1121f;font-weight:bold;display:inline-block;animation:seta 1s infinite}
+    @keyframes seta{0%,100%{transform:translateX(0)}50%{transform:translateX(-6px)}}
+    .manual-check{background:#e0f7fa;border-radius:10px;padding:14px;margin:14px}
+    .manual-check h3{margin:0 0 10px;color:#008080}
+    .manual-check-item{padding:6px 0;font-size:14px;border-bottom:1px solid #b2ebf2}
+    .manual-check-item:last-child{border-bottom:none}
+    .manual-btn-imprimir{background:#008080;color:#fff;border:none;padding:12px 24px;font-size:14px;font-weight:bold;border-radius:8px;cursor:pointer;margin:10px}
+    .manual-btn-imprimir:hover{background:#005959}
+    @media print{
+      .manual-btn-imprimir,.win-close,.win-title{display:none !important}
+      .manual-body{max-height:none !important;overflow:visible !important}
+    }
+  `;
+  document.head.appendChild(css);
+
+  /* ===== CRIA MENU E JANELAS DE AJUDA ===== */
+  window.addEventListener("load", function(){
+    const menu = document.getElementById("menuStrip");
+    if(menu && !document.getElementById("menuAjudaSocioBtn")){
+
+      /* Botão 1: Ajuda Sócio */
+      const btn1 = document.createElement("div");
+      btn1.id = "menuAjudaSocioBtn";
+      btn1.className = "menu-title";
+      btn1.style.color = "#fff";
+      btn1.style.background = "#25d366";
+      btn1.style.fontWeight = "bold";
+      btn1.textContent = "❓ Ajuda Sócio";
+      btn1.onclick = function(){ openWin("winAjudaSocio"); };
+
+      /* Botão 2: Ajuda Operador */
+      const btn2 = document.createElement("div");
+      btn2.id = "menuAjudaOperadorBtn";
+      btn2.className = "menu-title";
+      btn2.style.color = "#fff";
+      btn2.style.background = "#0084ff";
+      btn2.style.fontWeight = "bold";
+      btn2.textContent = "📖 Ajuda Operador";
+      btn2.onclick = function(){ openWin("winAjudaOperador"); };
+
+      const sobre = Array.from(menu.querySelectorAll(".menu-title")).find(x => x.textContent.includes("Sobre"));
+      if(sobre){
+        menu.insertBefore(btn1, sobre);
+        menu.insertBefore(btn2, sobre);
+      } else {
+        menu.appendChild(btn1);
+        menu.appendChild(btn2);
+      }
+    }
+
+    /* ===== JANELA AJUDA DO SÓCIO ===== */
+    const ws = document.getElementById("workspace");
+    if(ws && !document.getElementById("winAjudaSocio")){
+      const div = document.createElement("div");
+      div.className = "child-window";
+      div.id = "winAjudaSocio";
+      div.style.cssText = "left:40px;top:20px;width:720px;height:620px;";
+      div.innerHTML = `
+        <div class="win-title">
+          <div class="win-title-left"><span class="small-icon" style="background:#25d366;"></span> ❓ Como usar - Manual do Sócio</div>
+          <button class="win-close" onclick="closeWin('winAjudaSocio')">X</button>
+        </div>
+        <div class="win-body" style="padding:0;">
+          <div class="manual-body">
+
+            <div class="manual-hero">
+              <h1>🕊️ CLUBE COLUMBÓFILO LIMEIRENSE</h1>
+              <p>Manual do Sócio - Como Enviar as Constatações pelo Celular</p>
+            </div>
+
+            <div style="text-align:center;padding:0 14px;">
+              <button class="manual-btn-imprimir" onclick="window.print()">🖨️ IMPRIMIR MANUAL</button>
+            </div>
+
+            <div class="manual-passo">
+              <span class="manual-passo-num">1</span>
+              <span class="manual-passo-titulo">Você recebe uma mensagem no WhatsApp</span>
+              <div class="manual-passo-texto">
+                O clube vai te enviar uma mensagem parecida com esta:
+                <div class="manual-fake-tela">
+                  Olá, [SEU NOME]! 🏁<br>
+                  A prova foi encerrada. Registre agora as chegadas:<br><br>
+                  <b style="color:#0084ff;text-decoration:underline;font-size:12px;">👉 https://link-do-clube.com/...</b>
+                </div>
+                <div class="manual-tip">
+                  💡 <b>DICA:</b> Toque no LINK AZUL para abrir!
+                </div>
+              </div>
+            </div>
+
+            <div class="manual-passo">
+              <span class="manual-passo-num">2</span>
+              <span class="manual-passo-titulo">Vai abrir uma tela no navegador</span>
+              <div class="manual-passo-texto">
+                A tela vai mostrar:
+                <div class="manual-fake-tela">
+                  <b>PigeonMaster - Remote Clock</b><br>
+                  <span style="font-size:11px;color:#666">Concurso Igarapava S.P</span><br><br>
+                  👤 <b>Seu Nome</b><br>
+                  ⌚ Relógio: Benzing<br>
+                  📍 GPS: Capturando...
+                </div>
+                <div class="manual-tip">
+                  💡 <b>DICA:</b> Vai aparecer uma pergunta<br>
+                  <b>"Permitir localização?"</b><br>
+                  ➡️ Toque em <b>"PERMITIR"</b> ou <b>"OK"</b>
+                </div>
+              </div>
+            </div>
+
+            <div class="manual-passo">
+              <span class="manual-passo-num">3</span>
+              <span class="manual-passo-titulo">Digite o pombo que chegou</span>
+              <div class="manual-passo-texto">
+                Você vai ver 3 campos:
+                <div class="manual-fake-tela" style="text-align:left;">
+                  <b>Número da Anilha:</b><br>
+                  <span style="background:#fff;padding:6px 10px;border:1px solid #ccc;display:inline-block;margin:4px 0;width:80%;">2335027/23</span><br><br>
+
+                  <b>Hora da Constatação:</b><br>
+                  <span style="background:#fff;padding:6px 10px;border:1px solid #ccc;display:inline-block;margin:4px 0;width:60%;font-family:Consolas;">11:34:58</span>
+                  <span class="manual-fake-btn" style="padding:6px 10px;font-size:12px;">⏰</span><br><br>
+
+                  <b>Observações (Opcional):</b><br>
+                  <span style="background:#fff;padding:6px 10px;border:1px solid #ccc;display:inline-block;margin:4px 0;width:80%;">Normal</span>
+                </div>
+                <div class="manual-tip">
+                  💡 <b>DICA IMPORTANTE:</b><br>
+                  ⏰ O botão do relógio pega a hora ATUAL do celular automaticamente!<br>
+                  Mas você pode digitar manualmente também (hora exata que o pombo chegou).
+                </div>
+              </div>
+            </div>
+
+            <div class="manual-passo">
+              <span class="manual-passo-num">4</span>
+              <span class="manual-passo-titulo">Toque em ADICIONAR À LISTA</span>
+              <div class="manual-passo-texto">
+                Depois de preencher os 3 campos:
+                <div class="manual-fake-tela">
+                  <span class="manual-fake-btn">+ ADICIONAR À LISTA</span><br>
+                  <span class="manual-seta">👆</span> Toque aqui!
+                </div>
+                <div class="manual-success">
+                  ✅ <b>O pombo vai aparecer na lista abaixo!</b>
+                </div>
+              </div>
+            </div>
+
+            <div class="manual-passo">
+              <span class="manual-passo-num">5</span>
+              <span class="manual-passo-titulo">Repita para cada pombo</span>
+              <div class="manual-passo-texto">
+                Faça o mesmo processo para <b>TODOS</b> os pombos que chegaram:
+                <div class="manual-fake-tela" style="text-align:left;">
+                  <b>Pombos Registrados (3):</b><br>
+                  🕊️ <b>2335027/23</b> - ⏰ 11:34:58<br>
+                  🕊️ <b>2335028/23</b> - ⏰ 11:36:12<br>
+                  🕊️ <b>2335029/23</b> - ⏰ 11:38:45
+                </div>
+                <div class="manual-tip">
+                  💡 <b>DICA:</b> Se errou algum, toque no <b>X</b> vermelho ao lado para apagar.
+                </div>
+              </div>
+            </div>
+
+            <div class="manual-passo">
+              <span class="manual-passo-num">6</span>
+              <span class="manual-passo-titulo">Gerar o arquivo seguro (.PMR)</span>
+              <div class="manual-passo-texto">
+                Quando terminar de digitar TODOS os pombos:
+                <div class="manual-fake-tela">
+                  <span class="manual-fake-btn" style="background:#006699">🔒 GERAR ARQUIVO (.PMR)</span><br>
+                  <span class="manual-seta">👆</span> Toque aqui!
+                </div>
+                <div class="manual-success">
+                  ✅ <b>O arquivo vai baixar automaticamente no celular!</b><br>
+                  Vai aparecer uma mensagem: "🛡️ ARQUIVO GERADO COM SUCESSO!"
+                </div>
+                <div class="manual-warning">
+                  ⚠️ <b>IMPORTANTE:</b> Guarde o arquivo! Você VAI ENVIAR ele pro clube no próximo passo!
+                </div>
+              </div>
+            </div>
+
+            <div class="manual-passo">
+              <span class="manual-passo-num">7</span>
+              <span class="manual-passo-titulo">Enviar o arquivo pelo WhatsApp</span>
+              <div class="manual-passo-texto">
+                Agora vá até o WhatsApp e envie o arquivo pro clube:
+                <div class="manual-fake-tela" style="text-align:left;">
+                  1. Abra o WhatsApp do CLUBE<br>
+                  2. Toque no clipe 📎 (anexar)<br>
+                  3. Escolha <b>"Documento"</b> ou <b>"Arquivo"</b><br>
+                  4. Procure em <b>Downloads</b> por: <b>CONC1_SOCIO77_2026.PMR</b><br>
+                  5. Envie!
+                </div>
+                <div class="manual-tip">
+                  💡 <b>DICA:</b> Toque também no botão <b>💬 Enviar p/ WhatsApp</b> DENTRO do sistema. Ele envia um RESUMO em texto pro clube!
+                </div>
+                <div class="manual-success">
+                  ✅ <b>PRONTO! Sua constatação foi enviada!</b>
+                </div>
+              </div>
+            </div>
+
+            <div class="manual-check">
+              <h3>✅ CHECKLIST FINAL</h3>
+              <div class="manual-check-item">☐ Toquei no link do WhatsApp</div>
+              <div class="manual-check-item">☐ Permiti o GPS (localização)</div>
+              <div class="manual-check-item">☐ Digitei TODOS os pombos que chegaram</div>
+              <div class="manual-check-item">☐ Cliquei em "GERAR ARQUIVO (.PMR)"</div>
+              <div class="manual-check-item">☐ Enviei o arquivo pelo WhatsApp pro clube</div>
+            </div>
+
+            <div style="background:#008080;color:#fff;padding:20px;text-align:center;font-size:14px;font-weight:bold;">
+              🕊️ Boas provas! 🏆<br>
+              <span style="font-size:12px;font-weight:normal;font-style:italic;">Sistema S.G.C-S.P v2.1 PigeonMaster</span>
+            </div>
+
+          </div>
+        </div>
+      `;
+      ws.appendChild(div);
+    }
+
+    /* ===== JANELA AJUDA DO OPERADOR ===== */
+    if(ws && !document.getElementById("winAjudaOperador")){
+      const div2 = document.createElement("div");
+      div2.className = "child-window";
+      div2.id = "winAjudaOperador";
+      div2.style.cssText = "left:60px;top:30px;width:720px;height:620px;";
+      div2.innerHTML = `
+        <div class="win-title">
+          <div class="win-title-left"><span class="small-icon" style="background:#0084ff;"></span> 📖 Como usar - Manual do Operador</div>
+          <button class="win-close" onclick="closeWin('winAjudaOperador')">X</button>
+        </div>
+        <div class="win-body" style="padding:0;">
+          <div class="manual-body">
+
+            <div class="manual-hero" style="background:linear-gradient(135deg,#0084ff,#004d99);">
+              <h1>📖 CENTRAL DO OPERADOR</h1>
+              <p>Como Gerenciar o PMR (PM Remote Clock)</p>
+            </div>
+
+            <div style="text-align:center;padding:0 14px;">
+              <button class="manual-btn-imprimir" style="background:#0084ff;" onclick="window.print()">🖨️ IMPRIMIR MANUAL</button>
+            </div>
+
+            <div class="manual-passo" style="border-left-color:#0084ff;">
+              <span class="manual-passo-num" style="background:#0084ff;">1</span>
+              <span class="manual-passo-titulo">Antes de tudo: Cadastre a Prova</span>
+              <div class="manual-passo-texto">
+                Menu <b>Concurso</b> → aba <b>Editar</b> → preencha TUDO:
+                <div class="manual-tip">
+                  ⚠️ <b>MUITO IMPORTANTE:</b> Preencha as COORDENADAS DE SOLTURA corretamente!<br>
+                  Sem elas, o cálculo da distância dá ERRADO!
+                </div>
+              </div>
+            </div>
+
+            <div class="manual-passo" style="border-left-color:#0084ff;">
+              <span class="manual-passo-num" style="background:#0084ff;">2</span>
+              <span class="manual-passo-titulo">Abrir o PM Remote Clock</span>
+              <div class="manual-passo-texto">
+                No menu superior, clique em <b>⏱️ PM Remote Clock (.PMR)</b>
+                <div class="manual-tip">
+                  💡 Vai abrir uma janela com <b>3 abas</b>: Liberar, Importar e Auditoria
+                </div>
+              </div>
+            </div>
+
+            <div class="manual-passo" style="border-left-color:#0084ff;">
+              <span class="manual-passo-num" style="background:#0084ff;">3</span>
+              <span class="manual-passo-titulo">ABA 1: Gerar link para o sócio</span>
+              <div class="manual-passo-texto">
+                <b>Passo a passo:</b><br>
+                1. Clique na 🔍 do <b>Concurso</b> e selecione a prova<br>
+                2. Clique na 🔍 do <b>Sócio</b> e selecione o sócio<br>
+                3. Escolha o tipo de <b>Relógio</b><br>
+                4. Marque <b>GPS Obrigatório</b> (recomendado - antifraude)<br>
+                5. Clique em <b>⚡ Gerar Link</b><br>
+                6. Clique em <b>📱 Enviar WhatsApp</b>
+                <div class="manual-success">
+                  ✅ Vai abrir o WhatsApp Web/App com a mensagem pronta pro sócio!
+                </div>
+              </div>
+            </div>
+
+            <div class="manual-passo" style="border-left-color:#c1121f;">
+              <span class="manual-passo-num" style="background:#c1121f;">⚠️</span>
+              <span class="manual-passo-titulo">ATENÇÃO: Sistema precisa estar ONLINE</span>
+              <div class="manual-passo-texto">
+                <div class="manual-warning">
+                  ⚠️ Para o LINK funcionar no celular do sócio, o sistema precisa estar<br>
+                  <b>PUBLICADO na internet</b> (Vercel, GitHub Pages, etc)!<br><br>
+                  Se está usando só no seu computador (arquivo local), o sócio precisa mandar as constatações por texto no WhatsApp e você digita manualmente!
+                </div>
+              </div>
+            </div>
+
+            <div class="manual-passo" style="border-left-color:#0084ff;">
+              <span class="manual-passo-num" style="background:#0084ff;">4</span>
+              <span class="manual-passo-titulo">O sócio devolve o arquivo .PMR</span>
+              <div class="manual-passo-texto">
+                Depois que o sócio registrar os pombos e gerar o arquivo, ele envia pelo WhatsApp.<br>
+                <b>Você recebe algo assim:</b>
+                <div class="manual-fake-tela">
+                  📎 CONC1_SOCIO77_2026.PMR
+                </div>
+                <div class="manual-tip">
+                  💡 <b>BAIXE o arquivo</b> do WhatsApp para a pasta Downloads do seu computador!
+                </div>
+              </div>
+            </div>
+
+            <div class="manual-passo" style="border-left-color:#0084ff;">
+              <span class="manual-passo-num" style="background:#0084ff;">5</span>
+              <span class="manual-passo-titulo">ABA 2: Importar arquivo .PMR</span>
+              <div class="manual-passo-texto">
+                1. Abra o PM Remote Clock (⏱️)<br>
+                2. Clique na <b>ABA 2 - 📥 Importar Arquivo .PMR</b><br>
+                3. Clique na área tracejada verde<br>
+                4. Selecione o arquivo <b>.PMR</b> que você baixou<br><br>
+                O sistema vai VERIFICAR se o arquivo é original:
+                <div class="manual-success">
+                  ✅ <b>HASH AUTENTICADO</b> = Arquivo íntegro, pode confiar!
+                </div>
+                <div class="manual-warning">
+                  🚨 <b>ADULTERADO</b> = Arquivo foi mexido! NÃO importe!
+                </div>
+              </div>
+            </div>
+
+            <div class="manual-passo" style="border-left-color:#0084ff;">
+              <span class="manual-passo-num" style="background:#0084ff;">6</span>
+              <span class="manual-passo-titulo">Lançar como PROVISÓRIO</span>
+              <div class="manual-passo-texto">
+                Depois de importar:
+                <div class="manual-fake-tela">
+                  <span class="manual-fake-btn">⚡ Lançar Provisório</span>
+                </div>
+                <div class="manual-tip">
+                  💡 Os pombos entram na prova mas ficam marcados como <b>[PMR]</b><br>
+                  Ainda NÃO entram no cálculo oficial até você HOMOLOGAR!
+                </div>
+              </div>
+            </div>
+
+            <div class="manual-passo" style="border-left-color:#0084ff;">
+              <span class="manual-passo-num" style="background:#0084ff;">7</span>
+              <span class="manual-passo-titulo">ABA 3: Auditoria e Homologação</span>
+              <div class="manual-passo-texto">
+                Depois de conferir com o RELÓGIO FÍSICO do sócio:<br>
+                1. Volte no PM Remote Clock (⏱️)<br>
+                2. Clique na <b>ABA 3 - 🛡️ Auditoria</b><br>
+                3. Compare a hora remota com a hora física<br>
+                4. Clique em <b>✔ Homologar</b> em cada pombo<br>
+                <b>OU</b>
+                <div class="manual-fake-tela">
+                  <span class="manual-fake-btn" style="background:#28a745;">✔ Homologar Todos</span>
+                </div>
+                <div class="manual-success">
+                  ✅ Pombos homologados entram no cálculo oficial da prova!<br>
+                  🔒 Não podem mais ser editados nem excluídos!
+                </div>
+              </div>
+            </div>
+
+            <div class="manual-passo" style="border-left-color:#0084ff;">
+              <span class="manual-passo-num" style="background:#0084ff;">8</span>
+              <span class="manual-passo-titulo">Calcular a prova normalmente</span>
+              <div class="manual-passo-texto">
+                Depois de tudo homologado:<br>
+                Menu <b>Movimentos</b> → <b>Cálculo de Prova</b> → Selecione o concurso → <b>Confirmar</b>
+                <div class="manual-success">
+                  🏆 A classificação sai com todos os pombos oficiais!
+                </div>
+              </div>
+            </div>
+
+            <div class="manual-check">
+              <h3>❓ PROBLEMAS COMUNS</h3>
+              <div class="manual-check-item"><b>Link não abre no celular?</b> ➡️ Sistema precisa estar online (Vercel/GitHub)</div>
+              <div class="manual-check-item"><b>GPS muito longe?</b> ➡️ Sócio pode ter cadastro errado, verifique</div>
+              <div class="manual-check-item"><b>Arquivo ADULTERADO?</b> ➡️ Peça pro sócio gerar de novo. NÃO importe!</div>
+              <div class="manual-check-item"><b>Distância zero?</b> ➡️ Concurso sem coordenadas de soltura. Cadastre!</div>
+              <div class="manual-check-item"><b>Pombo já lançado?</b> ➡️ Já existe na lista, verifique aba de lançamentos</div>
+            </div>
+
+            <div class="manual-check" style="background:#fff3cd;">
+              <h3 style="color:#856404;">📋 SEQUÊNCIA COMPLETA DE USO</h3>
+              <div class="manual-check-item">1️⃣ Cadastre o Concurso com COORDENADAS corretas</div>
+              <div class="manual-check-item">2️⃣ PM Remote Clock → Aba 1 → Gerar Link → Enviar WhatsApp</div>
+              <div class="manual-check-item">3️⃣ Sócio registra e envia o arquivo .PMR</div>
+              <div class="manual-check-item">4️⃣ PM Remote Clock → Aba 2 → Importar .PMR</div>
+              <div class="manual-check-item">5️⃣ Clicar em Lançar Provisório</div>
+              <div class="manual-check-item">6️⃣ Conferir relógio físico do sócio</div>
+              <div class="manual-check-item">7️⃣ PM Remote Clock → Aba 3 → Homologar</div>
+              <div class="manual-check-item">8️⃣ Menu Movimentos → Cálculo de Prova → Confirmar</div>
+              <div class="manual-check-item">9️⃣ Compartilhar resultado no WhatsApp 🎉</div>
+            </div>
+
+            <div style="background:#0084ff;color:#fff;padding:20px;text-align:center;font-size:14px;font-weight:bold;">
+              📖 Manual do Operador<br>
+              <span style="font-size:12px;font-weight:normal;font-style:italic;">Sistema S.G.C-S.P v2.1 PigeonMaster</span>
+            </div>
+
+          </div>
+        </div>
+      `;
+      ws.appendChild(div2);
+    }
+  });
+
+})();
+</script>
 </body>
 </html>
