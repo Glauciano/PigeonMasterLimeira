@@ -2787,9 +2787,10 @@ function gerarClassPombos(){
       const pts=brN(item.pontos);
       if(!map[item.anilha]){
         const c=concorrentesSalvos.find(x=>x.numero===item.concNum);
-        map[item.anilha]={anilha:item.anilha,numero:item.concNum,nome:item.nome||(c?c.nome:""),colec:c?c.colec:"33",sexo:"M",pontos:0};
+        map[item.anilha]={anilha:item.anilha,numero:item.concNum,nome:item.nome||(c?c.nome:""),colec:c?c.colec:"33",sexo:"M",pontos:0,provasFeitas:0};
       }
       map[item.anilha].pontos+=pts;
+      map[item.anilha].provasFeitas++;
     });
   });
   Object.keys(map).forEach(an=>{
@@ -2799,12 +2800,17 @@ function gerarClassPombos(){
   let arr=Object.values(map).filter(x=>x.pontos>0).sort((a,b)=>b.pontos-a.pontos).slice(0,melhores);
   const mapaTit={"Velocidade Adulto":"Velocidade","Meio-fundo":"Meio Fundo","Fundo":"Fundo","Filhotes":"Filhotes","Geral":"Geral"};
   let html=`<div class="gpc-header gpc-h1">CLUBE COLUMBÓFILO LIMEIRENSE</div><div class="gpc-header gpc-h2">Classificação de Pombos - ${esc(mapaTit[tipo]||tipo)}</div>`;
-  html+=`<table class="gpc-table"><thead><tr><th style="width:50px">Lugar</th><th style="width:100px">Anilha</th><th style="width:24px">S</th><th style="width:80px">Nº</th><th>Concorrente</th><th style="width:110px">Anel</th><th style="text-align:right;width:80px">Pontos</th></tr></thead><tbody>`;
+  html+=`<table class="gpc-table"><thead><tr><th style="width:50px">Lugar</th><th style="width:100px">Anilha</th><th style="width:24px">S</th><th style="width:80px">Nº</th><th>Concorrente</th><th style="width:110px">Anel</th><th style="width:110px">Destaque</th><th style="text-align:right;width:80px">Pontos</th></tr></thead><tbody>`;
   const aneis=[{txt:"🥇 OURO",cor:"#b8860b"},{txt:"🥈 PRATA",cor:"#808080"},{txt:"🥉 BRONZE",cor:"#a0522d"}];
   arr.forEach((r,i)=>{
     const cls=realcar>0&&i<realcar?'class="gpc-highlight"':"";
     const anel=i<3?'<b style="color:'+aneis[i].cor+'">'+aneis[i].txt+'</b>':"";
-    html+=`<tr ${cls}><td>${i+1}</td><td>${esc(r.anilha)}</td><td>${esc(r.sexo)}</td><td>${esc(r.colec)}/${esc(r.numero)}</td><td>${esc(r.nome)}</td><td>${anel}</td><td style="text-align:right">${r.pontos}</td></tr>`;
+    /* NOVO: cruza automaticamente com o critério de Pombo Ás (participou de
+       TODAS as provas consideradas nesta modalidade) — se bater, mostra o
+       selo mesmo aqui na Classificação, sem precisar ir noutra tela conferir. */
+    const ehPomboAs=chaves.length>0&&r.provasFeitas===chaves.length;
+    const destaque=ehPomboAs?'<span style="background:#fffacd;color:#804000;font-weight:bold;padding:1px 5px;border-radius:3px;font-size:10px;" title="Classificou em todas as '+chaves.length+' provas desta modalidade">🏆 Pombo Ás</span>':"";
+    html+=`<tr ${cls}><td>${i+1}</td><td>${esc(r.anilha)}</td><td>${esc(r.sexo)}</td><td>${esc(r.colec)}/${esc(r.numero)}</td><td>${esc(r.nome)}</td><td>${anel}</td><td>${destaque}</td><td style="text-align:right">${r.pontos}</td></tr>`;
   });
   html+=`</tbody></table>`;
   document.getElementById("areaClassPombos").innerHTML=html;
@@ -2889,16 +2895,19 @@ function gerarAneisOuroPrataBronze(){
       (classificacoesSalvas[chave]||[]).forEach(item=>{
         if(!map[item.anilha]){
           const c=concorrentesSalvos.find(x=>x.numero===item.concNum);
-          map[item.anilha]={anilha:item.anilha,numero:item.concNum,nome:item.nome||(c?c.nome:""),pontos:0};
+          map[item.anilha]={anilha:item.anilha,numero:item.concNum,nome:item.nome||(c?c.nome:""),pontos:0,provasFeitas:0};
         }
         map[item.anilha].pontos+=brN(item.pontos);
+        map[item.anilha].provasFeitas++;
       });
     });
     const top3=Object.values(map).filter(x=>x.pontos>0).sort((a,b)=>b.pontos-a.pontos).slice(0,3);
     if(!top3.length){html+='<div style="color:#999;padding:6px 0;font-size:12px;">Nenhum pombo pontuou ainda.</div>';return}
     html+='<table class="gpc-table" style="margin-top:4px;"><tbody>';
     top3.forEach((p,i)=>{
-      html+='<tr style="background:'+aneis[i].bg+';"><td style="width:100px;font-weight:bold;color:'+aneis[i].cor+';">'+aneis[i].txt+'</td><td style="width:110px;">'+esc(p.anilha)+'</td><td style="width:60px;">'+esc(p.numero)+'</td><td>'+esc(p.nome)+'</td><td style="text-align:right;font-weight:bold;width:90px;">'+p.pontos+' pts</td></tr>';
+      const ehPomboAs=p.provasFeitas===chaves.length;
+      const destaque=ehPomboAs?' <span style="background:#fffacd;color:#804000;font-weight:bold;padding:1px 5px;border-radius:3px;font-size:9px;" title="Classificou em todas as '+chaves.length+' provas desta modalidade">🏆 Pombo Ás</span>':"";
+      html+='<tr style="background:'+aneis[i].bg+';"><td style="width:100px;font-weight:bold;color:'+aneis[i].cor+';">'+aneis[i].txt+'</td><td style="width:110px;">'+esc(p.anilha)+'</td><td style="width:60px;">'+esc(p.numero)+'</td><td>'+esc(p.nome)+destaque+'</td><td style="text-align:right;font-weight:bold;width:90px;">'+p.pontos+' pts</td></tr>';
     });
     html+='</tbody></table>';
   });
