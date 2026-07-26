@@ -73,6 +73,19 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
 .tagE{background:#c47a00;color:#fff;padding:1px 4px;font-size:9px}
 .small{font-size:10px;color:#333}
 .status{position:absolute;left:0;right:0;bottom:0;height:20px;background:#efefef;border-top:1px solid #a0a0a0;padding:2px 8px;font-size:10px}
+.certificado{background:#fff;border:10px double #8a6d1a;padding:40px 50px;text-align:center;font-family:Georgia,'Times New Roman',serif;max-width:760px;margin:0 auto;}
+.certificado h1{color:#8a6d1a;font-size:30px;letter-spacing:2px;margin:0 0 6px;}
+.certificado h2{color:#555;font-size:15px;font-weight:normal;font-style:italic;margin:0 0 30px;}
+.certificado .corpo{font-size:15px;line-height:1.9;color:#222;margin-bottom:30px;}
+.certificado .nome-vencedor{font-size:24px;color:#000080;font-weight:bold;display:block;margin:10px 0;}
+.certificado .assinaturas{display:flex;justify-content:space-around;margin-top:50px;}
+.certificado .assinatura{border-top:1px solid #333;padding-top:6px;width:200px;font-size:12px;color:#555;}
+.certificado .selo{font-size:46px;margin-bottom:6px;}
+@media print{
+  body *{visibility:hidden}
+  #certificadoPreview,#certificadoPreview *{visibility:visible}
+  #certificadoPreview{position:absolute;left:0;top:0;width:100%;}
+}
 .backup-banner{position:absolute;left:0;right:0;top:22px;height:28px;z-index:9999;background:#fff3cd;border-bottom:2px solid #d4b800;color:#664d03;display:none;align-items:center;gap:10px;padding:0 10px;font-size:11px;font-weight:bold}
 .backup-banner.active{display:flex}
 .info-fix{background:#fffacd;padding:2px 6px;color:#8b6914;font-size:10px;border:1px dashed #d4b800;display:none}
@@ -163,6 +176,7 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
             <div class="row">
               <span class="lbl-left">Anilha :</span>
               <input class="inp md" id="lancAnilha" maxlength="10" placeholder="0000000/00">
+              <span id="lancAnilhaAviso" style="display:none;color:#a67c00;font-size:10px;font-weight:bold;">⚠️ anilha parece incompleta</span>
               <button class="small-btn" id="btnBuscarPombo">🔍</button>
               <span class="red-text" style="margin-left:20px;" id="lancTipoTexto"></span>
               <span class="info-fix" id="lancInfoFix">Sócio fixo (Ctrl+L)</span>
@@ -281,6 +295,7 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
           <div class="row">
             <span class="lbl">Pombo :</span>
             <input class="inp md" id="edtAnilha" maxlength="10" placeholder="0000000/00">
+            <span id="edtAnilhaAviso" style="display:none;color:#a67c00;font-size:10px;font-weight:bold;">⚠️ anilha parece incompleta</span>
             <span class="red-text" style="margin-left:20px;" id="edtAltText" hidden>Alteração</span>
             <span class="info-fix" id="edtInfoFix">Sócio fixo (Ctrl+L)</span>
           </div>
@@ -302,6 +317,7 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
         </div>
         <div class="inner-page" id="pombosConsultar">
           <div style="font-weight:bold;color:#006060;font-style:italic;">Visualização de Pombos</div>
+          <div class="row"><span class="lbl-left">Buscar :</span><input class="inp lg" id="filtroPombos" placeholder="Anilha, número ou nome do concorrente..."></div>
           <table class="classic-table" id="tabelaPombos">
             <thead><tr><th>Anilha</th><th>Assoc.</th><th>Colec.</th><th>Número</th><th>Sexo</th><th>Ação</th></tr></thead>
             <tbody></tbody>
@@ -339,7 +355,7 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
           </div>
         </div>
         <div class="inner-page" id="concorrentesConsultar">
-          <div style="display:flex;justify-content:flex-end;"><button class="btn-restaurar" id="btnRestaurarConc">Restaurar Padrões</button></div>
+          <div class="row"><span class="lbl-left">Buscar :</span><input class="inp lg" id="filtroConcorrentesConsulta" placeholder="Número ou nome..."><div style="margin-left:auto;"><button class="btn-restaurar" id="btnRestaurarConc">Restaurar Padrões</button></div></div>
           <table class="classic-table" id="tabelaConcorrentes">
             <thead><tr><th>Assoc.</th><th>Col.</th><th>Número</th><th>Nome</th><th>Ação</th></tr></thead>
             <tbody></tbody>
@@ -443,6 +459,7 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
         <div class="btn-bar">
           <button class="classic-btn" id="btnConfirmarCalc">▭<br>Confirmar</button>
           <button class="classic-btn" onclick="openWin('winCompartilhar')" style="background:#25d366;color:#fff;">📱<br>WhatsApp</button>
+          <button class="classic-btn" onclick="abrirCertificadoParaConcurso(document.getElementById('calcResAno').value,document.getElementById('calcResNum').value,document.getElementById('calcResNome').value)" style="background:#fff3cd;">🏆<br>Certificado</button>
           <button class="classic-btn" onclick="window.print()">🖨<br>Imprimir</button>
           <button class="classic-btn" onclick="closeWin('winCalculoResult')">▣<br>Sair</button>
         </div>
@@ -543,6 +560,70 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
         <div id="areaPomboAs" style="max-height:380px;overflow:auto;background:#fff;margin-top:8px;padding:14px;">Selecione a modalidade e clique em Gerar Ranking</div>
       </div>
     </div>
+    <div class="child-window" id="winCertificado" style="left:20px;top:15px;width:840px;height:660px;">
+      <div class="win-title"><div class="win-title-left"><span class="small-icon"></span> 🏆 Certificado / Diploma</div><button class="win-close" onclick="closeWin('winCertificado')">X</button></div>
+      <div class="win-body">
+        <div class="row"><span class="lbl-left">Concurso :</span><input class="inp sm blue" id="certAno" value="0" readonly>/<input class="inp xs blue" id="certNum" value="0" readonly><button class="small-btn" onclick="abrirModalConcurso('cert')">🔍</button><input class="inp lg italic-blue" id="certNome" readonly></div>
+        <div class="row"><span class="lbl">Classificado :</span><select class="inp lg" id="certSelecionado"><option value="">Selecione o concurso primeiro</option></select></div>
+        <div class="btn-bar">
+          <button class="classic-btn" onclick="gerarCertificado()">🏆<br>Gerar</button>
+          <button class="classic-btn" onclick="imprimirCertificado()">🖨<br>Imprimir/PDF</button>
+          <button class="classic-btn" onclick="closeWin('winCertificado')">▣<br>Sair</button>
+        </div>
+        <div id="certificadoPreview" style="max-height:460px;overflow:auto;background:#e9e9e9;margin-top:8px;padding:20px;"></div>
+      </div>
+    </div>
+
+    <div class="child-window" id="winSaude" style="left:20px;top:15px;width:800px;height:640px;">
+      <div class="win-title"><div class="win-title-left"><span class="small-icon"></span> 🩺 Checar Saúde dos Dados</div><button class="win-close" onclick="closeWin('winSaude')">X</button></div>
+      <div class="win-body">
+        <div class="row" style="color:#006666;font-weight:bold;padding:6px;background:#e0f7fa;border:1px solid #99d8d8;">
+          🩺 Faz uma varredura em tudo (pombos, concorrentes, concursos, lançamentos) e aponta o que pode estar causando problema silencioso — antes de aparecer só na hora de calcular uma prova.
+        </div>
+        <div class="btn-bar">
+          <button class="classic-btn" onclick="checarSaudeDados()">🩺<br>Checar Agora</button>
+          <button class="classic-btn" onclick="window.print()">🖨<br>Imprimir</button>
+          <button class="classic-btn" onclick="closeWin('winSaude')">▣<br>Sair</button>
+        </div>
+        <div id="areaSaude" style="max-height:460px;overflow:auto;background:#fff;margin-top:8px;padding:14px;border:1px solid #ccc;">Clique em Checar Agora.</div>
+      </div>
+    </div>
+
+    <div class="child-window" id="winAneis" style="left:20px;top:15px;width:780px;height:640px;">
+      <div class="win-title"><div class="win-title-left"><span class="small-icon"></span> 🏅 Anéis de Ouro, Prata e Bronze</div><button class="win-close" onclick="closeWin('winAneis')">X</button></div>
+      <div class="win-body">
+        <div class="row" style="color:#804000;font-weight:bold;padding:6px;background:#fffacd;border:1px solid #d4b800;">
+          🥇 Ouro = pombo que mais pontuou · 🥈 Prata = 2º · 🥉 Bronze = 3º — considerando as provas oficiais confirmadas de cada modalidade, e também o Geral (todas juntas).
+        </div>
+        <div class="btn-bar">
+          <button class="classic-btn" onclick="gerarAneisOuroPrataBronze()">🏅<br>Gerar</button>
+          <button class="classic-btn" onclick="window.print()">🖨<br>Imprimir</button>
+          <button class="classic-btn" onclick="closeWin('winAneis')">▣<br>Sair</button>
+        </div>
+        <div id="areaAneis" style="max-height:440px;overflow:auto;background:#fff;margin-top:8px;padding:14px;border:1px solid #ccc;">Clique em Gerar para ver os anéis da temporada.</div>
+      </div>
+    </div>
+
+    <div class="child-window" id="winEvolucao" style="left:25px;top:15px;width:760px;height:560px;">
+      <div class="win-title"><div class="win-title-left"><span class="small-icon"></span> 📈 Evolução do Concorrente</div><button class="win-close" onclick="closeWin('winEvolucao')">X</button></div>
+      <div class="win-body">
+        <div class="row"><span class="lbl">Concorrente :</span><input class="inp sm" id="evolConcNumero"><button class="small-btn" onclick="abrirModalConcorrente(conc=>{document.getElementById('evolConcNumero').value=conc.numero;document.getElementById('evolConcNome').value=conc.nome})">🔍</button><input class="inp lg italic-blue" id="evolConcNome" readonly></div>
+        <div class="row"><span class="lbl">Modalidade :</span>
+          <label><input type="radio" name="evolTipo" value="Velocidade Adulto" checked> Velocidade</label>
+          <label><input type="radio" name="evolTipo" value="Meio-fundo"> Meio-fundo</label>
+          <label><input type="radio" name="evolTipo" value="Fundo"> Fundo</label>
+          <label><input type="radio" name="evolTipo" value="Filhotes"> Filhotes</label>
+          <label><input type="radio" name="evolTipo" value="Geral"> Geral</label>
+        </div>
+        <div class="btn-bar">
+          <button class="classic-btn" onclick="gerarEvolucaoConcorrente()">📈<br>Gerar Gráfico</button>
+          <button class="classic-btn" onclick="window.print()">🖨<br>Imprimir</button>
+          <button class="classic-btn" onclick="closeWin('winEvolucao')">▣<br>Sair</button>
+        </div>
+        <div id="evolConcResultado" style="max-height:340px;overflow:auto;background:#fff;margin-top:8px;padding:14px;border:1px solid #ccc;">Selecione um concorrente e clique em Gerar Gráfico.</div>
+      </div>
+    </div>
+
     <div class="child-window" id="winPalmares" style="left:30px;top:20px;width:820px;height:600px;">
       <div class="win-title"><div class="win-title-left"><span class="small-icon"></span> 📋 Palmarés do Pombo</div><button class="win-close" onclick="closeWin('winPalmares')">X</button></div>
       <div class="win-body">
@@ -611,6 +692,7 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
           <div class="share-tab active" onclick="shrTab('wpp')" id="shrTabWpp">📱 WhatsApp</div>
           <div class="share-tab" onclick="shrTab('site')" id="shrTabSite">🌐 Site do Clube</div>
           <div class="share-tab" onclick="shrTab('txt')" id="shrTabTxt">📄 Texto Simples</div>
+          <div class="share-tab" onclick="shrTab('top')" id="shrTabTop">🏅 Top Temporada</div>
         </div>
         <div id="shrPageWpp" class="shr-page">
           <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
@@ -639,6 +721,40 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
           </div>
           <textarea id="txtPreview" style="width:100%;height:400px;font-family:Consolas,monospace;font-size:11px;">Clique em Gerar Texto</textarea>
         </div>
+        <div id="shrPageTop" class="shr-page" style="display:none;">
+          <div style="font-weight:bold;color:#804000;padding:6px;background:#fffacd;border:1px solid #d4b800;margin-bottom:8px;font-size:11px;">
+            🏅 Ranking da temporada (não é de uma prova só) — considerando todas as provas oficiais confirmadas da modalidade escolhida.
+          </div>
+          <div class="row"><span class="lbl">Modalidade :</span>
+            <label><input type="radio" name="topTipo" value="Velocidade Adulto" checked> Velocidade</label>
+            <label><input type="radio" name="topTipo" value="Meio-fundo"> Meio-fundo</label>
+            <label><input type="radio" name="topTipo" value="Fundo"> Fundo</label>
+            <label><input type="radio" name="topTipo" value="Filhotes"> Filhotes</label>
+            <label><input type="radio" name="topTipo" value="Geral"> Geral</label>
+          </div>
+          <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
+            <button class="small-btn" onclick="gerarTopPombos()">🕊️ Top 20 Pombos</button>
+            <button class="small-btn" onclick="gerarTopConcorrentes()">👤 Classificação de Concorrentes</button>
+          </div>
+          <div class="share-tabs">
+            <div class="share-tab active" onclick="topFormatoTab('wpp')" id="topFormatoWpp">📱 WhatsApp</div>
+            <div class="share-tab" onclick="topFormatoTab('site')" id="topFormatoSite">🌐 Site do Clube</div>
+          </div>
+          <div id="topFormatoPageWpp">
+            <div style="display:flex;gap:6px;margin:8px 0;">
+              <button class="small-btn" style="background:#25d366;color:#fff;font-weight:bold;margin-left:auto;" onclick="copiarWppTop()">📋 Copiar</button>
+              <button class="small-btn" style="background:#25d366;color:#fff;font-weight:bold;" onclick="abrirWhatsAppTop()">📱 WhatsApp</button>
+            </div>
+            <div class="wpp-preview"><div class="wpp-msg" id="wppPreviewTop">Selecione a modalidade e clique em Top 20 Pombos ou Classificação de Concorrentes.</div></div>
+          </div>
+          <div id="topFormatoPageSite" style="display:none;">
+            <div style="display:flex;gap:6px;margin:8px 0;">
+              <button class="small-btn" style="background:#0084ff;color:#fff;font-weight:bold;margin-left:auto;" onclick="copiarSiteTop()">📋 Copiar HTML</button>
+              <button class="small-btn" onclick="baixarSiteTop()">💾 Baixar</button>
+            </div>
+            <div style="max-height:380px;overflow:auto;background:#fff;border:1px solid #808080;padding:10px;"><div id="sitePreviewTop">Selecione a modalidade e clique em Top 20 Pombos ou Classificação de Concorrentes.</div></div>
+          </div>
+        </div>
         <div class="btn-bar"><button class="classic-btn" onclick="closeWin('winCompartilhar')">▣<br>Sair</button></div>
       </div>
     </div>
@@ -653,6 +769,7 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
           <div class="inner-tab active" onclick="showInnerTab(this,'pmrLiberar')">1. Liberar & Link WhatsApp</div>
           <div class="inner-tab" onclick="showInnerTab(this,'pmrImportar')">2. 📥 Importar Arquivo .PMR</div>
           <div class="inner-tab" onclick="showInnerTab(this,'pmrAuditoria')">3. 🛡️ Auditoria & Homologação</div>
+          <div class="inner-tab" onclick="showInnerTab(this,'pmrPendencias')">4. 📋 Quem já enviou</div>
         </div>
 
         <div class="inner-page active" id="pmrLiberar">
@@ -735,6 +852,8 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
 
         <div class="inner-page" id="pmrAuditoria">
           <div style="font-weight:bold;color:#804000;margin-bottom:6px;">🛡️ Comparação de Segurança: Horário Remoto (PMR) vs Leitura do Relógio Físico</div>
+          <div id="pmrAuditContador" style="font-size:11px;color:#006666;font-weight:bold;margin-bottom:6px;"></div>
+          <div class="small" style="color:#666;margin-bottom:4px;">💡 Clique duas vezes numa linha da tabela abaixo para selecionar o pombo automaticamente (sem precisar digitar a anilha).</div>
           <div class="row" style="background:#eaf6f6;border:1px dashed #008080;padding:6px;margin-bottom:6px;">
             <span class="lbl-left" style="min-width:170px;">Anilha (relógio físico) :</span>
             <input class="inp md" id="pmrAuditAnilha" placeholder="0000000/00" maxlength="10">
@@ -756,6 +875,21 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
           </div>
           <div class="btn-bar">
             <button class="classic-btn" style="background:#28a745;color:#fff;font-weight:bold;" onclick="homologarTodosExatos()">✔ Homologar Todos Corretos</button>
+          </div>
+        </div>
+
+        <div class="inner-page" id="pmrPendencias">
+          <div style="font-weight:bold;color:#008080;margin-bottom:6px;">📋 Sócios que já receberam link de constatação nesta prova</div>
+          <div class="small" style="color:#666;margin-bottom:6px;">Mostra quem já teve um link gerado (aba 1) e se já mandou o arquivo .PMR de volta (importado com sucesso na aba 2).</div>
+          <div class="btn-bar" style="justify-content:flex-start;margin:0 0 8px;">
+            <button class="small-btn" onclick="atualizarPainelPendenciasPMR()">🔄 Atualizar</button>
+            <button class="small-btn" style="background:#25d366;color:#fff;font-weight:bold;" onclick="cobrarPendentesPMR()">📱 Cobrar Pendentes</button>
+          </div>
+          <div style="max-height:340px;overflow-y:auto;border:1px solid #808080;">
+            <table class="classic-table" id="tabelaPendenciasPMR">
+              <thead><tr><th>Sócio</th><th>Link gerado em</th><th>Status</th></tr></thead>
+              <tbody></tbody>
+            </table>
           </div>
         </div>
 
@@ -785,6 +919,7 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
             <div class="mobile-card">
               <label style="font-weight:bold;color:#333;">Número da Anilha:</label>
               <input type="text" class="mobile-input" id="mobAnilhaInput" placeholder="Ex: 2335027/23" value="2335027/23">
+              <span id="mobAnilhaAviso" style="display:none;color:#a67c00;font-size:11px;font-weight:bold;">⚠️ confira o número da anilha, parece incompleto</span>
               
               <label style="font-weight:bold;color:#333;margin-top:8px;display:block;">Hora da Constatação:</label>
               <div style="display:flex;gap:4px;">
@@ -799,12 +934,9 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
             </div>
 
             <div class="mobile-card" style="flex:1;display:flex;flex-direction:column;">
-              <b style="color:#008080;">Pombos Registrados (<span id="mobCountAnilhas">1</span>):</b>
+              <b style="color:#008080;">Pombos Registrados (<span id="mobCountAnilhas">0</span>):</b>
               <div style="flex:1;max-height:140px;overflow-y:auto;margin-top:6px;border-top:1px solid #eee;" id="mobListaAnilhas">
-                <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f0f0;font-size:12px;">
-                  <span>🕊️ <b>2335027/23</b></span>
-                  <span style="font-family:Consolas;font-weight:bold;color:#008000;">11:34:58</span>
-                </div>
+                <div style="text-align:center;color:#999;font-size:11px;padding:10px 0;">Nenhum pombo adicionado ainda.</div>
               </div>
 
               <button class="mobile-btn" style="background:#006699;margin-top:10px;" onclick="gerarEBaixarArquivoPMR()">🔒 GERAR E BAIXAR (.PMR)</button>
@@ -936,6 +1068,107 @@ function setStatus(t){document.getElementById("statusBar").textContent="S.G.C-S.
 function calcPts(pos,ini,dec,min){return Math.max(min,Math.round(ini-(pos-1)*dec))}
 function setPtsMod(tipo){const ini=document.getElementById("cursoIni"),dec=document.getElementById("cursoDec");if(tipo==="Filhotes"||tipo==="Velocidade Adulto"){ini.value="1000";dec.value="1"}else{ini.value="1000";dec.value="5"}}
 function padNum(n,w){return String(n||"").padStart(w," ")}
+/* Texto normal do WhatsApp usa fonte proporcional — completar com espaços não
+   alinha nada visualmente. A solução de verdade é usar o recurso de texto
+   monoespaçado do próprio WhatsApp (envolver o bloco em três crases ```),
+   que faz ele renderizar como se fosse uma tabela. Esta função calcula a
+   largura de cada coluna automaticamente e monta esse bloco alinhado. */
+function montarBlocoAlinhadoWpp(linhas){
+  const maxLabel=Math.max(...linhas.map(l=>l.label.length));
+  const corpo=linhas.map(l=>{
+    const espacos=" ".repeat(Math.max(2,maxLabel-l.label.length+2));
+    return l.label+espacos+l.valor;
+  }).join("\n");
+  return "```\n"+corpo+"\n```";
+}
+/* Mostra na pré-visualização exatamente como o WhatsApp vai renderizar o
+   texto (negrito *assim*, itálico _assim_ e bloco monoespaçado ```assim```)
+   em vez de mostrar os símbolos crus — assim dá pra conferir o resultado
+   final antes de copiar/enviar. O texto copiado continua sendo o original
+   (com os símbolos), pois é isso que o WhatsApp precisa receber. */
+function renderizarPreviewWpp(elementId,textoRaw){
+  const el=document.getElementById(elementId);
+  if(!el)return;
+  const linhasTexto=textoRaw.split("\n");
+  let corpoRestante=textoRaw;
+  let headerHtml="";
+  /* PADRONIZADO: as duas primeiras linhas (nome do clube + título) agora
+     usam o mesmo visual verde-água itálico do cabeçalho do "Site do Clube",
+     em vez de aparecer em preto simples — só muda a exibição aqui dentro do
+     sistema; o texto copiado pro WhatsApp continua sendo o texto puro
+     (afinal o WhatsApp não suporta cor customizada). */
+  if(linhasTexto.length>=2&&linhasTexto[0].includes("CLUBE COLUMBÓFILO")){
+    const linha1=linhasTexto[0].replace(/\*/g,"");
+    const linha2=linhasTexto[1].replace(/\*/g,"");
+    headerHtml='<div style="color:#008080;font-style:italic;font-weight:bold;font-size:15px;text-align:center;margin-bottom:2px;">'+esc(linha1)+'</div>'+
+               '<div style="color:#008080;font-style:italic;font-weight:bold;font-size:12px;text-align:center;margin-bottom:8px;">'+esc(linha2)+'</div>';
+    corpoRestante=linhasTexto.slice(2).join("\n").replace(/^\n+/,"");
+  }
+  const partes=corpoRestante.split("```");
+  let html=headerHtml;
+  partes.forEach((parte,i)=>{
+    if(i%2===1){
+      /* BUG CORRIGIDO DE VERDADE: depender de espaços + fonte monoespaçada
+         pra alinhar é frágil (varia conforme o navegador/fonte, e piora
+         quando a posição passa de "9º" pra "10º", 2 dígitos). Agora a
+         pré-visualização usa uma TABELA HTML de verdade — alinhamento
+         garantido, não depende de espaço nem de fonte. O texto copiado pro
+         WhatsApp continua sendo o bloco com espaços + crases (é o único
+         jeito do WhatsApp em si mostrar algo parecido com coluna). */
+      const conteudo=parte.replace(/^\n/,"").replace(/\n$/,"");
+      const linhasBloco=conteudo.split("\n").filter(l=>l.length>0);
+      let tabela='<table style="width:100%;border-collapse:collapse;font-size:12px;margin:6px 0;">';
+      linhasBloco.forEach(l=>{
+        const m=l.match(/^(.*\S)\s{2,}(\S.*)$/);
+        const label=m?m[1]:l;
+        const valor=m?m[2]:"";
+        tabela+='<tr><td style="padding:3px 8px 3px 0;border-bottom:1px solid #eee;">'+esc(label)+'</td><td style="padding:3px 0;border-bottom:1px solid #eee;text-align:right;white-space:nowrap;font-weight:bold;color:#0078d7;">'+esc(valor)+'</td></tr>';
+      });
+      tabela+='</table>';
+      html+=tabela;
+    }else{
+      let seg=esc(parte);
+      seg=seg.replace(/\*(.+?)\*/g,"<b>$1</b>");
+      seg=seg.replace(/_(.+?)_/g,"<i>$1</i>");
+      seg=seg.replace(/\n/g,"<br>");
+      html+=seg;
+    }
+  });
+  el.innerHTML=html;
+}
+/* Gráfico de linha em SVG puro, sem depender de nenhuma biblioteca externa
+   (o sistema precisa continuar funcionando offline/sem internet). */
+function desenharGraficoSVG(dados,opts={}){
+  const largura=opts.largura||680,altura=opts.altura||220;
+  const padding={top:20,right:20,bottom:46,left:50};
+  const w=largura-padding.left-padding.right;
+  const h=altura-padding.top-padding.bottom;
+  const valores=dados.map(d=>d.valor);
+  const max=Math.max(1,...valores);
+  const n=dados.length;
+  const stepX=n>1?w/(n-1):0;
+  const pontos=dados.map((d,i)=>({
+    x:padding.left+(n>1?i*stepX:w/2),
+    y:padding.top+h-(d.valor/max)*h,
+    label:d.label,valor:d.valor
+  }));
+  const path=pontos.map((p,i)=>(i===0?"M":"L")+p.x.toFixed(1)+","+p.y.toFixed(1)).join(" ");
+  let svg=`<svg viewBox="0 0 ${largura} ${altura}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;background:#fff;">`;
+  for(let i=0;i<=4;i++){
+    const y=padding.top+h-(h*i/4);
+    const val=Math.round(max*i/4);
+    svg+=`<line x1="${padding.left}" y1="${y.toFixed(1)}" x2="${largura-padding.right}" y2="${y.toFixed(1)}" stroke="#eee" stroke-width="1"/>`;
+    svg+=`<text x="${padding.left-6}" y="${(y+4).toFixed(1)}" font-size="10" text-anchor="end" fill="#666">${val}</text>`;
+  }
+  svg+=`<path d="${esc(path)}" fill="none" stroke="#0078d7" stroke-width="2.5"/>`;
+  pontos.forEach(p=>{
+    svg+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4" fill="#0078d7"/>`;
+    svg+=`<text x="${p.x.toFixed(1)}" y="${(p.y-8).toFixed(1)}" font-size="10" text-anchor="middle" fill="#333">${p.valor}</text>`;
+    svg+=`<text x="${p.x.toFixed(1)}" y="${(altura-padding.bottom+16).toFixed(1)}" font-size="9" text-anchor="middle" fill="#555" transform="rotate(-30 ${p.x.toFixed(1)} ${(altura-padding.bottom+16).toFixed(1)})">${esc(p.label)}</text>`;
+  });
+  svg+=`</svg>`;
+  return svg;
+}
 function tipoAbrev(tipo){const m={"Velocidade Adulto":"V","Meio-fundo":"M","Fundo":"F","Filhotes":"J"};return m[tipo]||"G"}
 /* Normaliza o "número" do concurso (ex: "03" -> "3") pra que um concurso
    criado manualmente e um importado do GPC com o mesmo número sejam sempre
@@ -958,10 +1191,10 @@ function lancamentoValidoParaCalculo(l){
 
 const menuData={
   cadastros:[{t:"Pombos",win:"winPombos"},{t:"Concorrentes",win:"winConcorrentes"},{t:"Concurso",win:"winConcursos"},"sep",{t:"Parametrização",win:"winParam"}],
-  prova:[{t:"Lançamento da Prova",win:"winLancamento"},{t:"Cálculo de Prova",win:"winCalculo"},"sep",{t:"Pombos na Prova (Relatório)",win:"winReportPombos"}],
-  totais:[{t:"Colectividades",action:()=>alert("Em breve")},{t:"Concorrentes",win:"winClassConc"},{t:"Pombos",win:"winClassPombos"},"sep",{t:"🏆 Pombo Ás",win:"winPomboAs"},{t:"📋 Palmarés do Pombo",win:"winPalmares"}],
+  prova:[{t:"Lançamento da Prova",win:"winLancamento"},{t:"Cálculo de Prova",win:"winCalculo"},"sep",{t:"Pombos na Prova (Relatório)",win:"winReportPombos"},{t:"🏆 Certificado / Diploma",win:"winCertificado"}],
+  totais:[{t:"Colectividades",action:()=>alert("Em breve")},{t:"Concorrentes",win:"winClassConc"},{t:"Pombos",win:"winClassPombos"},"sep",{t:"🏆 Pombo Ás",win:"winPomboAs"},{t:"🏅 Anéis de Ouro, Prata e Bronze",win:"winAneis"},{t:"📋 Palmarés do Pombo",win:"winPalmares"},{t:"📈 Evolução do Concorrente",win:"winEvolucao"}],
   gpc:[{t:"📥 Importar Concorrentes (GPC)",win:"winImportar",tab:"conc"},{t:"📥 Importar Pombos (GPC)",win:"winImportar",tab:"pomb"},{t:"📥 Importar Movimentos (ZDWMOV_T.TXT)",win:"winImportar",tab:"mov"},"sep",{t:"📤 Exportar Movimentos pro GPC",win:"winExportar"}],
-  backup:[{t:"💾 Exportar tudo (backup)",action:fazerBackupAgora},{t:"📂 Importar backup",action:importarBackup},"sep",{t:"📊 Exportar Concorrentes (CSV)",action:()=>exportCSV("concorrentes")},{t:"📊 Exportar Pombos (CSV)",action:()=>exportCSV("pombos")},"sep",{t:"⚠️ APAGAR TUDO",action:limparTudo}],
+  backup:[{t:"💾 Exportar tudo (backup)",action:fazerBackupAgora},{t:"📂 Importar backup",action:importarBackup},"sep",{t:"📊 Exportar Concorrentes (CSV)",action:()=>exportCSV("concorrentes")},{t:"📊 Exportar Pombos (CSV)",action:()=>exportCSV("pombos")},"sep",{t:"🩺 Checar Saúde dos Dados",win:"winSaude"},"sep",{t:"⚠️ APAGAR TUDO",action:limparTudo}],
   sistema:[{t:"Sobre",action:()=>alert('S.G.C-S.P v2.1\nCLUBE COLUMBÓFILO LIMEIRENSE\n⏱️ PigeonMaster Remote Clock .PMR\n📥 Importa GPC\n🏆 Pombo Ás\n📋 Palmarés\n📏 Distância nos relatórios')},"sep",{t:"Sair",action:()=>{if(confirm('Sair?'))window.close()}}]
 };
 
@@ -1022,6 +1255,9 @@ function openWin(id){
   if(id==="winClassPombos"){document.getElementById("areaClassPombos").innerHTML=""}
   if(id==="winPomboAs")document.getElementById("areaPomboAs").innerHTML="Selecione a modalidade e clique em Gerar Ranking";
   if(id==="winPalmares"){document.getElementById("palmAnilha").value="";document.getElementById("areaPalmares").innerHTML="Digite a anilha e clique em Buscar"}
+  if(id==="winEvolucao"){document.getElementById("evolConcNumero").value="";document.getElementById("evolConcNome").value="";document.getElementById("evolConcResultado").innerHTML="Selecione um concorrente e clique em Gerar Gráfico."}
+  if(id==="winAneis")document.getElementById("areaAneis").innerHTML="Clique em Gerar para ver os anéis da temporada.";
+  if(id==="winSaude")document.getElementById("areaSaude").innerHTML="Clique em Checar Agora.";
   if(id==="winImportar"){["Conc","Pomb","Mov"].forEach(t=>{document.getElementById("impLog"+t).innerHTML="Selecione o arquivo e clique em Importar..."})}
   if(id==="winExportar"){document.getElementById("expAno").value="0";document.getElementById("expNum").value="0";document.getElementById("expNome").value="";document.getElementById("expLog").innerHTML="Aguardando..."}
   if(id==="winParam"){
@@ -1031,12 +1267,20 @@ function openWin(id){
     document.getElementById("paramE").value=param.e;
   }
   if(id==="winCompartilhar")resetarCompartilhar();
+  if(id==="winCertificado"){
+    document.getElementById("certAno").value="0";
+    document.getElementById("certNum").value="0";
+    document.getElementById("certNome").value="";
+    document.getElementById("certSelecionado").innerHTML='<option value="">Selecione o concurso primeiro</option>';
+    document.getElementById("certificadoPreview").innerHTML="";
+  }
   if(id==="winAjuda"){document.getElementById("ajudaBusca").value="";renderAjuda("");iniciarChatAssistente()}
   if(id==="winRemoteClock"){
     document.getElementById("pmrAno").value=document.getElementById("lancAno").value||"2026";
     document.getElementById("pmrNum").value=document.getElementById("lancNum").value||"1";
     document.getElementById("pmrNomeConcurso").value=document.getElementById("lancNomeConcurso").value||"Prova Vel. Adultos Igarapava S.P";
     atualizarTabelaAuditoriaPMR();
+    atualizarPainelPendenciasPMR();
   }
   setStatus("Janela: "+id.replace("win",""));
 }
@@ -1050,6 +1294,7 @@ function showInnerTab(tab,pageId){
   if(pageId==="pombosConsultar")atualizarTabelaPombos();
   if(pageId==="concorrentesConsultar")atualizarTabelaConcorrentes();
   if(pageId==="cursoConsultar")atualizarTabelaCursos();
+  if(pageId==="pmrPendencias")atualizarPainelPendenciasPMR();
 }
 
 function saveLS(k,v){localStorage.setItem(k,JSON.stringify(v))}
@@ -1262,6 +1507,61 @@ function limparTudo(){
   alert("Apagado.");
   location.reload();
 }
+/* =================== CHECAR SAÚDE DOS DADOS =================== */
+function checarSaudeDados(){
+  const problemas={
+    "Concorrentes sem coordenadas":[],
+    "Anilhas duplicadas":[],
+    "Pombos com concorrente inexistente":[],
+    "Lançamentos com concorrente inexistente":[],
+    "Concursos sem nenhum lançamento":[],
+    "Concorrentes duplicados (mesmo número)":[]
+  };
+  concorrentesSalvos.forEach(c=>{
+    const temCoord=!!(brN(c.latGrau)||brN(c.latMin)||brN(c.latSeg)||brN(c.lonGrau)||brN(c.lonMin)||brN(c.lonSeg));
+    if(!temCoord)problemas["Concorrentes sem coordenadas"].push(c.numero+" - "+c.nome);
+  });
+  const vistoAnilha={};
+  pombosSalvos.forEach(p=>{
+    if(vistoAnilha[p.anilha])problemas["Anilhas duplicadas"].push(p.anilha);
+    vistoAnilha[p.anilha]=true;
+    if(!concorrentesSalvos.some(c=>c.numero===p.numero))problemas["Pombos com concorrente inexistente"].push(p.anilha+" → concorrente "+p.numero);
+  });
+  const vistoConc={};
+  concorrentesSalvos.forEach(c=>{
+    if(vistoConc[c.numero])problemas["Concorrentes duplicados (mesmo número)"].push(c.numero+" - "+c.nome);
+    vistoConc[c.numero]=true;
+  });
+  Object.keys(todosLancamentos).forEach(chave=>{
+    (todosLancamentos[chave]||[]).forEach(l=>{
+      if(!concorrentesSalvos.some(c=>c.numero===l.concNum))problemas["Lançamentos com concorrente inexistente"].push("Prova "+chave+": pombo "+l.anilha+" → concorrente "+l.concNum);
+    });
+  });
+  cursosSalvos.forEach(c=>{
+    const chave=c.ano+"/"+c.num;
+    if(!(todosLancamentos[chave]||[]).length)problemas["Concursos sem nenhum lançamento"].push(chave+" - "+c.nome);
+  });
+
+  let html='<div class="gpc-header gpc-h1">CLUBE COLUMBÓFILO LIMEIRENSE</div><div class="gpc-header gpc-h2">🩺 Relatório de Saúde dos Dados</div>';
+  const totalProblemas=Object.values(problemas).reduce((s,arr)=>s+arr.length,0);
+  if(totalProblemas===0){
+    html+='<div style="background:#d4edda;color:#155724;padding:14px;border-radius:4px;font-weight:bold;text-align:center;margin-top:10px;">✅ Nenhum problema encontrado! Seus dados estão consistentes.</div>';
+  }else{
+    html+='<div style="background:#fff3cd;color:#856404;padding:10px;border-radius:4px;font-weight:bold;margin:10px 0;">⚠️ '+totalProblemas+' possível(is) inconsistência(s) encontrada(s):</div>';
+    Object.keys(problemas).forEach(titulo=>{
+      const lista=problemas[titulo];
+      if(!lista.length)return;
+      html+='<div style="margin-top:14px;font-weight:bold;color:#a00000;">⚠️ '+esc(titulo)+' ('+lista.length+')</div>';
+      html+='<ul style="margin:4px 0 0;padding-left:22px;font-size:12px;">';
+      lista.slice(0,30).forEach(item=>{html+='<li>'+esc(item)+'</li>'});
+      if(lista.length>30)html+='<li>... e mais '+(lista.length-30)+' item(ns).</li>';
+      html+='</ul>';
+    });
+  }
+  document.getElementById("areaSaude").innerHTML=html;
+  setStatus("Checagem de saúde: "+totalProblemas+" possível(is) problema(s).");
+}
+
 /* =================== AJUDA / FAQ =================== */
 const FAQ_ITEMS=[
 {cat:"Geral",q:"O que é o S.G.C-S.P?",a:"É o sistema de gestão de concursos do Clube Columbófilo Limeirense: cadastro de pombos e concorrentes, lançamento e cálculo de provas, rankings, relatórios e o PM Remote Clock (constatação remota via celular)."},
@@ -1517,7 +1817,18 @@ function enviarPerguntaAssistente(){
 function atualizarTabelaPombos(){
   const tb=document.querySelector("#tabelaPombos tbody");if(!tb)return;tb.innerHTML="";
   if(!pombosSalvos.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center">Nenhum pombo</td></tr>';return}
+  const filtroEl=document.getElementById("filtroPombos");
+  const termo=filtroEl?filtroEl.value.trim().toLowerCase():"";
+  const indicesFiltrados=[];
   pombosSalvos.forEach((p,i)=>{
+    if(!termo){indicesFiltrados.push(i);return}
+    const c=concorrentesSalvos.find(x=>x.numero===p.numero);
+    const alvo=(p.anilha+" "+p.numero+" "+(c?c.nome:"")).toLowerCase();
+    if(alvo.includes(termo))indicesFiltrados.push(i);
+  });
+  if(!indicesFiltrados.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:#999">Nenhum pombo encontrado para "'+esc(termo)+'"</td></tr>';return}
+  indicesFiltrados.forEach(i=>{
+    const p=pombosSalvos[i];
     const tr=document.createElement("tr");
     tr.innerHTML="<td>"+esc(p.anilha)+"</td><td>"+esc(p.assoc)+"</td><td>"+esc(p.colec)+"</td><td>"+esc(p.numero)+"</td><td>"+esc(p.sexo)+'</td><td><button class="btn-editar" data-i="'+i+'">Editar</button> <button class="btn-excluir" data-i="'+i+'">Excluir</button></td>';
     tb.appendChild(tr);
@@ -1614,7 +1925,15 @@ function preencherNomeConcPombo(){
 function atualizarTabelaConcorrentes(){
   const tb=document.querySelector("#tabelaConcorrentes tbody");if(!tb)return;tb.innerHTML="";
   if(!concorrentesSalvos.length){tb.innerHTML='<tr><td colspan="5" style="text-align:center">Nenhum</td></tr>';return}
+  const filtroEl=document.getElementById("filtroConcorrentesConsulta");
+  const termo=filtroEl?filtroEl.value.trim().toLowerCase():"";
+  const indicesFiltrados=[];
   concorrentesSalvos.forEach((c,i)=>{
+    if(!termo||(c.numero+" "+c.nome).toLowerCase().includes(termo))indicesFiltrados.push(i);
+  });
+  if(!indicesFiltrados.length){tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:#999">Nenhum concorrente encontrado para "'+esc(termo)+'"</td></tr>';return}
+  indicesFiltrados.forEach(i=>{
+    const c=concorrentesSalvos[i];
     const tr=document.createElement("tr");
     tr.innerHTML="<td>"+esc(c.assoc)+"</td><td>"+esc(c.colec)+"</td><td>"+esc(c.numero)+"</td><td>"+esc(c.nome)+'</td><td><button class="btn-editar" data-i="'+i+'">Editar</button> <button class="btn-excluir" data-i="'+i+'">Excluir</button></td>';
     tr.ondblclick=()=>editarConc(i);
@@ -1928,6 +2247,18 @@ function atualizarDistanciaLancamento(){
   const curso=getCursoAtual();
   const numConc=document.getElementById("lancNumConc").value.trim();
   const conc=concorrentesSalvos.find(c=>c.numero===numConc);
+  /* BUG CORRIGIDO: quando o operador digitava o número do concorrente direto
+     no campo (em vez de usar a lupa 🔍 para buscar), o nome, associação e
+     coletividade continuavam mostrando os dados do concorrente ANTERIOR —
+     mesmo depois de salvar. Agora, sempre que o número digitado corresponde
+     a um concorrente cadastrado, esses campos são atualizados também. */
+  if(conc){
+    document.getElementById("lancNomeConc").value=conc.nome;
+    document.getElementById("lancAssoc").value=conc.assoc;
+    document.getElementById("lancColec").value=conc.colec;
+  }else{
+    document.getElementById("lancNomeConc").value="";
+  }
   if(!curso||!conc){document.getElementById("lancDistancia").value="0,0";calcularTempoVoo();return}
   const latC=dmsDec(conc.latGrau,conc.latMin,conc.latSeg),lonC=dmsDec(conc.lonGrau,conc.lonMin,conc.lonSeg);
   const latS=dmsDec(curso.latGrau,curso.latMin,curso.latSeg),lonS=dmsDec(curso.lonGrau,curso.lonMin,curso.lonSeg);
@@ -1936,8 +2267,35 @@ function atualizarDistanciaLancamento(){
   atualizarListaLancamentos();
 }
 function parseHora(t){if(!t)return[0,0,0];const p=t.split(":");return[parseInt(p[0])||0,parseInt(p[1])||0,parseInt(p[2])||0]}
+/* NOVO: calcula quantos dias realmente se passaram entre a data de soltura e
+   a data de chegada, em vez de confiar cegamente no campo "Dias +" (que em
+   arquivos importados do GPC às vezes vem sempre "1", mesmo quando a prova
+   atravessou a meia-noite de verdade). Isso evita tempo de voo negativo
+   (zerado) e média errada em provas noturnas/de fundo. */
+function parseDataBR(str){
+  if(!str)return null;
+  const m=String(str).trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if(!m)return null;
+  const d=new Date(+m[3],+m[2]-1,+m[1]);
+  return isNaN(d.getTime())?null:d;
+}
+function diasEntreDatas(dataIniStr,dataFimStr){
+  const di=parseDataBR(dataIniStr),df=parseDataBR(dataFimStr);
+  if(!di||!df)return null;
+  const diffDias=Math.round((df-di)/(1000*60*60*24));
+  return diffDias>=0?diffDias+1:null;
+}
 function calcularTempoVoo(){
-  const dias=Math.max(1,parseInt(document.getElementById("lancDias").value)||1);
+  /* Se as datas de início/fim estiverem preenchidas, calcula os dias reais
+     entre elas (evita depender só do campo "Dias +" digitado à mão, que é
+     fácil de esquecer de ajustar em provas que passam da meia-noite). */
+  const dataIniVal=document.getElementById("lancDataIni").value;
+  const dataFimVal=document.getElementById("lancDataFim").value;
+  const diasCalc=diasEntreDatas(dataIniVal,dataFimVal);
+  const dias=diasCalc!=null?diasCalc:Math.max(1,parseInt(document.getElementById("lancDias").value)||1);
+  if(diasCalc!=null&&String(diasCalc)!==document.getElementById("lancDias").value){
+    document.getElementById("lancDias").value=String(diasCalc);
+  }
   const chegada=parseHora(document.getElementById("lancChegada").value||document.getElementById("lancHoraFim").value||"00:00:00");
   const partida=parseHora(document.getElementById("lancPartida").value||document.getElementById("lancHoraIni").value||"00:00:00");
   const morto=parseHora(document.getElementById("lancTMorto").value||"00:00:00");
@@ -1960,7 +2318,17 @@ function guardarLancamento(){
   const numConc=document.getElementById("lancNumConc").value.trim();if(!numConc||numConc==="0")return alert("Selecione um concorrente.");
   const chegada=document.getElementById("lancChegada").value.trim();if(!chegada)return alert("Informe a hora de chegada.");
   if(lancamentos.some((l,i)=>l.anilha===anilha&&i!==editandoLancIndex))return alert("Pombo já lançado.");
-  const qtdSoc=lancamentos.filter((l,i)=>l.concNum===numConc&&i!==editandoLancIndex).length;if(qtdSoc>=param.max)return alert("Sócio já tem "+param.max+" pombos!");
+  const qtdSoc=lancamentos.filter((l,i)=>l.concNum===numConc&&i!==editandoLancIndex).length;
+  if(qtdSoc>=param.max){
+    /* BUG CORRIGIDO: antes isso bloqueava de forma definitiva, inclusive
+       quando o operador estava só CORRIGINDO o concorrente de um pombo já
+       lançado (ex: veio errado da importação). Isso impedia a correção sem
+       nenhuma explicação clara do porquê "não salvava". Agora, em vez de
+       travar, avisa e deixa o operador decidir — o limite continua servindo
+       de alerta contra erro de digitação, mas não impede mais uma correção
+       manual deliberada. */
+    if(!confirm("O concorrente "+numConc+" já tem "+qtdSoc+" pombo(s) nesta prova (limite configurado: "+param.max+").\n\nDeseja salvar mesmo assim?"))return;
+  }
   atualizarDistanciaLancamento();calcularTempoVoo();
   const lanc={anilha,assoc:document.getElementById("lancAssoc").value,colec:document.getElementById("lancColec").value,concNum:numConc,sexo:getRadio("lancSexo","Macho"),dataIni:document.getElementById("lancDataIni").value,horaIni:document.getElementById("lancHoraIni").value,dataFim:document.getElementById("lancDataFim").value,horaFim:document.getElementById("lancHoraFim").value,dias:document.getElementById("lancDias").value,chegada,partida:document.getElementById("lancPartida").value,tMorto:document.getElementById("lancTMorto").value,correcao:document.getElementById("lancCorrecao").value,distancia:document.getElementById("lancDistancia").value,media:document.getElementById("lancMedia").value,tempoVoo:document.getElementById("lancTempoVoo").value};
   if(editandoLancIndex!==null){
@@ -2083,6 +2451,11 @@ function selecionarConcursoModal(){
     document.getElementById("expAno").value=ano;
     document.getElementById("expNum").value=num;
     document.getElementById("expNome").value=nome;
+  }else if(destinoModalConcurso==="cert"){
+    document.getElementById("certAno").value=ano;
+    document.getElementById("certNum").value=num;
+    document.getElementById("certNome").value=nome;
+    popularSelecaoCertificado();
   }else{
     carregarLancamentosProva(ano,num,nome);
   }
@@ -2173,41 +2546,103 @@ async function executarCalculo(){
   const ini=parseInt(cursoSel?.ini)||1000;
   const dec=parseInt(cursoSel?.dec)||1;
   const min=1;
+  const avisosCalculo=[];
+  const concorrentesJaAvisados=new Set();
 
   arr.forEach(l=>{
     const conc=concorrentesSalvos.find(c=>c.numero===l.concNum);
-    if(conc&&cursoSel){
-      const latC=dmsDec(conc.latGrau,conc.latMin,conc.latSeg),lonC=dmsDec(conc.lonGrau,conc.lonMin,conc.lonSeg);
-      const latS=dmsDec(cursoSel.latGrau,cursoSel.latMin,cursoSel.latSeg),lonS=dmsDec(cursoSel.lonGrau,cursoSel.lonMin,cursoSel.lonSeg);
-      l.distancia=fmtBR(distM(latC,lonC,latS,lonS),1);
-      const dias=Math.max(1,parseInt(l.dias)||1);
-      const cheg=parseHora(l.chegada||"00:00:00");
-      const part=parseHora(l.partida||"00:00:00");
-      const mort=parseHora(l.tMorto||"00:00:00");
-      const corr=brN(l.correcao||0);
-      const mCheg=(((dias-1)*24)+cheg[0])*60+cheg[1]+cheg[2]/60;
-      const mPart=part[0]*60+part[1]+part[2]/60;
-      const mMort=mort[0]*60+mort[1]+mort[2]/60;
-      let totMin=mCheg-mPart-mMort+corr;if(totMin<0)totMin=0;
-      const distNum=brN(l.distancia);
-      l.media=fmtBR(totMin>0?distNum/totMin:0,4);
+    if(!conc){
+      /* BUG CORRIGIDO: antes, se o concorrente não existisse no cadastro, a
+         distância ficava silenciosamente em "0" (parecia um erro sem
+         explicação). Agora mostra "?" e avisa depois do cálculo. */
+      l.distancia="?";l.media="?";
+      if(!concorrentesJaAvisados.has(l.concNum)){
+        avisosCalculo.push("Concorrente "+l.concNum+" não está cadastrado — distância não calculada para os pombos dele.");
+        concorrentesJaAvisados.add(l.concNum);
+      }
+      return;
     }
+    if(!cursoSel)return;
+    const temCoordConc=!!(brN(conc.latGrau)||brN(conc.latMin)||brN(conc.latSeg)||brN(conc.lonGrau)||brN(conc.lonMin)||brN(conc.lonSeg));
+    if(!temCoordConc){
+      l.distancia="?";l.media="?";
+      if(!concorrentesJaAvisados.has(l.concNum)){
+        avisosCalculo.push("Concorrente "+l.concNum+" ("+(conc.nome||"")+") está sem coordenadas cadastradas — complete o cadastro dele.");
+        concorrentesJaAvisados.add(l.concNum);
+      }
+      return;
+    }
+    const latC=dmsDec(conc.latGrau,conc.latMin,conc.latSeg),lonC=dmsDec(conc.lonGrau,conc.lonMin,conc.lonSeg);
+    const latS=dmsDec(cursoSel.latGrau,cursoSel.latMin,cursoSel.latSeg),lonS=dmsDec(cursoSel.lonGrau,cursoSel.lonMin,cursoSel.lonSeg);
+    const distanciaCalc=distM(latC,lonC,latS,lonS);
+    l.distancia=fmtBR(distanciaCalc,1);
+    if(distanciaCalc>500000&&!concorrentesJaAvisados.has(l.concNum)){
+      avisosCalculo.push("Distância do concorrente "+l.concNum+" saiu "+fmtBR(distanciaCalc,0)+" m (muito grande) — confira as coordenadas dele e do concurso, pode ter erro de digitação.");
+      concorrentesJaAvisados.add(l.concNum);
+    }
+    /* BUG CORRIGIDO: o campo "Dias +" de arquivos importados às vezes vem
+       sempre "1", mesmo quando a prova atravessou a meia-noite de verdade
+       (soltura à noite, chegada de madrugada no dia seguinte). Isso fazia o
+       tempo de voo dar negativo e ser zerado, e a média sair errada. Agora,
+       se der pra calcular os dias reais pela data de soltura x data de
+       chegada, usamos esse valor em vez do campo "dias" do arquivo. */
+    const diasCalc=diasEntreDatas(l.dataIni,l.dataFim);
+    const dias=diasCalc!=null?diasCalc:Math.max(1,parseInt(l.dias)||1);
+    const cheg=parseHora(l.chegada||"00:00:00");
+    const part=parseHora(l.partida||"00:00:00");
+    const mort=parseHora(l.tMorto||"00:00:00");
+    const corr=brN(l.correcao||0);
+    const mCheg=(((dias-1)*24)+cheg[0])*60+cheg[1]+cheg[2]/60;
+    const mPart=part[0]*60+part[1]+part[2]/60;
+    const mMort=mort[0]*60+mort[1]+mort[2]/60;
+    let totMin=mCheg-mPart-mMort+corr;
+    if(totMin<0){
+      if(!concorrentesJaAvisados.has(l.concNum+"_tempo")){
+        avisosCalculo.push("Pombo "+l.anilha+" (concorrente "+l.concNum+") deu tempo de voo negativo — confira o campo 'Dias +' e as horas de soltura/chegada deste lançamento.");
+        concorrentesJaAvisados.add(l.concNum+"_tempo");
+      }
+      totMin=0;
+    }
+    const distNum=brN(l.distancia);
+    l.media=fmtBR(totMin>0?distNum/totMin:0,4);
+    l._totMinPreciso=totMin;
   });
+
+  /* CRITÉRIO DE DESEMPATE (padrão usado na columbofilia): quando a média
+     empata (mesmo depois de arredondar), desempata por quem percorreu MAIOR
+     distância (voando a mesma velocidade média, mais longe = melhor
+     desempenho); se ainda empatar, por quem teve MENOR tempo de voo (usando
+     o valor exato, sem arredondar); e por último, pela anilha, só pra nunca
+     deixar a ordem indefinida. */
+  function comparaComDesempate(a,b){
+    const diffMedia=brN(b.media)-brN(a.media);
+    if(Math.abs(diffMedia)>1e-9)return diffMedia;
+    const diffDist=brN(b.distancia)-brN(a.distancia);
+    if(Math.abs(diffDist)>1e-9)return diffDist;
+    const diffTempo=(a._totMinPreciso||0)-(b._totMinPreciso||0);
+    if(Math.abs(diffTempo)>1e-9)return diffTempo;
+    return String(a.anilha).localeCompare(String(b.anilha));
+  }
 
   const groups={};
   arr.forEach(l=>{(groups[l.concNum]=groups[l.concNum]||[]).push(Object.assign({},l))});
   let filtrado=[];
   Object.keys(groups).forEach(soc=>{
-    const g=groups[soc].sort((a,b)=>brN(b.media)-brN(a.media)).slice(0,param.top);
+    const g=groups[soc].sort(comparaComDesempate).slice(0,param.top);
     g.forEach((r,i)=>{r.marca=i<param.p?"P":"E";r.rankSocio=i+1});
     filtrado=filtrado.concat(g);
   });
-  filtrado.sort((a,b)=>brN(b.media)-brN(a.media));
+  filtrado.sort(comparaComDesempate);
   filtrado.forEach((r,i)=>{
     r.lugar=i+1;
     r.pontosPombo=calcPts(i+1,ini,dec,min);
     r.pontosSoc=r.marca==="P"?r.pontosPombo:0;
     r.pontos=r.pontosPombo;
+    /* Marca visualmente quando a média bateu EXATAMENTE igual ao pombo
+       anterior (empate técnico), pra deixar claro que o desempate entrou
+       em ação, em vez de esconder isso silenciosamente. */
+    const anterior=filtrado[i-1];
+    r.empateTecnico=!!(anterior&&Math.abs(brN(anterior.media)-brN(r.media))<1e-9);
   });
 
   await marcaEtapa(5,400);await marcaEtapa(6,300);await marcaEtapa(7,300);await marcaEtapa(8,300);
@@ -2222,12 +2657,16 @@ async function executarCalculo(){
     const conc=concorrentesSalvos.find(c=>c.numero===l.concNum);
     const nome=conc?conc.nome:"";
     const pendente=!!l.pmrProvisorio&&!l.homologado;
-    const statusHtml=pendente?'<span class="pmr-badge-prov">⏳ Aguardando conferência</span>':(l.pmrProvisorio===false&&l.homologado?'<span class="pmr-badge-ok">✔ Conferido</span>':'');
+    const statusHtml=(pendente?'<span class="pmr-badge-prov">⏳ Aguardando conferência</span>':(l.pmrProvisorio===false&&l.homologado?'<span class="pmr-badge-ok">✔ Conferido</span>':''))+(l.empateTecnico?' <span title="Média empatou com o pombo anterior — desempatado por distância/tempo de voo" style="background:#e0e0ff;color:#333;padding:1px 4px;font-size:9px;border-radius:3px;">🔗 empate</span>':'');
     const tr=document.createElement("tr");
-    tr.innerHTML='<td class="lugar">'+l.lugar+"</td><td>"+esc(l.anilha)+"</td><td>"+esc(l.concNum)+"</td><td>"+esc(nome)+"</td><td>"+esc(l.chegada||"")+"</td><td>"+esc(l.distancia||"")+"</td><td>"+esc(l.media||"")+'</td><td class="pontos">'+l.pontos+"</td><td>"+(l.marca==="P"?'<span class="tagP">P</span>':'<span class="tagE">E</span>')+"</td><td>"+statusHtml+"</td></tr>";
+    tr.innerHTML='<td class="lugar">'+l.lugar+"</td><td>"+esc(l.anilha)+"</td><td>"+esc(l.concNum)+"</td><td>"+esc(nome)+"</td><td>"+esc(l.chegada||"")+"</td><td>"+esc(l.distancia||"")+"</td><td>"+esc(l.media||"")+'</td><td class="pontos">'+l.pontos+"</td><td>"+(l.marca==="P"?'<span class="tagP">P</span>':'<span class="tagE">E</span>')+"</td><td>"+statusHtml+"</td>";
     tb.appendChild(tr);
   });
   setStatus("Concluído: "+filtrado.length+" pombos");
+  if(avisosCalculo.length){
+    const unicos=[...new Set(avisosCalculo)];
+    alert("⚠️ O cálculo terminou, mas encontrei possíveis inconsistências:\n\n"+unicos.slice(0,15).join("\n")+(unicos.length>15?"\n... e mais "+(unicos.length-15)+" aviso(s).":""));
+  }
   openWin("winCalculoResult");
   return window._ultimaClassificacao;
 }
@@ -2237,7 +2676,8 @@ function confirmarCalculo(){
   classificacoesSalvas[chave]=lista.map(l=>({
     anilha:l.anilha,concNum:l.concNum,nome:(concorrentesSalvos.find(c=>c.numero===l.concNum)||{}).nome||"",
     pontos:l.pontosPombo,pontosSoc:l.pontosSoc,marca:l.marca,media:l.media,lugar:l.lugar,rankSocio:l.rankSocio,chegada:l.chegada,distancia:l.distancia,
-    pendenteConferencia:!!l.pmrProvisorio&&!l.homologado
+    pendenteConferencia:!!l.pmrProvisorio&&!l.homologado,
+    empateTecnico:!!l.empateTecnico
   }));
   salvarClassificacoes();
   const pendentes=lista.filter(l=>l.pmrProvisorio&&!l.homologado).length;
@@ -2327,8 +2767,8 @@ function gerarClassConc(){
   const cursoUlt=cursosSalvos.find(c=>c.ano===a&&c.num===n);
   const ateProva=cursoUlt?`Até à prova ${a}/${n} - ${cursoUlt.nome}`:"";
   let html=`<div class="gpc-header gpc-h1">CLUBE COLUMBÓFILO LIMEIRENSE</div><div class="gpc-header gpc-h2">${esc(titulo)}</div>`;
-  html+=`<table class="gpc-table"><thead><tr><th style="width:60px">Lugar</th><th>Concorrente</th><th style="text-align:right;width:80px">Pontos</th></tr></thead><tbody>`;
-  arr.forEach((r,i)=>{const cls=realcar>0&&i<realcar?'class="gpc-highlight"':"";html+=`<tr ${cls}><td>${i+1}</td><td>${esc(r.colec)} / ${esc(padNum(r.numero,4))} &nbsp;&nbsp;${esc(r.nome)}</td><td style="text-align:right">${r.pontos}</td></tr>`});
+  html+=`<table class="gpc-table"><thead><tr><th style="width:60px">Lugar</th><th style="width:90px">Nº</th><th>Concorrente</th><th style="text-align:right;width:80px">Pontos</th></tr></thead><tbody>`;
+  arr.forEach((r,i)=>{const cls=realcar>0&&i<realcar?'class="gpc-highlight"':"";html+=`<tr ${cls}><td>${i+1}</td><td>${esc(r.colec)}/${esc(r.numero)}</td><td>${esc(r.nome)}</td><td style="text-align:right">${r.pontos}</td></tr>`});
   html+=`</tbody></table>`;
   if(ateProva)html+=`<div class="gpc-footer">${esc(ateProva)}</div>`;
   document.getElementById("areaClassConc").innerHTML=html;
@@ -2359,8 +2799,13 @@ function gerarClassPombos(){
   let arr=Object.values(map).filter(x=>x.pontos>0).sort((a,b)=>b.pontos-a.pontos).slice(0,melhores);
   const mapaTit={"Velocidade Adulto":"Velocidade","Meio-fundo":"Meio Fundo","Fundo":"Fundo","Filhotes":"Filhotes","Geral":"Geral"};
   let html=`<div class="gpc-header gpc-h1">CLUBE COLUMBÓFILO LIMEIRENSE</div><div class="gpc-header gpc-h2">Classificação de Pombos - ${esc(mapaTit[tipo]||tipo)}</div>`;
-  html+=`<table class="gpc-table"><thead><tr><th style="width:50px">Lugar</th><th style="width:100px">Anilha</th><th style="width:24px">S</th><th>Concorrente</th><th style="text-align:right;width:80px">Pontos</th></tr></thead><tbody>`;
-  arr.forEach((r,i)=>{const cls=realcar>0&&i<realcar?'class="gpc-highlight"':"";html+=`<tr ${cls}><td>${i+1}</td><td>${esc(r.anilha)}</td><td>${esc(r.sexo)}</td><td>${esc(r.colec)} / ${esc(padNum(r.numero,4))} &nbsp;&nbsp;${esc(r.nome)}</td><td style="text-align:right">${r.pontos}</td></tr>`});
+  html+=`<table class="gpc-table"><thead><tr><th style="width:50px">Lugar</th><th style="width:100px">Anilha</th><th style="width:24px">S</th><th style="width:80px">Nº</th><th>Concorrente</th><th style="width:110px">Anel</th><th style="text-align:right;width:80px">Pontos</th></tr></thead><tbody>`;
+  const aneis=[{txt:"🥇 OURO",cor:"#b8860b"},{txt:"🥈 PRATA",cor:"#808080"},{txt:"🥉 BRONZE",cor:"#a0522d"}];
+  arr.forEach((r,i)=>{
+    const cls=realcar>0&&i<realcar?'class="gpc-highlight"':"";
+    const anel=i<3?'<b style="color:'+aneis[i].cor+'">'+aneis[i].txt+'</b>':"";
+    html+=`<tr ${cls}><td>${i+1}</td><td>${esc(r.anilha)}</td><td>${esc(r.sexo)}</td><td>${esc(r.colec)}/${esc(r.numero)}</td><td>${esc(r.nome)}</td><td>${anel}</td><td style="text-align:right">${r.pontos}</td></tr>`;
+  });
   html+=`</tbody></table>`;
   document.getElementById("areaClassPombos").innerHTML=html;
   setStatus("Pombos: "+arr.length);
@@ -2391,17 +2836,97 @@ function gerarPomboAs(){
   if(!aces.length){
     html+='<div style="text-align:center;padding:20px;color:#a00;font-weight:bold;">Nenhum pombo classificou em TODAS as '+totalProvas+' provas.</div>';
   }else{
-    html+=`<table class="gpc-table" style="margin-top:10px;"><thead><tr><th style="width:50px">Lugar</th><th style="width:100px">Anilha</th><th style="width:24px">S</th><th>Concorrente</th><th style="text-align:center;width:70px">Provas</th><th style="text-align:right;width:80px">Pontos</th></tr></thead><tbody>`;
+    html+=`<table class="gpc-table" style="margin-top:10px;"><thead><tr><th style="width:50px">Lugar</th><th style="width:100px">Anilha</th><th style="width:24px">S</th><th style="width:80px">Nº</th><th>Concorrente</th><th style="text-align:center;width:70px">Provas</th><th style="text-align:right;width:80px">Pontos</th></tr></thead><tbody>`;
     aces.forEach((r,i)=>{
       const dest=i<3?'class="gpc-highlight"':"";
       const medalha=i===0?"🥇":i===1?"🥈":i===2?"🥉":"";
-      html+=`<tr ${dest}><td class="lugar">${medalha} ${i+1}</td><td>${esc(r.anilha)}</td><td>${esc(r.sexo)}</td><td>${esc(r.colec)} / ${esc(padNum(r.numero,4))} &nbsp;&nbsp;${esc(r.nome)}</td><td style="text-align:center">${r.provasFeitas}/${totalProvas}</td><td class="pontos" style="text-align:right">${r.pontos}</td></tr>`;
+      html+=`<tr ${dest}><td class="lugar">${medalha} ${i+1}</td><td>${esc(r.anilha)}</td><td>${esc(r.sexo)}</td><td>${esc(r.colec)}/${esc(r.numero)}</td><td>${esc(r.nome)}</td><td style="text-align:center">${r.provasFeitas}/${totalProvas}</td><td class="pontos" style="text-align:right">${r.pontos}</td></tr>`;
     });
     html+=`</tbody></table><div style="margin-top:14px;padding:8px;background:#f0f8ff;border:1px solid #4a90e2;font-size:11px;">✅ `+aces.length+' pombo(s) Ás — classificaram nas <b>'+totalProvas+' provas</b>.</div>';
   }
   html+='</div>';
   document.getElementById("areaPomboAs").innerHTML=html;
   setStatus("Pombo Ás: "+aces.length);
+}
+function melhorConcorrenteDaProva(chave){
+  const arr=classificacoesSalvas[chave]||[];
+  if(!arr.length)return null;
+  const map={};
+  arr.forEach(item=>{
+    const pts=brN(item.pontosSoc!=null?item.pontosSoc:(item.marca==="P"?item.pontos:0));
+    if(!map[item.concNum]){
+      const c=concorrentesSalvos.find(x=>x.numero===item.concNum);
+      map[item.concNum]={numero:item.concNum,nome:item.nome||(c?c.nome:""),pontos:0};
+    }
+    map[item.concNum].pontos+=pts;
+  });
+  const ranking=Object.values(map).sort((a,b)=>b.pontos-a.pontos);
+  return ranking[0]||null;
+}
+function gerarAneisOuroPrataBronze(){
+  const modalidades=["Velocidade Adulto","Meio-fundo","Fundo","Filhotes","Geral"];
+  const aneis=[{txt:"🥇 OURO",cor:"#8a6d1a",bg:"#fff8e1"},{txt:"🥈 PRATA",cor:"#666666",bg:"#f4f4f4"},{txt:"🥉 BRONZE",cor:"#8b4513",bg:"#fdf0e6"}];
+  let html='<div class="gpc-header gpc-h1">CLUBE COLUMBÓFILO LIMEIRENSE</div><div class="gpc-header gpc-h2">🏅 Anéis de Ouro, Prata e Bronze — Temporada</div>';
+  modalidades.forEach(tipo=>{
+    const label=tipoParaLabel(tipo);
+    html+='<div style="margin-top:16px;font-weight:bold;color:#0078d7;border-bottom:1px solid #ccc;padding-bottom:2px;">'+esc(label==="todas as modalidades"?"Geral":label)+'</div>';
+    const chaves=filtrarProvasPorFiltros(tipo,"oficiais");
+    if(!chaves.length){html+='<div style="color:#999;padding:6px 0;font-size:12px;">Nenhuma prova oficial confirmada ainda.</div>';return}
+    /* NOVO: destaque de quem foi o melhor concorrente na ÚLTIMA prova
+       confirmada dessa modalidade (não é o total da temporada, é só a
+       prova mais recente) — pra reconhecer também o desempenho do momento,
+       não só o acumulado. */
+    const chavesOrd=chaves.slice().sort((a,b)=>{const [aa,an]=a.split("/"),[ba,bn]=b.split("/");return (+aa||0)-(+ba||0)||(+an||0)-(+bn||0)});
+    const ultimaChave=chavesOrd[chavesOrd.length-1];
+    const [ua,un]=ultimaChave.split("/");
+    const cursoUlt=cursosSalvos.find(c=>c.ano===ua&&c.num===un);
+    const melhorUltima=melhorConcorrenteDaProva(ultimaChave);
+    if(melhorUltima){
+      html+='<div style="background:#eaf6ff;border:1px solid #99c9ef;padding:6px 8px;margin:4px 0 8px;font-size:12px;">🏆 <b>Melhor da última prova</b> ('+esc(ultimaChave)+(cursoUlt?" — "+esc(cursoUlt.nome):"")+'): <b>'+esc(melhorUltima.numero)+' - '+esc(melhorUltima.nome)+'</b> — '+melhorUltima.pontos+' pts</div>';
+    }
+    const map={};
+    chaves.forEach(chave=>{
+      (classificacoesSalvas[chave]||[]).forEach(item=>{
+        if(!map[item.anilha]){
+          const c=concorrentesSalvos.find(x=>x.numero===item.concNum);
+          map[item.anilha]={anilha:item.anilha,numero:item.concNum,nome:item.nome||(c?c.nome:""),pontos:0};
+        }
+        map[item.anilha].pontos+=brN(item.pontos);
+      });
+    });
+    const top3=Object.values(map).filter(x=>x.pontos>0).sort((a,b)=>b.pontos-a.pontos).slice(0,3);
+    if(!top3.length){html+='<div style="color:#999;padding:6px 0;font-size:12px;">Nenhum pombo pontuou ainda.</div>';return}
+    html+='<table class="gpc-table" style="margin-top:4px;"><tbody>';
+    top3.forEach((p,i)=>{
+      html+='<tr style="background:'+aneis[i].bg+';"><td style="width:100px;font-weight:bold;color:'+aneis[i].cor+';">'+aneis[i].txt+'</td><td style="width:110px;">'+esc(p.anilha)+'</td><td style="width:60px;">'+esc(p.numero)+'</td><td>'+esc(p.nome)+'</td><td style="text-align:right;font-weight:bold;width:90px;">'+p.pontos+' pts</td></tr>';
+    });
+    html+='</tbody></table>';
+  });
+  document.getElementById("areaAneis").innerHTML=html;
+  setStatus("Anéis de Ouro, Prata e Bronze gerados.");
+}
+function gerarEvolucaoConcorrente(){
+  const numero=document.getElementById("evolConcNumero").value.trim();
+  if(!numero)return alert("Selecione um concorrente (🔍).");
+  const conc=concorrentesSalvos.find(c=>c.numero===numero);
+  const tipo=getRadio("evolTipo","Velocidade Adulto");
+  const chaves=filtrarProvasPorFiltros(tipo,"oficiais").sort((a,b)=>{const [aa,an]=a.split("/"),[ba,bn]=b.split("/");return (+aa||0)-(+ba||0)||(+an||0)-(+bn||0)});
+  if(!chaves.length){document.getElementById("evolConcResultado").innerHTML='<div style="text-align:center;color:red;padding:20px;">Nenhuma prova oficial confirmada dessa modalidade.</div>';return}
+  const dados=[];
+  let totalPontos=0,provasParticipadas=0;
+  chaves.forEach(chave=>{
+    const item=(classificacoesSalvas[chave]||[]).find(x=>x.concNum===numero);
+    const pts=item?brN(item.pontosSoc!=null?item.pontosSoc:(item.marca==="P"?item.pontos:0)):0;
+    if(item)provasParticipadas++;
+    totalPontos+=pts;
+    dados.push({label:chave,valor:pts});
+  });
+  const nome=conc?conc.nome:numero;
+  let html='<div style="font-weight:bold;color:#0078d7;font-size:13px;margin-bottom:6px;">📈 '+esc(nome)+' — '+esc(tipoParaLabel(tipo))+'</div>';
+  html+='<div style="padding:6px;background:#fffacd;font-size:12px;font-weight:bold;margin-bottom:8px;">Participou de '+provasParticipadas+' de '+chaves.length+' prova(s) · Total: '+totalPontos+' pts</div>';
+  html+=desenharGraficoSVG(dados);
+  document.getElementById("evolConcResultado").innerHTML=html;
+  setStatus("Evolução gerada: "+nome);
 }
 function gerarPalmares(){
   const anilha=document.getElementById("palmAnilha").value.trim();
@@ -2426,6 +2951,10 @@ function gerarPalmares(){
   let html=`<div class="tabPombo"><div class="as-header" style="background:#4a90e2;color:#fff;">📋 PALMARÉS DO POMBO ${esc(anilha)}</div>`;
   if(p&&conc)html+='<div style="padding:8px;background:#f0f8ff;margin-top:4px;font-size:12px;"><b>Concorrente:</b> '+esc(conc.assoc)+"/"+esc(conc.colec)+"/"+esc(conc.numero)+" - "+esc(conc.nome)+' &nbsp; <b>Sexo:</b> '+esc(p.sexo)+'</div>';
   html+='<div style="padding:8px;background:#fffacd;font-size:12px;font-weight:bold;">📊 '+totalProvas+' provas · '+totalP+' P · '+totalE+' E · <span class="pontos">'+totalPontos+' pts</span></div>';
+  if(historico.length>=2){
+    const dadosGrafico=historico.map(h=>({label:h.chave,valor:brN(h.item.pontos)}));
+    html+='<div style="margin-top:8px;padding:8px;border:1px solid #ddd;"><div style="font-weight:bold;color:#0078d7;font-size:11px;margin-bottom:4px;">📈 Evolução de pontos por prova</div>'+desenharGraficoSVG(dadosGrafico)+'</div>';
+  }
   html+=`<table class="gpc-table" style="margin-top:8px;"><thead><tr><th>Concurso</th><th>Prova</th><th>Tipo</th><th style="text-align:center">Lugar</th><th style="text-align:center">RankSócio</th><th style="text-align:right">Distância</th><th style="text-align:right">Média</th><th style="text-align:center">Marca</th><th style="text-align:right">Pontos</th></tr></thead><tbody>`;
   historico.forEach(h=>{
     const marca=h.item.marca==="P"?'<span class="tagP">P</span>':'<span class="tagE">E</span>';
@@ -2550,18 +3079,45 @@ function importarMovimentos(){
     }else{
       logImp("impLogMov","▶ Concurso já existia, usando o existente: "+curso.nome,"ok");
     }
-    const novosLanc=[];let erros=0;
+    const novosLanc=[];let erros=0,pombosCadastrados=0,concorrentesCadastrados=0;
+    const concorrentesAvisados=new Set();
     linhas.forEach(linha=>{
       try{
         const p=linha.split(",").map(x=>x.trim());if(p.length<20)return;
         const anilha=p[1],concNum=p[3],dias=p[4]||"1",chegada=p[5],horaIni=p[13]||"18:00:00",horaFim=p[14]||"18:00:00",dataIni=p[15]||"",dataFim=p[16]||"",correcao=p[17]||"0",sexo=(p[20]||"M")==="M"?"Macho":(p[20]||"M")==="F"?"Femea":"????";
+        /* BUG CORRIGIDO (pombo não cadastrado): antes, se a anilha não existisse
+           em "Pombos", o lançamento era criado assim mesmo, mas o pombo NUNCA
+           virava um cadastro de verdade. Agora ele é cadastrado automaticamente,
+           igual já acontece na importação pelo PM Remote Clock. */
+        if(!pombosSalvos.some(x=>x.anilha===anilha)){
+          pombosSalvos.push({anilha,assoc:"11",colec:"33",numero:concNum,sexo});
+          pombosCadastrados++;
+        }
+        /* BUG CORRIGIDO (causa real do "erro na distância"): se o concorrente
+           do movimento não estivesse cadastrado, o cálculo pulava ele
+           silenciosamente e a distância ficava "0" sem nenhum aviso. Agora o
+           concorrente é criado automaticamente (com nome/coordenadas em
+           branco) e o log avisa claramente que falta completar o cadastro
+           dele — a distância só vai calcular certo depois disso. */
+        if(!concorrentesSalvos.some(c=>c.numero===concNum)){
+          concorrentesSalvos.push({assoc:"11",colec:"33",numero:concNum,nome:"⚠️ Verificar cadastro (importado sem nome/coordenadas)",morada:"",localidade:"",telefone:"",email:"",latGrau:"",latMin:"",latSeg:"",lonGrau:"",lonMin:"",lonSeg:""});
+          concorrentesCadastrados++;
+          if(!concorrentesAvisados.has(concNum)){
+            logImp("impLogMov","⚠️ Concorrente "+concNum+" não estava cadastrado — criado em branco. Preencha nome e coordenadas em Cadastros > Concorrentes, senão a distância dele não será calculada.","warn");
+            concorrentesAvisados.add(concNum);
+          }
+        }
         novosLanc.push({anilha,assoc:"11",colec:"33",concNum,sexo,dataIni,horaIni,dataFim,horaFim,dias,chegada,partida:curso.horaSolta,tMorto:curso.tm1||"00:00:00",correcao,distancia:"0",media:"0",tempoVoo:""});
         logImp("impLogMov","✓ "+anilha+" ("+concNum+") "+chegada);
       }catch(err){logImp("impLogMov","❌ "+err.message,"err");erros++}
     });
     todosLancamentos[chave]=novosLanc;salvarLancamentos();
+    if(pombosCadastrados>0){salvarPombos();atualizarTabelaPombos()}
+    if(concorrentesCadastrados>0){salvarConcorrentes();atualizarTabelaConcorrentes()}
     logImp("impLogMov","━━━━━━━━━","ok");
     logImp("impLogMov","✅ "+novosLanc.length+" movimentos importados","ok");
+    if(pombosCadastrados>0)logImp("impLogMov","🕊️ "+pombosCadastrados+" pombo(s) cadastrado(s) automaticamente.","ok");
+    if(concorrentesCadastrados>0)logImp("impLogMov","⚠️ "+concorrentesCadastrados+" concorrente(s) criado(s) em branco — precisam de nome e coordenadas para a distância calcular certo.","warn");
     logImp("impLogMov","💡 Agora: Cálculo de Prova → "+chave+" → Confirmar","warn");
     setStatus("Movimentos: "+novosLanc.length);
   };
@@ -2598,6 +3154,9 @@ function resetarCompartilhar(){
   document.getElementById("wppPreview").textContent="Selecione um concurso.";
   document.getElementById("sitePreview").innerHTML="Selecione um concurso.";
   document.getElementById("txtPreview").value="Selecione um concurso.";
+  document.getElementById("wppPreviewTop").textContent="Selecione a modalidade e clique em Top 20 Pombos ou Classificação de Concorrentes.";
+  document.getElementById("sitePreviewTop").innerHTML="Selecione a modalidade e clique em Top 20 Pombos ou Classificação de Concorrentes.";
+  topFormatoTab("wpp");
 }
 function shrTab(t){
   document.querySelectorAll(".shr-page").forEach(p=>p.style.display="none");
@@ -2632,7 +3191,7 @@ function gerarWpp(modo){
   });
   const pendentesQtd=arr.filter(l=>l.pendenteConferencia).length;
   msg+="━━━━━━━━━━━━━━━━━━━━\n📊 Total: "+arr.length+" pombos\n"+(pendentesQtd>0?"⏳ Resultado provisório — "+pendentesQtd+" constatação(ões) ainda aguardam conferência do relógio físico.\n":"")+"_Enviado via S.G.C-S.P_";
-  document.getElementById("wppPreview").textContent=msg;
+  renderizarPreviewWpp("wppPreview",msg);
   window._wppTexto=msg;
   setStatus("WhatsApp gerado");
 }
@@ -2645,12 +3204,12 @@ function gerarSite(){
   html+='<h1 style="color:#008080;text-align:center;font-style:italic;">🕊️ CLUBE COLUMBÓFILO LIMEIRENSE</h1>';
   html+='<h2 style="color:#008080;text-align:center;font-style:italic;">Classificação - '+esc(curso.tipo||"")+' - '+esc(curso.nome)+'</h2>';
   html+='<div style="text-align:center;color:#555;margin-bottom:20px;"><b>Data:</b> '+esc(curso.data||"")+' &nbsp; <b>Hora solta:</b> '+esc(curso.horaSolta||"")+' &nbsp; <b>Total:</b> '+arr.length+' pombos</div>';
-  html+='<table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr style="background:#008080;color:#fff;"><th style="padding:8px;">Lugar</th><th style="padding:8px;">Anilha</th><th style="padding:8px;">Concorrente</th><th style="padding:8px;">Chegada</th><th style="padding:8px;">Distância</th><th style="padding:8px;">Média</th><th style="padding:8px;">Pontos</th></tr></thead><tbody>';
+  html+='<table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr style="background:#008080;color:#fff;"><th style="padding:8px;">Lugar</th><th style="padding:8px;">Anilha</th><th style="padding:8px;">Nº</th><th style="padding:8px;">Concorrente</th><th style="padding:8px;">Chegada</th><th style="padding:8px;">Distância</th><th style="padding:8px;">Média</th><th style="padding:8px;">Pontos</th></tr></thead><tbody>';
   arr.forEach((l,i)=>{
     const conc=concorrentesSalvos.find(c=>c.numero===l.concNum);
     const nome=l.nome||(conc?conc.nome:"");
     const bg=i%2===0?"#f4f7fb":"#fff";
-    html+='<tr style="background:'+bg+';"><td style="padding:6px;text-align:center;color:#c00;font-weight:bold;">'+l.lugar+'º</td><td style="padding:6px;">'+esc(l.anilha)+'</td><td style="padding:6px;">'+esc(l.concNum)+' - '+esc(nome)+'</td><td style="padding:6px;text-align:center;">'+esc(l.chegada||"")+'</td><td style="padding:6px;text-align:right;color:#804000;font-weight:bold;">'+esc(l.distancia||"")+' m</td><td style="padding:6px;text-align:right;">'+esc(l.media||"")+'</td><td style="padding:6px;text-align:right;color:#00c;font-weight:bold;">'+(l.pontos||0)+'</td></tr>';
+    html+='<tr style="background:'+bg+';"><td style="padding:6px;text-align:center;color:#c00;font-weight:bold;">'+l.lugar+'º</td><td style="padding:6px;">'+esc(l.anilha)+'</td><td style="padding:6px;">'+esc(l.concNum)+'</td><td style="padding:6px;">'+esc(nome)+'</td><td style="padding:6px;text-align:center;">'+esc(l.chegada||"")+'</td><td style="padding:6px;text-align:right;color:#804000;font-weight:bold;">'+esc(l.distancia||"")+' m</td><td style="padding:6px;text-align:right;">'+esc(l.media||"")+'</td><td style="padding:6px;text-align:right;color:#00c;font-weight:bold;">'+(l.pontos||0)+'</td></tr>';
   });
   html+='</tbody></table></div>';
   document.getElementById("sitePreview").innerHTML=html;
@@ -2691,6 +3250,179 @@ function baixarTxt(){
   a.href=url;a.download="classificacao-"+d.ano+"-"+d.num+".txt";a.click();URL.revokeObjectURL(url);
 }
 
+/* =================== COMPARTILHAR TOP TEMPORADA (Ouro/Prata/Bronze) =================== */
+function gerarTopPombos(){
+  const tipo=getRadio("topTipo","Velocidade Adulto");
+  const chaves=filtrarProvasPorFiltros(tipo,"oficiais");
+  if(!chaves.length)return alert("Nenhuma prova oficial confirmada dessa modalidade ainda.");
+  const map={};
+  chaves.forEach(chave=>{
+    (classificacoesSalvas[chave]||[]).forEach(item=>{
+      if(!map[item.anilha]){
+        const c=concorrentesSalvos.find(x=>x.numero===item.concNum);
+        map[item.anilha]={anilha:item.anilha,numero:item.concNum,nome:item.nome||(c?c.nome:""),pontos:0};
+      }
+      map[item.anilha].pontos+=brN(item.pontos);
+    });
+  });
+  const arr=Object.values(map).filter(x=>x.pontos>0).sort((a,b)=>b.pontos-a.pontos).slice(0,20);
+  if(!arr.length)return alert("Nenhum pombo pontuou nessa modalidade ainda.");
+
+  const linhas=arr.map((p,i)=>({label:(i+1)+"º "+p.anilha+" — "+padNum(p.numero,5)+" - "+p.nome,valor:p.pontos+" pts"}));
+  let msg="🕊️ *CLUBE COLUMBÓFILO LIMEIRENSE*\n🏆 *TOP 20 POMBOS DA TEMPORADA — "+tipoParaLabel(tipo).toUpperCase()+"*\n\n";
+  msg+=montarBlocoAlinhadoWpp(linhas);
+  msg+="\n\n_Considerando "+chaves.length+" prova(s) oficial(is) confirmada(s) · Enviado via S.G.C-S.P_";
+  renderizarPreviewWpp("wppPreviewTop",msg);
+  window._wppTextoTop=msg;
+
+  const tituloSite="Top 20 Pombos da Temporada — "+tipoParaLabel(tipo);
+  let html='<div style="font-family:Arial;max-width:900px;margin:0 auto;padding:20px;background:#fff;">';
+  html+='<h1 style="color:#008080;text-align:center;font-style:italic;">🕊️ CLUBE COLUMBÓFILO LIMEIRENSE</h1>';
+  html+='<h2 style="color:#008080;text-align:center;font-style:italic;">'+esc(tituloSite)+'</h2>';
+  html+='<div style="text-align:center;color:#555;margin-bottom:20px;"><b>Considerando:</b> '+chaves.length+' prova(s) oficial(is) confirmada(s)</div>';
+  html+='<table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr style="background:#008080;color:#fff;"><th style="padding:8px;">Lugar</th><th style="padding:8px;">Anilha</th><th style="padding:8px;">Nº</th><th style="padding:8px;">Concorrente</th><th style="padding:8px;">Pontos</th></tr></thead><tbody>';
+  arr.forEach((p,i)=>{
+    const bg=i%2===0?"#f4f7fb":"#fff";
+    html+='<tr style="background:'+bg+';"><td style="padding:6px;text-align:center;color:#c00;font-weight:bold;">'+(i+1)+'º</td><td style="padding:6px;">'+esc(p.anilha)+'</td><td style="padding:6px;">'+esc(p.numero)+'</td><td style="padding:6px;">'+esc(p.nome)+'</td><td style="padding:6px;text-align:right;color:#00c;font-weight:bold;">'+p.pontos+'</td></tr>';
+  });
+  html+='</tbody></table></div>';
+  document.getElementById("sitePreviewTop").innerHTML=html;
+  window._siteHtmlTop=html;
+  window._siteHtmlTopTitulo=tituloSite;
+
+  setStatus("Top 20 Pombos gerado: "+tipoParaLabel(tipo));
+}
+function gerarTopConcorrentes(){
+  const tipo=getRadio("topTipo","Velocidade Adulto");
+  const chaves=filtrarProvasPorFiltros(tipo,"oficiais");
+  if(!chaves.length)return alert("Nenhuma prova oficial confirmada dessa modalidade ainda.");
+  const map={};
+  chaves.forEach(chave=>{
+    (classificacoesSalvas[chave]||[]).forEach(item=>{
+      const pts=brN(item.pontosSoc!=null?item.pontosSoc:(item.marca==="P"?item.pontos:0));
+      if(!map[item.concNum]){
+        const c=concorrentesSalvos.find(x=>x.numero===item.concNum);
+        map[item.concNum]={numero:item.concNum,nome:item.nome||(c?c.nome:""),pontos:0};
+      }
+      map[item.concNum].pontos+=pts;
+    });
+  });
+  const arr=Object.values(map).filter(x=>x.pontos>0).sort((a,b)=>b.pontos-a.pontos).slice(0,20);
+  if(!arr.length)return alert("Nenhum concorrente pontuou nessa modalidade ainda.");
+
+  const linhas=arr.map((c,i)=>({label:(i+1)+"º "+padNum(c.numero,5)+" - "+c.nome,valor:c.pontos+" pts"}));
+  let msg="🕊️ *CLUBE COLUMBÓFILO LIMEIRENSE*\n🏅 *CLASSIFICAÇÃO DE CONCORRENTES — "+tipoParaLabel(tipo).toUpperCase()+"*\n\n";
+  msg+=montarBlocoAlinhadoWpp(linhas);
+  msg+="\n\n_Considerando "+chaves.length+" prova(s) oficial(is) confirmada(s) · Enviado via S.G.C-S.P_";
+  renderizarPreviewWpp("wppPreviewTop",msg);
+  window._wppTextoTop=msg;
+
+  const tituloSite="Classificação de Concorrentes — "+tipoParaLabel(tipo);
+  let html='<div style="font-family:Arial;max-width:900px;margin:0 auto;padding:20px;background:#fff;">';
+  html+='<h1 style="color:#008080;text-align:center;font-style:italic;">🕊️ CLUBE COLUMBÓFILO LIMEIRENSE</h1>';
+  html+='<h2 style="color:#008080;text-align:center;font-style:italic;">'+esc(tituloSite)+'</h2>';
+  html+='<div style="text-align:center;color:#555;margin-bottom:20px;"><b>Considerando:</b> '+chaves.length+' prova(s) oficial(is) confirmada(s)</div>';
+  html+='<table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr style="background:#008080;color:#fff;"><th style="padding:8px;">Lugar</th><th style="padding:8px;">Nº</th><th style="padding:8px;">Concorrente</th><th style="padding:8px;">Pontos</th></tr></thead><tbody>';
+  arr.forEach((c,i)=>{
+    const bg=i%2===0?"#f4f7fb":"#fff";
+    html+='<tr style="background:'+bg+';"><td style="padding:6px;text-align:center;color:#c00;font-weight:bold;">'+(i+1)+'º</td><td style="padding:6px;">'+esc(c.numero)+'</td><td style="padding:6px;">'+esc(c.nome)+'</td><td style="padding:6px;text-align:right;color:#00c;font-weight:bold;">'+c.pontos+'</td></tr>';
+  });
+  html+='</tbody></table></div>';
+  document.getElementById("sitePreviewTop").innerHTML=html;
+  window._siteHtmlTop=html;
+  window._siteHtmlTopTitulo=tituloSite;
+
+  setStatus("Classificação de Concorrentes gerada: "+tipoParaLabel(tipo));
+}
+function copiarWppTop(){if(!window._wppTextoTop)return alert("Gere o Top 20 Pombos ou Classificação de Concorrentes primeiro.");navigator.clipboard.writeText(window._wppTextoTop).then(()=>alert("✅ Copiado!"))}
+function abrirWhatsAppTop(){if(!window._wppTextoTop)return alert("Gere o Top 20 Pombos ou Classificação de Concorrentes primeiro.");window.open("https://web.whatsapp.com/send?text="+encodeURIComponent(window._wppTextoTop),"_blank")}
+function copiarSiteTop(){if(!window._siteHtmlTop)return alert("Gere o Top 20 Pombos ou Classificação de Concorrentes primeiro.");navigator.clipboard.writeText(window._siteHtmlTop).then(()=>alert("✅ HTML copiado!"))}
+function baixarSiteTop(){
+  if(!window._siteHtmlTop)return alert("Gere o Top 20 Pombos ou Classificação de Concorrentes primeiro.");
+  const nomeArq=(window._siteHtmlTopTitulo||"top-temporada").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-")+".html";
+  const full='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+esc(window._siteHtmlTopTitulo||"")+'</title></head><body>'+window._siteHtmlTop+'</body></html>';
+  const blob=new Blob([full],{type:"text/html;charset=utf-8"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;a.download=nomeArq;a.click();URL.revokeObjectURL(url);
+}
+function topFormatoTab(f){
+  const wpp=f==="wpp";
+  document.getElementById("topFormatoPageWpp").style.display=wpp?"block":"none";
+  document.getElementById("topFormatoPageSite").style.display=wpp?"none":"block";
+  document.getElementById("topFormatoWpp").classList.toggle("active",wpp);
+  document.getElementById("topFormatoSite").classList.toggle("active",!wpp);
+}
+
+/* =================== CERTIFICADO / DIPLOMA =================== */
+function popularSelecaoCertificado(){
+  const ano=document.getElementById("certAno").value;
+  const num=document.getElementById("certNum").value;
+  const chave=ano+"/"+num;
+  const arr=classificacoesSalvas[chave]||[];
+  const sel=document.getElementById("certSelecionado");
+  sel.innerHTML="";
+  if(!arr.length){
+    sel.innerHTML='<option value="">Prova ainda não confirmada</option>';
+    return;
+  }
+  arr.slice().sort((a,b)=>a.lugar-b.lugar).forEach(item=>{
+    const opt=document.createElement("option");
+    opt.value=item.lugar;
+    opt.textContent=item.lugar+"º lugar — "+(item.nome||"")+" — pombo "+item.anilha;
+    sel.appendChild(opt);
+  });
+}
+function gerarCertificado(){
+  const ano=document.getElementById("certAno").value;
+  const num=document.getElementById("certNum").value;
+  if(!ano||ano==="0")return alert("Selecione um concurso (🔍).");
+  const chave=ano+"/"+num;
+  const curso=cursosSalvos.find(c=>c.ano===ano&&c.num===num);
+  const arr=classificacoesSalvas[chave]||[];
+  const lugarSel=parseInt(document.getElementById("certSelecionado").value);
+  if(!lugarSel)return alert("Selecione o classificado.");
+  const item=arr.find(x=>x.lugar===lugarSel);
+  if(!item)return alert("Classificado não encontrado.");
+  const conc=concorrentesSalvos.find(c=>c.numero===item.concNum);
+  const nome=item.nome||(conc?conc.nome:"");
+  const selo=lugarSel===1?"🥇":lugarSel===2?"🥈":lugarSel===3?"🥉":"🏅";
+  const dataEmissao=new Date().toLocaleDateString("pt-BR");
+  const html=`
+    <div class="certificado">
+      <div class="selo">${selo}</div>
+      <h1>CERTIFICADO DE CLASSIFICAÇÃO</h1>
+      <h2>Clube Columbófilo Limeirense</h2>
+      <div class="corpo">
+        Certificamos que o(a) concorrente<br>
+        <span class="nome-vencedor">${esc(nome)}</span>
+        (sócio nº ${esc(item.concNum)}) classificou-se em <b>${lugarSel}º lugar</b>
+        na prova <b>${esc(curso?curso.nome:chave)}</b>${curso?" ("+esc(curso.tipo||"")+")":""},
+        realizada em ${esc(curso?curso.data||"":"")},
+        com o pombo de anilha <b>${esc(item.anilha)}</b>,
+        totalizando <b>${item.pontos}</b> pontos${item.media?" e velocidade média de "+esc(item.media)+" m/min":""}.
+      </div>
+      <div style="font-size:11px;color:#888;">Emitido em ${dataEmissao}</div>
+      <div class="assinaturas">
+        <div class="assinatura">Presidente</div>
+        <div class="assinatura">Diretor de Provas</div>
+      </div>
+    </div>`;
+  document.getElementById("certificadoPreview").innerHTML=html;
+  setStatus("Certificado gerado: "+nome+" — "+lugarSel+"º lugar");
+}
+function imprimirCertificado(){
+  if(!document.getElementById("certificadoPreview").innerHTML.trim())return alert("Gere o certificado primeiro.");
+  window.print();
+}
+function abrirCertificadoParaConcurso(ano,num,nome){
+  openWin("winCertificado");
+  document.getElementById("certAno").value=ano;
+  document.getElementById("certNum").value=num;
+  document.getElementById("certNome").value=nome||"";
+  popularSelecaoCertificado();
+}
+
 /* =================== PMR =================== */
 /* AVISO DE SEGURANÇA REAL:
    Esta chave fica embutida no HTML/JS que roda no navegador do sócio, então
@@ -2702,7 +3434,7 @@ function baixarTxt(){
    cliente. */
 const PMR_SECRET_KEY="SGC_SP_LIMEIRA_2026_@#SEC_KEY_9812";
 let pmrSocioSelecionado=null;
-let pmrAnilhasMobile=[{anilha:"2335027/23",hora:"11:34:58",obs:"Normal"}];
+let pmrAnilhasMobile=[];
 let pmrDadosImportadosAtual=null;
 
 async function gerarHashPMR(texto){
@@ -2734,6 +3466,55 @@ function selecionarSocioPMR(){
   });
 }
 
+/* =================== PAINEL DE PENDÊNCIAS (quem já enviou) =================== */
+const STORE_PMR_LINKS="sgc_pmr_links";
+function registrarLinkGerado(chave,socioNum,socioNome){
+  const todos=loadLS(STORE_PMR_LINKS,{});
+  todos[chave]=todos[chave]||{};
+  todos[chave][socioNum]={nome:socioNome,geradoEm:new Date().toISOString()};
+  saveLS(STORE_PMR_LINKS,todos);
+}
+function listarPendentesPMR(chave){
+  const todos=loadLS(STORE_PMR_LINKS,{});
+  const gerados=todos[chave]||{};
+  const lancs=todosLancamentos[chave]||[];
+  return Object.keys(gerados).map(socioNum=>({
+    socioNum,
+    nome:gerados[socioNum].nome,
+    geradoEm:gerados[socioNum].geradoEm,
+    recebido:lancs.some(l=>l.concNum===socioNum)
+  }));
+}
+function atualizarPainelPendenciasPMR(){
+  const tb=document.querySelector("#tabelaPendenciasPMR tbody");if(!tb)return;
+  const ano=document.getElementById("pmrAno").value;
+  const num=document.getElementById("pmrNum").value;
+  const chave=ano+"/"+num;
+  const lista=listarPendentesPMR(chave);
+  tb.innerHTML="";
+  if(!lista.length){tb.innerHTML='<tr><td colspan="3" style="text-align:center;color:#666;padding:12px;">Nenhum link gerado ainda para esta prova (use a aba 1).</td></tr>';return}
+  lista.sort((a,b)=>(a.nome||"").localeCompare(b.nome||"")).forEach(p=>{
+    const tr=document.createElement("tr");
+    const dataFmt=new Date(p.geradoEm).toLocaleString("pt-BR");
+    tr.innerHTML="<td>"+esc(p.socioNum)+" - "+esc(p.nome)+"</td><td>"+esc(dataFmt)+"</td><td>"+(p.recebido?'<span class="pmr-badge-ok">✔ Recebido</span>':'<span class="pmr-badge-prov">⏳ Aguardando</span>')+"</td>";
+    tb.appendChild(tr);
+  });
+  const pendentes=lista.filter(p=>!p.recebido).length;
+  setStatus("Pendências PMR: "+pendentes+" de "+lista.length+" ainda aguardando.");
+}
+function cobrarPendentesPMR(){
+  const ano=document.getElementById("pmrAno").value;
+  const num=document.getElementById("pmrNum").value;
+  const nomeConcurso=document.getElementById("pmrNomeConcurso").value||"";
+  const chave=ano+"/"+num;
+  const lista=listarPendentesPMR(chave).filter(p=>!p.recebido);
+  if(!lista.length)return alert("Ninguém pendente — todo mundo já mandou a constatação desta prova! 🎉");
+  lista.sort((a,b)=>(a.nome||"").localeCompare(b.nome||""));
+  const nomes=lista.map(p=>"• "+p.nome+" (nº "+p.socioNum+")").join("\n");
+  const msg="🏁 *"+nomeConcurso+"* ("+chave+")\n\nOs seguintes sócios ainda não enviaram a constatação do PM Remote Clock:\n\n"+nomes+"\n\nPor favor, enviem assim que possível! 🕊️\n\n_Enviado via S.G.C-S.P_";
+  window.open("https://api.whatsapp.com/send?text="+encodeURIComponent(msg),"_blank");
+  setStatus("Cobrança montada para "+lista.length+" pendente(s).");
+}
 async function gerarLinkPMR(){
   const concNum=document.getElementById("pmrSocioID").value||"81";
   const socioNome=document.getElementById("pmrSocioNome").value||"";
@@ -2760,6 +3541,7 @@ async function gerarLinkPMR(){
 
   const linkFinal=`${base}?${params.toString()}`;
   document.getElementById("pmrLinkGerado").value=linkFinal;
+  registrarLinkGerado(ano+"/"+num,concNum,socioNome);
 
   const mobRel=document.getElementById("mobTipoRelogio");
   const mobConc=document.getElementById("mobNomeConcurso");
@@ -2787,14 +3569,6 @@ function enviarLinkWhatsAppPMR(){
   const socioNome=document.getElementById("pmrSocioNome").value;
   const msg=`Olá, ${socioNome}! 🏁 A prova foi encerrada. Registre agora suas constatações provisórias através do link oficial seguro:\n\n👉 ${link}\n\n*Clube Columbófilo Limeirense*`;
   window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`,"_blank");
-}
-
-function abrirTelaCelularSocio(){
-  const win=document.getElementById("winMobileApp");
-  if(!win)return;
-  win.classList.add("active");
-  win.style.zIndex=++zCounter;
-  capturarGpsMobile();
 }
 
 function capturarGpsMobile(){
@@ -2827,12 +3601,44 @@ function capturarHoraAtualCelular(){
   document.getElementById("mobHoraInput").value=`${hh}:${mm}:${ss}`;
 }
 
+/* =================== RASCUNHO AUTOMÁTICO (celular) =================== */
+/* Se o sócio fechar a aba sem querer no meio da constatação, ele perderia
+   tudo que já tinha digitado. Agora a lista de pombos é salva automaticamente
+   a cada adição/remoção, e recarregada sozinha se ele reabrir o mesmo link. */
+function chaveRascunhoPMR(){
+  const ano=document.getElementById("pmrAno")?.value||"";
+  const num=document.getElementById("pmrNum")?.value||"";
+  const socio=document.getElementById("pmrSocioID")?.value||"";
+  return "sgc_pmr_rascunho_"+ano+"_"+num+"_"+socio;
+}
+function salvarRascunhoPMR(){
+  try{localStorage.setItem(chaveRascunhoPMR(),JSON.stringify(pmrAnilhasMobile))}catch(e){}
+}
+function carregarRascunhoPMR(){
+  try{
+    const raw=localStorage.getItem(chaveRascunhoPMR());
+    if(raw){
+      const arr=JSON.parse(raw);
+      if(Array.isArray(arr)&&arr.length)pmrAnilhasMobile=arr;
+    }
+  }catch(e){}
+}
+function limparRascunhoPMR(){
+  try{localStorage.removeItem(chaveRascunhoPMR())}catch(e){}
+}
+function removerAnilhaMobile(idx){
+  pmrAnilhasMobile.splice(idx,1);
+  salvarRascunhoPMR();
+  renderizarListaAnilhasMobile();
+}
+
 function adicionarAnilhaListaMobile(){
   const anilha=document.getElementById("mobAnilhaInput").value.trim();
   const hora=document.getElementById("mobHoraInput").value.trim();
   const obs=document.getElementById("mobObsInput").value.trim()||"Normal";
   if(!anilha||!hora)return alert("Preencha o número da Anilha e a Hora da Constatação!");
   pmrAnilhasMobile.push({anilha,hora,obs});
+  salvarRascunhoPMR();
   renderizarListaAnilhasMobile();
   document.getElementById("mobAnilhaInput").value="";
   document.getElementById("mobObsInput").value="";
@@ -2844,16 +3650,40 @@ function renderizarListaAnilhasMobile(){
   if(!container)return;
   container.innerHTML="";
   if(cont)cont.textContent=pmrAnilhasMobile.length;
+  if(!pmrAnilhasMobile.length){
+    container.innerHTML='<div style="text-align:center;color:#999;font-size:11px;padding:10px 0;">Nenhum pombo adicionado ainda.</div>';
+    return;
+  }
   pmrAnilhasMobile.forEach((item,idx)=>{
     const div=document.createElement("div");
     div.style.cssText="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #eee;font-size:12px;";
-    div.innerHTML=`<span>🕊️ <b>${esc(item.anilha)}</b> ${item.obs!=='Normal'?`<i style="color:#666">(${esc(item.obs)})</i>`:''}</span><div><span style="font-family:Consolas;font-weight:bold;color:#008000;margin-right:6px;">${esc(item.hora)}</span><span style="color:#a00000;cursor:pointer;font-weight:bold;" onclick="pmrAnilhasMobile.splice(${idx},1);renderizarListaAnilhasMobile()">X</span></div>`;
+    div.innerHTML=`<span>🕊️ <b>${esc(item.anilha)}</b> ${item.obs!=='Normal'?`<i style="color:#666">(${esc(item.obs)})</i>`:''}</span><div><span style="font-family:Consolas;font-weight:bold;color:#008000;margin-right:6px;">${esc(item.hora)}</span><span style="color:#a00000;cursor:pointer;font-weight:bold;" onclick="removerAnilhaMobile(${idx})">X</span></div>`;
     container.appendChild(div);
   });
 }
 
+function abrirTelaCelularSocio(){
+  const win=document.getElementById("winMobileApp");
+  if(!win)return;
+  win.classList.add("active");
+  win.style.zIndex=++zCounter;
+  /* BUG CORRIGIDO: a tela sempre mostrava um pombo de exemplo já "salvo"
+     (2335027/23), mesmo sem o sócio ter adicionado nada. Agora a lista é
+     sempre redesenhada a partir do estado real (que começa vazio). */
+  carregarRascunhoPMR();
+  renderizarListaAnilhasMobile();
+  capturarGpsMobile();
+}
+
 async function gerarEBaixarArquivoPMR(){
   if(!pmrAnilhasMobile.length)return alert("Adicione pelo menos 1 pombo na lista!");
+  /* NOVO: antes de gerar o arquivo final, mostra a lista inteira pra
+     conferência — pensado especialmente pra quem tem menos prática com
+     celular, pra dar uma última chance de corrigir antes de enviar. */
+  const listaConferencia=pmrAnilhasMobile.map((p,i)=>(i+1)+". "+p.anilha+" — "+p.hora+(p.obs!=="Normal"?" ("+p.obs+")":"")).join("\n");
+  if(!confirm("📋 CONFIRA A LISTA ANTES DE ENVIAR:\n\n"+listaConferencia+"\n\nEstá tudo certo?\n\nOK = gerar o arquivo\nCancelar = voltar e corrigir")){
+    return;
+  }
   const ano=document.getElementById("pmrAno").value||"2026";
   const num=document.getElementById("pmrNum").value||"1";
   const socioNum=document.getElementById("pmrSocioID").value||"81";
@@ -2877,6 +3707,7 @@ async function gerarEBaixarArquivoPMR(){
   a.click();
   URL.revokeObjectURL(url);
 
+  limparRascunhoPMR();
   setStatus("Arquivo .PMR gerado com hash SHA-256 (protege contra corrupção do arquivo).");
   alert(`📥 ARQUIVO .PMR GERADO!\n\nHash:\n${hashSeguranca.substring(0,20)}...\n\nEste hash confirma que o arquivo não foi corrompido no envio. A homologação final ainda deve ser feita comparando com o relógio físico.`);
 }
@@ -3044,8 +3875,18 @@ function atualizarTabelaAuditoriaPMR(){
   /* BUG CORRIGIDO: o filtro antigo (l.pmrProvisorio||l.horaFisicaOficial) fazia
      o item sumir da lista assim que era homologado (pmrProvisorio vira false
      e horaFisicaOficial nunca existia). Agora também mantemos quem já foi
-     homologado, para a linha continuar visível marcada como "Oficial". */
+     homologado, para a linha continuar visível marcada como "Oficial".
+     Isso também garante que TODOS os pombos lançados pelo PMR continuam
+     aparecendo aqui (mesmo depois de calcular/apurar a prova) até serem
+     conferidos e homologados na semana seguinte. */
   const provisorios=lancamentos.filter(l=>l.pmrProvisorio||l.horaFisicaOficial!=null||l.homologado);
+  const contadorEl=document.getElementById("pmrAuditContador");
+  if(contadorEl){
+    const pendentes=provisorios.filter(l=>!l.homologado).length;
+    contadorEl.textContent=provisorios.length
+      ?("🕊️ "+provisorios.length+" pombo(s) do PMR nesta prova — "+pendentes+" ainda pendente(s) de conferência.")
+      :"";
+  }
   if(!provisorios.length){
     tbAud.innerHTML='<tr><td colspan="7" style="text-align:center;padding:15px;color:#666">Nenhuma constatação remota provisória pendente para esta prova.</td></tr>';
     return;
@@ -3070,9 +3911,23 @@ function atualizarTabelaAuditoriaPMR(){
     }
     const tr=document.createElement("tr");
     tr.style.background=tr_bg;
+    tr.style.cursor="pointer";
+    tr.title="Clique duas vezes para selecionar este pombo";
     tr.innerHTML=`<td>${esc(l.concNum)} - ${esc(conc?conc.nome:'')}</td><td><b>${esc(l.anilha)}</b></td><td style="color:#005500;font-weight:bold;font-family:Consolas">${esc(horaCel)}</td><td style="font-family:Consolas">${esc(horaFis)}</td><td style="font-weight:bold;color:${diffCor}">${diffTexto}</td><td><span class="${l.homologado?'pmr-badge-ok':'pmr-badge-prov'}">${l.homologado?'Homologado':'Provisório'}</span></td><td>${!l.homologado&&temHoraFisica?`<button class="small-btn" style="background:#d4edda;font-weight:bold;" onclick="homologarConstatacaoIndividual(${idx})">✔ Homologar</button>`:l.homologado?'✔ Oficial':'—'}</td>`;
+    /* NOVO: clique duplo na linha seleciona o pombo automaticamente no campo
+       de anilha (em vez de precisar digitar o número na mão), agilizando a
+       conferência. */
+    tr.ondblclick=()=>selecionarAnilhaAuditoria(l.anilha);
     tbAud.appendChild(tr);
   });
+}
+function selecionarAnilhaAuditoria(anilha){
+  const campoAnilha=document.getElementById("pmrAuditAnilha");
+  const campoHora=document.getElementById("pmrAuditHoraFisica");
+  if(!campoAnilha)return;
+  campoAnilha.value=anilha;
+  if(campoHora){campoHora.focus();campoHora.select()}
+  setStatus("Pombo "+anilha+" selecionado. Digite a hora lida no relógio físico.");
 }
 
 function homologarConstatacaoIndividual(idx){
@@ -3198,6 +4053,8 @@ document.getElementById("btnCalcular").onclick=executarCalculo;
 document.getElementById("btnConfirmarCalc").onclick=confirmarCalculo;
 document.getElementById("btnGerarRel").onclick=gerarRelatorioPombos;
 document.getElementById("ajudaBusca").addEventListener("input",e=>renderAjuda(e.target.value));
+document.getElementById("filtroPombos").addEventListener("input",atualizarTabelaPombos);
+document.getElementById("filtroConcorrentesConsulta").addEventListener("input",atualizarTabelaConcorrentes);
 
 document.addEventListener("keydown",function(e){
   if(e.ctrlKey&&(e.key==="l"||e.key==="L")){
@@ -3264,6 +4121,21 @@ function maskAnilha(el){
   if(v.length===0){el.value="";return}
   if(v.length<=7)el.value=v;else el.value=v.slice(0,7)+"/"+v.slice(7);
 }
+/* Aviso não-bloqueante (não impede salvar, só chama atenção) quando o
+   número de dígitos da anilha não bate com o padrão 0000000/00 — evita
+   descobrir uma anilha digitada errada só depois, no meio de um relatório. */
+function validarAnilhaCompleta(valor){
+  const digitos=onlyNum(valor);
+  return digitos.length===0||digitos.length===9;
+}
+function ligarAvisoAnilha(inputId,avisoId){
+  const el=document.getElementById(inputId);
+  const aviso=document.getElementById(avisoId);
+  if(!el||!aviso)return;
+  const checar=()=>{aviso.style.display=validarAnilhaCompleta(el.value)?"none":"inline"};
+  el.addEventListener("input",checar);
+  el.addEventListener("blur",checar);
+}
 function maskHora(el){
   let v=onlyNum(el.value).slice(0,6);
   if(v.length===0){el.value="";return}
@@ -3273,6 +4145,9 @@ function ligarMascaras(){
   ["cursoData","lancDataIni","lancDataFim"].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener("input",()=>maskData(el))});
   ["edtAnilha","lancAnilha","palmAnilha","mobAnilhaInput","pmrAuditAnilha"].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener("input",()=>maskAnilha(el))});
   ["lancHoraIni","lancHoraFim","lancChegada","lancPartida","lancTMorto","cursoHoraSolta","cursoTM1","cursoTM2","cursoTM3","mobHoraInput","pmrAuditHoraFisica"].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener("input",()=>maskHora(el))});
+  ligarAvisoAnilha("lancAnilha","lancAnilhaAviso");
+  ligarAvisoAnilha("edtAnilha","edtAnilhaAviso");
+  ligarAvisoAnilha("mobAnilhaInput","mobAnilhaAviso");
 }
 
 window.addEventListener("load",function(){
