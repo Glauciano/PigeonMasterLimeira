@@ -82,9 +82,20 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
 .certificado .assinatura{border-top:1px solid #333;padding-top:6px;width:200px;font-size:12px;color:#555;}
 .certificado .selo{font-size:46px;margin-bottom:6px;}
 @media print{
+  /* BUG CORRIGIDO ("arquivos vindo pela metade"): as áreas de relatório
+     ficam dentro de caixinhas com altura fixa e rolagem (max-height +
+     overflow:auto) pra caber na tela. Na hora de imprimir, o navegador só
+     imprimia o pedaço visível sem precisar rolar — o resto do conteúdo
+     ficava de fora do papel/PDF, cortado pela metade. Esta regra libera a
+     altura e a rolagem SÓ na hora de imprimir, deixando o conteúdo inteiro
+     fluir por quantas páginas forem necessárias, e esconde o resto da tela
+     (menus, janelas, barra de status) pra imprimir só o relatório. Vale pra
+     qualquer área marcada com a classe "printable" — usada em Certificados,
+     Relatório de Pombos, Totais (Concorrentes/Pombos/Pombo Ás), Anéis,
+     Evolução, Checar Saúde e no resultado do Cálculo de Prova. */
   body *{visibility:hidden}
-  #certificadoPreview,#certificadoPreview *{visibility:visible}
-  #certificadoPreview{position:absolute;left:0;top:0;width:100%;}
+  .printable,.printable *{visibility:visible}
+  .printable{position:absolute;left:0;top:0;width:100%;max-height:none!important;overflow:visible!important;height:auto!important;}
 }
 .backup-banner{position:absolute;left:0;right:0;top:22px;height:28px;z-index:9999;background:#fff3cd;border-bottom:2px solid #d4b800;color:#664d03;display:none;align-items:center;gap:10px;padding:0 10px;font-size:11px;font-weight:bold}
 .backup-banner.active{display:flex}
@@ -449,7 +460,7 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
       <div class="win-body">
         <div class="row"><span class="lbl-left">Concurso :</span><input class="inp sm blue" id="calcResAno" readonly><span>/</span><input class="inp xs blue" id="calcResNum" readonly><input class="inp lg italic-blue" id="calcResNome" readonly></div>
         <div class="group" style="height:400px;"><div class="group-title">Classificação da Prova</div>
-          <div style="max-height:370px;overflow:auto;">
+          <div class="printable" style="max-height:370px;overflow:auto;">
             <table class="classic-table" id="tabelaClassificacao">
               <thead><tr><th>lugar</th><th>anilha</th><th>Sócio</th><th>nome_conco</th><th>horacheg</th><th>distancia</th><th>media</th><th>pontos</th><th>Marca</th><th>Status</th></tr></thead>
               <tbody><tr><td colspan="10" style="text-align:center;">Aguardando cálculo...</td></tr></tbody>
@@ -476,7 +487,7 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
           <button class="small-btn" style="min-width:70px;" id="btnGerarRel">Gerar</button>
           <button class="small-btn" style="min-width:70px;" onclick="window.print()">Imprimir</button>
         </div>
-        <div id="conteudoRelatorio" class="report"></div>
+        <div id="conteudoRelatorio" class="report printable"></div>
       </div>
     </div>
 
@@ -507,7 +518,7 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
           <button class="classic-btn" onclick="window.print()">🖨<br>Imprimir</button>
           <button class="classic-btn" onclick="closeWin('winClassConc')">▣<br>Sair</button>
         </div>
-        <div id="areaClassConc" style="max-height:340px;overflow:auto;background:#fff;margin-top:8px;padding:14px;"></div>
+        <div id="areaClassConc" class="printable" style="max-height:340px;overflow:auto;background:#fff;margin-top:8px;padding:14px;"></div>
       </div>
     </div>
 
@@ -532,7 +543,7 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
           <button class="classic-btn" onclick="window.print()">🖨<br>Imprimir</button>
           <button class="classic-btn" onclick="closeWin('winClassPombos')">▣<br>Sair</button>
         </div>
-        <div id="areaClassPombos" style="max-height:380px;overflow:auto;background:#fff;margin-top:8px;padding:14px;"></div>
+        <div id="areaClassPombos" class="printable" style="max-height:380px;overflow:auto;background:#fff;margin-top:8px;padding:14px;"></div>
       </div>
     </div>
 
@@ -557,20 +568,41 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
           <button class="classic-btn" onclick="window.print()">🖨<br>Imprimir</button>
           <button class="classic-btn" onclick="closeWin('winPomboAs')">▣<br>Sair</button>
         </div>
-        <div id="areaPomboAs" style="max-height:380px;overflow:auto;background:#fff;margin-top:8px;padding:14px;">Selecione a modalidade e clique em Gerar Ranking</div>
+        <div id="areaPomboAs" class="printable" style="max-height:380px;overflow:auto;background:#fff;margin-top:8px;padding:14px;">Selecione a modalidade e clique em Gerar Ranking</div>
       </div>
     </div>
-    <div class="child-window" id="winCertificado" style="left:20px;top:15px;width:840px;height:660px;">
+    <div class="child-window" id="winCertificado" style="left:20px;top:15px;width:840px;height:680px;">
       <div class="win-title"><div class="win-title-left"><span class="small-icon"></span> 🏆 Certificado / Diploma</div><button class="win-close" onclick="closeWin('winCertificado')">X</button></div>
       <div class="win-body">
-        <div class="row"><span class="lbl-left">Concurso :</span><input class="inp sm blue" id="certAno" value="0" readonly>/<input class="inp xs blue" id="certNum" value="0" readonly><button class="small-btn" onclick="abrirModalConcurso('cert')">🔍</button><input class="inp lg italic-blue" id="certNome" readonly></div>
-        <div class="row"><span class="lbl">Classificado :</span><select class="inp lg" id="certSelecionado"><option value="">Selecione o concurso primeiro</option></select></div>
-        <div class="btn-bar">
-          <button class="classic-btn" onclick="gerarCertificado()">🏆<br>Gerar</button>
-          <button class="classic-btn" onclick="imprimirCertificado()">🖨<br>Imprimir/PDF</button>
-          <button class="classic-btn" onclick="closeWin('winCertificado')">▣<br>Sair</button>
+        <div class="inner-tabs">
+          <div class="inner-tab active" onclick="showInnerTab(this,'certProvaPage')">🏆 Certificado de Prova</div>
+          <div class="inner-tab" onclick="showInnerTab(this,'certFeitosPage')">📜 Feitos do Sócio</div>
         </div>
-        <div id="certificadoPreview" style="max-height:460px;overflow:auto;background:#e9e9e9;margin-top:8px;padding:20px;"></div>
+        <div class="inner-page active" id="certProvaPage">
+          <div class="row"><span class="lbl-left">Concurso :</span><input class="inp sm blue" id="certAno" value="0" readonly>/<input class="inp xs blue" id="certNum" value="0" readonly><button class="small-btn" onclick="abrirModalConcurso('cert')">🔍</button><input class="inp lg italic-blue" id="certNome" readonly></div>
+          <div class="row"><span class="lbl">Classificado :</span><select class="inp lg" id="certSelecionado"><option value="">Selecione o concurso primeiro</option></select></div>
+          <div class="btn-bar">
+            <button class="classic-btn" onclick="gerarCertificadoRapido(1)" style="background:#fff8e1;">🥇<br>1º Lugar</button>
+            <button class="classic-btn" onclick="gerarCertificadoRapido(2)" style="background:#f4f4f4;">🥈<br>2º Lugar</button>
+            <button class="classic-btn" onclick="gerarCertificadoRapido(3)" style="background:#fdf0e6;">🥉<br>3º Lugar</button>
+            <button class="classic-btn" onclick="gerarCertificado()">🏆<br>Gerar (selecionado)</button>
+            <button class="classic-btn" onclick="imprimirCertificado()">🖨<br>Imprimir/PDF</button>
+          </div>
+          <div id="certificadoPreview" class="printable" style="max-height:400px;overflow:auto;background:#e9e9e9;margin-top:8px;padding:20px;"></div>
+        </div>
+        <div class="inner-page" id="certFeitosPage">
+          <div class="row"><span class="lbl">Concorrente :</span><input class="inp sm" id="feitosSocioNumero"><button class="small-btn" onclick="abrirModalConcorrente(conc=>{document.getElementById('feitosSocioNumero').value=conc.numero;document.getElementById('feitosSocioNome').value=conc.nome})">🔍</button><input class="inp lg italic-blue" id="feitosSocioNome" readonly></div>
+          <div class="row"><span class="lbl">Provas :</span>
+            <label><input type="radio" name="feitosProvas" value="oficiais" checked> Oficiais</label>
+            <label><input type="radio" name="feitosProvas" value="todas"> Todas</label>
+          </div>
+          <div class="btn-bar">
+            <button class="classic-btn" onclick="gerarDiplomaFeitos()">📜<br>Gerar</button>
+            <button class="classic-btn" onclick="imprimirCertificado()">🖨<br>Imprimir/PDF</button>
+          </div>
+          <div id="certificadoPreviewFeitos" class="printable" style="max-height:420px;overflow:auto;background:#e9e9e9;margin-top:8px;padding:20px;"></div>
+        </div>
+        <div class="btn-bar"><button class="classic-btn" onclick="closeWin('winCertificado')">▣<br>Sair</button></div>
       </div>
     </div>
 
@@ -585,7 +617,7 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
           <button class="classic-btn" onclick="window.print()">🖨<br>Imprimir</button>
           <button class="classic-btn" onclick="closeWin('winSaude')">▣<br>Sair</button>
         </div>
-        <div id="areaSaude" style="max-height:460px;overflow:auto;background:#fff;margin-top:8px;padding:14px;border:1px solid #ccc;">Clique em Checar Agora.</div>
+        <div id="areaSaude" class="printable" style="max-height:460px;overflow:auto;background:#fff;margin-top:8px;padding:14px;border:1px solid #ccc;">Clique em Checar Agora.</div>
       </div>
     </div>
 
@@ -600,7 +632,7 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
           <button class="classic-btn" onclick="window.print()">🖨<br>Imprimir</button>
           <button class="classic-btn" onclick="closeWin('winAneis')">▣<br>Sair</button>
         </div>
-        <div id="areaAneis" style="max-height:440px;overflow:auto;background:#fff;margin-top:8px;padding:14px;border:1px solid #ccc;">Clique em Gerar para ver os anéis da temporada.</div>
+        <div id="areaAneis" class="printable" style="max-height:440px;overflow:auto;background:#fff;margin-top:8px;padding:14px;border:1px solid #ccc;">Clique em Gerar para ver os anéis da temporada.</div>
       </div>
     </div>
 
@@ -620,7 +652,7 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
           <button class="classic-btn" onclick="window.print()">🖨<br>Imprimir</button>
           <button class="classic-btn" onclick="closeWin('winEvolucao')">▣<br>Sair</button>
         </div>
-        <div id="evolConcResultado" style="max-height:340px;overflow:auto;background:#fff;margin-top:8px;padding:14px;border:1px solid #ccc;">Selecione um concorrente e clique em Gerar Gráfico.</div>
+        <div id="evolConcResultado" class="printable" style="max-height:340px;overflow:auto;background:#fff;margin-top:8px;padding:14px;border:1px solid #ccc;">Selecione um concorrente e clique em Gerar Gráfico.</div>
       </div>
     </div>
 
@@ -726,11 +758,11 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
             🏅 Ranking da temporada (não é de uma prova só) — considerando todas as provas oficiais confirmadas da modalidade escolhida.
           </div>
           <div class="row"><span class="lbl">Modalidade :</span>
-            <label><input type="radio" name="topTipo" value="Velocidade Adulto" checked> Velocidade</label>
-            <label><input type="radio" name="topTipo" value="Meio-fundo"> Meio-fundo</label>
-            <label><input type="radio" name="topTipo" value="Fundo"> Fundo</label>
-            <label><input type="radio" name="topTipo" value="Filhotes"> Filhotes</label>
-            <label><input type="radio" name="topTipo" value="Geral"> Geral</label>
+            <label><input type="radio" name="topTipo" value="Velocidade Adulto" checked onchange="limparPreviewTopTemporada()"> Velocidade</label>
+            <label><input type="radio" name="topTipo" value="Meio-fundo" onchange="limparPreviewTopTemporada()"> Meio-fundo</label>
+            <label><input type="radio" name="topTipo" value="Fundo" onchange="limparPreviewTopTemporada()"> Fundo</label>
+            <label><input type="radio" name="topTipo" value="Filhotes" onchange="limparPreviewTopTemporada()"> Filhotes</label>
+            <label><input type="radio" name="topTipo" value="Geral" onchange="limparPreviewTopTemporada()"> Geral</label>
           </div>
           <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
             <button class="small-btn" onclick="gerarTopPombos()">🕊️ Top 20 Pombos</button>
@@ -1273,6 +1305,9 @@ function openWin(id){
     document.getElementById("certNome").value="";
     document.getElementById("certSelecionado").innerHTML='<option value="">Selecione o concurso primeiro</option>';
     document.getElementById("certificadoPreview").innerHTML="";
+    document.getElementById("feitosSocioNumero").value="";
+    document.getElementById("feitosSocioNome").value="";
+    document.getElementById("certificadoPreviewFeitos").innerHTML="";
   }
   if(id==="winAjuda"){document.getElementById("ajudaBusca").value="";renderAjuda("");iniciarChatAssistente()}
   if(id==="winRemoteClock"){
@@ -2443,10 +2478,22 @@ function selecionarConcursoModal(){
     document.getElementById("relAno").value=ano;
     document.getElementById("relNum").value=num;
     document.getElementById("relNome").value=nome;
+    /* BUG DA MESMA FAMÍLIA DO PMR: o relatório antigo ficava na tela mesmo
+       depois de trocar de concurso, até alguém clicar em Gerar de novo —
+       risco de ler/imprimir o relatório errado achando que é do concurso
+       novo. Agora já limpa na hora de trocar. */
+    document.getElementById("conteudoRelatorio").innerHTML="";
   }else if(destinoModalConcurso==="shr"){
     document.getElementById("shrAno").value=ano;
     document.getElementById("shrNum").value=num;
     document.getElementById("shrNome").value=nome;
+    /* Mesmo risco: se o operador trocasse de concurso aqui sem clicar em
+       Completo/Top3/Site/Texto de novo, o WhatsApp/Site/Texto antigo (de
+       outro concurso) continuava pronto pra copiar/enviar. Agora limpa. */
+    document.getElementById("wppPreview").textContent="Selecione um concurso e gere a mensagem.";
+    document.getElementById("sitePreview").innerHTML="Selecione um concurso e gere o HTML.";
+    document.getElementById("txtPreview").value="Selecione um concurso e gere o texto.";
+    window._wppTexto=null;window._siteHtml=null;window._txtConteudo=null;
   }else if(destinoModalConcurso==="exp"){
     document.getElementById("expAno").value=ano;
     document.getElementById("expNum").value=num;
@@ -2456,6 +2503,9 @@ function selecionarConcursoModal(){
     document.getElementById("certNum").value=num;
     document.getElementById("certNome").value=nome;
     popularSelecaoCertificado();
+    /* Mesma família de bug: o certificado antigo (de outro concurso/lugar)
+       ficava na tela pronto pra imprimir até clicar em Gerar de novo. */
+    document.getElementById("certificadoPreview").innerHTML="";
   }else{
     carregarLancamentosProva(ano,num,nome);
   }
@@ -3355,6 +3405,18 @@ function baixarSiteTop(){
   const a=document.createElement("a");
   a.href=url;a.download=nomeArq;a.click();URL.revokeObjectURL(url);
 }
+/* Mesma família de correção do PMR/Compartilhar/Certificado: se o operador
+   trocar a modalidade sem clicar em "Top 20 Pombos"/"Classificação de
+   Concorrentes" de novo, o texto/HTML antigo (de outra modalidade) ficava
+   pronto pra copiar/enviar. Agora limpa ao trocar. */
+function limparPreviewTopTemporada(){
+  const wppEl=document.getElementById("wppPreviewTop");
+  const siteEl=document.getElementById("sitePreviewTop");
+  if(wppEl)wppEl.textContent="Modalidade alterada — clique em Top 20 Pombos ou Classificação de Concorrentes de novo.";
+  if(siteEl)siteEl.innerHTML="Modalidade alterada — clique em Top 20 Pombos ou Classificação de Concorrentes de novo.";
+  window._wppTextoTop=null;
+  window._siteHtmlTop=null;
+}
 function topFormatoTab(f){
   const wpp=f==="wpp";
   document.getElementById("topFormatoPageWpp").style.display=wpp?"block":"none";
@@ -3381,6 +3443,13 @@ function popularSelecaoCertificado(){
     opt.textContent=item.lugar+"º lugar — "+(item.nome||"")+" — pombo "+item.anilha;
     sel.appendChild(opt);
   });
+}
+function gerarCertificadoRapido(lugar){
+  const sel=document.getElementById("certSelecionado");
+  const opcao=Array.from(sel.options).find(o=>parseInt(o.value)===lugar);
+  if(!opcao)return alert(lugar+"º lugar não encontrado nesta prova (confira se a prova tem classificados suficientes).");
+  sel.value=String(lugar);
+  gerarCertificado();
 }
 function gerarCertificado(){
   const ano=document.getElementById("certAno").value;
@@ -3418,10 +3487,94 @@ function gerarCertificado(){
       </div>
     </div>`;
   document.getElementById("certificadoPreview").innerHTML=html;
+  /* Gerar um tipo de diploma limpa o outro, pra nunca imprimir os dois
+     empilhados por engano (cada um tem sua própria área visível na
+     impressão). */
+  const feitosEl=document.getElementById("certificadoPreviewFeitos");
+  if(feitosEl)feitosEl.innerHTML="";
   setStatus("Certificado gerado: "+nome+" — "+lugarSel+"º lugar");
 }
+function gerarDiplomaFeitos(){
+  const numero=document.getElementById("feitosSocioNumero").value.trim();
+  if(!numero)return alert("Selecione um concorrente (🔍).");
+  const conc=concorrentesSalvos.find(c=>c.numero===numero);
+  const nome=conc?conc.nome:numero;
+  const provasFiltro=getRadio("feitosProvas","oficiais");
+
+  const porModalidade={};
+  ["Velocidade Adulto","Meio-fundo","Fundo","Filhotes"].forEach(tipo=>{
+    const chaves=filtrarProvasPorFiltros(tipo,provasFiltro).sort((a,b)=>{const [aa,an]=a.split("/"),[ba,bn]=b.split("/");return (+aa||0)-(+ba||0)||(+an||0)-(+bn||0)});
+    const provas=[];
+    chaves.forEach(chave=>{
+      const itens=(classificacoesSalvas[chave]||[]).filter(x=>x.concNum===numero).sort((a,b)=>a.lugar-b.lugar);
+      if(itens.length){
+        const [a,n]=chave.split("/");
+        const curso=cursosSalvos.find(c=>c.ano===a&&c.num===n);
+        provas.push({chave,curso,pombos:itens});
+      }
+    });
+    if(provas.length)porModalidade[tipo]=provas;
+  });
+
+  if(Object.keys(porModalidade).length===0){
+    document.getElementById("certificadoPreviewFeitos").innerHTML='<div style="text-align:center;color:#a00;padding:20px;">Nenhum registro encontrado para esse concorrente.</div>';
+    return;
+  }
+
+  const dataEmissao=new Date().toLocaleDateString("pt-BR");
+  let corpoHtml="",totalGeralPontos=0,totalGeralProvas=0,totalGeralPombos=0;
+  Object.keys(porModalidade).forEach(tipo=>{
+    const provas=porModalidade[tipo];
+    corpoHtml+='<div style="margin-top:16px;font-weight:bold;color:#008080;border-bottom:1px solid #ccc;padding-bottom:2px;">'+esc(tipoParaLabel(tipo))+'</div>';
+    let subtotalModalidade=0;
+    provas.forEach(p=>{
+      corpoHtml+='<div style="margin-top:8px;font-weight:bold;font-size:11px;color:#333;">'+esc(p.chave)+(p.curso?' — '+esc(p.curso.nome):'')+(p.curso&&p.curso.data?' ('+esc(p.curso.data)+')':'')+'</div>';
+      corpoHtml+='<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:2px;"><thead><tr style="background:#f2f2f2;"><th style="text-align:left;padding:3px;">Anilha</th><th style="padding:3px;">Lugar</th><th style="padding:3px;">Marca</th><th style="text-align:right;padding:3px;">Pontos</th></tr></thead><tbody>';
+      let subtotalProva=0;
+      p.pombos.forEach(item=>{
+        subtotalProva+=brN(item.pontos);
+        totalGeralPombos++;
+        corpoHtml+='<tr><td style="text-align:left;padding:3px;">'+esc(item.anilha)+'</td><td style="text-align:center;padding:3px;">'+item.lugar+'º</td><td style="text-align:center;padding:3px;">'+(item.marca==="P"?"P":"E")+'</td><td style="text-align:right;padding:3px;">'+item.pontos+'</td></tr>';
+      });
+      corpoHtml+='</tbody></table>';
+      subtotalModalidade+=subtotalProva;
+    });
+    corpoHtml+='<div style="text-align:right;font-size:11px;color:#555;margin-top:4px;font-weight:bold;">Subtotal '+esc(tipoParaLabel(tipo))+': '+subtotalModalidade+' pts em '+provas.length+' prova(s)</div>';
+    totalGeralPontos+=subtotalModalidade;
+    totalGeralProvas+=provas.length;
+  });
+
+  const html=`
+    <div class="certificado" style="text-align:left;">
+      <div class="selo" style="text-align:center;">📜</div>
+      <h1 style="text-align:center;">DIPLOMA DE DESEMPENHO</h1>
+      <h2 style="text-align:center;">Clube Columbófilo Limeirense</h2>
+      <div class="corpo" style="text-align:center;">
+        O que fez em cada prova,<br>
+        <span class="nome-vencedor">${esc(nome)}</span>
+        (sócio nº ${esc(numero)}), pombo a pombo, por modalidade.
+      </div>
+      ${corpoHtml}
+      <div style="text-align:center;margin-top:14px;font-weight:bold;background:#fffacd;padding:8px;border-radius:4px;">
+        Total geral: ${totalGeralPontos} pontos · ${totalGeralPombos} pombo(s) classificado(s) · ${totalGeralProvas} prova(s)
+      </div>
+      <div style="font-size:11px;color:#888;margin-top:10px;text-align:center;">Emitido em ${dataEmissao}</div>
+      <div class="assinaturas">
+        <div class="assinatura">Presidente</div>
+        <div class="assinatura">Diretor de Provas</div>
+      </div>
+    </div>`;
+  document.getElementById("certificadoPreviewFeitos").innerHTML=html;
+  /* Gerar este limpa o certificado de prova, pra nunca imprimir os dois
+     empilhados por engano. */
+  const provaEl=document.getElementById("certificadoPreview");
+  if(provaEl)provaEl.innerHTML="";
+  setStatus("Diploma de feitos gerado: "+nome);
+}
 function imprimirCertificado(){
-  if(!document.getElementById("certificadoPreview").innerHTML.trim())return alert("Gere o certificado primeiro.");
+  const temProva=document.getElementById("certificadoPreview").innerHTML.trim();
+  const temFeitos=document.getElementById("certificadoPreviewFeitos").innerHTML.trim();
+  if(!temProva&&!temFeitos)return alert("Gere o certificado ou o diploma de feitos primeiro.");
   window.print();
 }
 function abrirCertificadoParaConcurso(ano,num,nome){
@@ -3471,7 +3624,18 @@ function selecionarSocioPMR(){
     document.getElementById("pmrSocioNome").value=conc.nome;
     const mobNome=document.getElementById("mobNomeSocio");
     if(mobNome)mobNome.textContent=conc.numero+" - "+conc.nome;
-    setStatus("Sócio selecionado para PM Remote: "+conc.nome);
+    /* Limpa o link já gerado (se houver) ao trocar de sócio — assim o
+       operador é forçado a clicar em "Gerar Link" de novo antes de enviar,
+       em vez de correr o risco de mandar um link antigo com os dados de
+       outra pessoa (foi exatamente isso que causou um caso real de erro). */
+    const campoLink=document.getElementById("pmrLinkGerado");
+    if(campoLink&&campoLink.value){
+      campoLink.value="";
+      window._pmrLinkGeradoPara=null;
+      setStatus("Sócio trocado — gere o link de novo antes de enviar.");
+    }else{
+      setStatus("Sócio selecionado para PM Remote: "+conc.nome);
+    }
   });
 }
 
@@ -3551,6 +3715,11 @@ async function gerarLinkPMR(){
   const linkFinal=`${base}?${params.toString()}`;
   document.getElementById("pmrLinkGerado").value=linkFinal;
   registrarLinkGerado(ano+"/"+num,concNum,socioNome);
+  /* Guarda pra quem exatamente este link foi gerado, pra detectar depois se
+     o operador trocou o sócio/concurso na tela SEM gerar um link novo antes
+     de enviar (isso já causou um caso real: mensagem cumprimentando uma
+     pessoa mas o link apontando pros dados de outro sócio). */
+  window._pmrLinkGeradoPara={ano,num,socio:concNum,socioNome};
 
   const mobRel=document.getElementById("mobTipoRelogio");
   const mobConc=document.getElementById("mobNomeConcurso");
@@ -3575,8 +3744,38 @@ async function gerarLinkPMR(){
 function enviarLinkWhatsAppPMR(){
   const link=document.getElementById("pmrLinkGerado").value;
   if(!link)return alert("Primeiro clique em 'Gerar Link de Constatação'.");
-  const socioNome=document.getElementById("pmrSocioNome").value;
-  const msg=`Olá, ${socioNome}! 🏁 A prova foi encerrada. Registre agora suas constatações provisórias através do link oficial seguro:\n\n👉 ${link}\n\n*Clube Columbófilo Limeirense*`;
+  /* BUG CORRIGIDO (caso real relatado): a saudação da mensagem usava o nome
+     que estivesse NAQUELE MOMENTO no campo "Sócio" da tela — mas se o
+     operador gerou o link pra um sócio e depois trocou o campo pra outro
+     sócio (sem clicar em Gerar Link de novo), a mensagem cumprimentava a
+     pessoa errada enquanto o link continuava apontando pros dados do
+     primeiro sócio. Agora a saudação sempre usa o nome que está DENTRO do
+     link (o que realmente vai ser usado do outro lado), nunca o campo da
+     tela — e se a tela estiver mostrando outro sócio/concurso, avisa antes
+     de deixar enviar. */
+  let paramsLink;
+  try{paramsLink=new URL(link).searchParams}catch(e){paramsLink=null}
+  const socioNomeDoLink=paramsLink?(paramsLink.get("socioNome")||""):(document.getElementById("pmrSocioNome").value||"");
+  const socioIdDoLink=paramsLink?(paramsLink.get("socio")||""):"";
+  const anoDoLink=paramsLink?(paramsLink.get("ano")||""):"";
+  const numDoLink=paramsLink?(paramsLink.get("num")||""):"";
+
+  const socioIdTela=document.getElementById("pmrSocioID").value||"";
+  const anoTela=document.getElementById("pmrAno").value||"";
+  const numTela=document.getElementById("pmrNum").value||"";
+
+  if(paramsLink&&(socioIdDoLink!==socioIdTela||anoDoLink!==anoTela||numDoLink!==numTela)){
+    const confirmaMesmoAssim=confirm(
+      "⚠️ ATENÇÃO: o link gerado é para outro sócio/concurso do que está selecionado na tela agora!\n\n"+
+      "Link gerado para: sócio "+socioIdDoLink+" — concurso "+anoDoLink+"/"+numDoLink+"\n"+
+      "Tela mostrando agora: sócio "+socioIdTela+" — concurso "+anoTela+"/"+numTela+"\n\n"+
+      "Isso normalmente acontece quando você troca o sócio na tela sem clicar em 'Gerar Link de Constatação' de novo.\n\n"+
+      "Clique Cancelar e gere o link de novo (recomendado), ou OK para enviar mesmo assim o link antigo."
+    );
+    if(!confirmaMesmoAssim)return;
+  }
+
+  const msg=`Olá, ${socioNomeDoLink}! 🏁 A prova foi encerrada. Registre agora suas constatações provisórias através do link oficial seguro:\n\n👉 ${link}\n\n*Clube Columbófilo Limeirense*`;
   window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`,"_blank");
 }
 
@@ -4064,6 +4263,14 @@ document.getElementById("btnGerarRel").onclick=gerarRelatorioPombos;
 document.getElementById("ajudaBusca").addEventListener("input",e=>renderAjuda(e.target.value));
 document.getElementById("filtroPombos").addEventListener("input",atualizarTabelaPombos);
 document.getElementById("filtroConcorrentesConsulta").addEventListener("input",atualizarTabelaConcorrentes);
+document.getElementById("pmrSocioID").addEventListener("input",function(){
+  const campoLink=document.getElementById("pmrLinkGerado");
+  if(campoLink&&campoLink.value){
+    campoLink.value="";
+    window._pmrLinkGeradoPara=null;
+    setStatus("Número do sócio alterado — gere o link de novo antes de enviar.");
+  }
+});
 
 document.addEventListener("keydown",function(e){
   if(e.ctrlKey&&(e.key==="l"||e.key==="L")){
