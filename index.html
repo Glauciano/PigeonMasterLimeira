@@ -4494,5 +4494,25 @@ window.addEventListener("load",function(){
   });
 })();
 </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+  const supabaseUrl = "https://SEU_PROJECT_ID.supabase.co"
+  const supabaseKey = "SUA_PUBLISHABLE_KEY"
+
+  const supabase = window.supabase.createClient(supabaseUrl, supabaseKey)
+
+  async function testarConexao() {
+    const { data, error } = await supabase.from("usuarios").select("*")
+
+    if (error) {
+      console.log("Erro:", error)
+    } else {
+      console.log("Conectado ✅", data)
+    }
+  }
+
+  testarConexao()
+</script>
 </body>
 </html>
