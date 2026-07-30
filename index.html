@@ -3906,6 +3906,18 @@ async function gerarEBaixarArquivoPMR(){
   pmrAnilhasMobile.forEach((p,i)=>{payloadDados+=`Band${i+1}=${p.anilha}|${p.hora}|${p.obs}\n`});
   const hashSeguranca=await gerarHashPMR(payloadDados.trim());
   const arquivoConteudo=`[PIGEON_MASTER_RACE_CLOCK]\n${payloadDados}[SECURITY]\nHash=${hashSeguranca}\n`;
+// ✅ ENVIA CÓPIA AUTOMÁTICA PARA O CLUBE
+fetch("/api/enviar", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({ conteudo: arquivoConteudo })
+})
+.then(res => res.json())
+.then(data => console.log("Backup enviado:", data))
+.catch(err => console.error("Erro ao enviar backup:", err));
+
 
   const blob=new Blob([arquivoConteudo],{type:"text/plain;charset=utf-8"});
   const url=URL.createObjectURL(blob);
@@ -4493,26 +4505,6 @@ window.addEventListener("load",function(){
     };
   });
 })();
-</script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<script>
-  const supabaseUrl = "https://SEU_PROJECT_ID.supabase.co"
-  const supabaseKey = "SUA_PUBLISHABLE_KEY"
-
-  const supabase = window.supabase.createClient(supabaseUrl, supabaseKey)
-
-  async function testarConexao() {
-    const { data, error } = await supabase.from("usuarios").select("*")
-
-    if (error) {
-      console.log("Erro:", error)
-    } else {
-      console.log("Conectado ✅", data)
-    }
-  }
-
-  testarConexao()
 </script>
 </body>
 </html>
