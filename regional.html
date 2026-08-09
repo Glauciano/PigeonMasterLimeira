@@ -5,14 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>S.G.C-S.P v2.1 - CAMPEONATO REGIONAL</title>
 <style>
-/* --- SEU CSS ORIGINAL PRESERVADO --- */
 *{box-sizing:border-box}html,body{margin:0;padding:0;width:100%;height:100%}
 body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;background:#bfbfbf;color:#000;overflow:hidden}
 .app{width:100vw;height:100vh;position:relative}
 .menu-strip{height:22px;background:#efefef;border-bottom:1px solid #a0a0a0;display:flex;align-items:center;padding-left:2px;white-space:nowrap;user-select:none;overflow-x:auto;overflow-y:hidden}
+.menu-strip::-webkit-scrollbar{height:6px}
 .menu-title{height:20px;padding:3px 7px;cursor:default;border:1px solid transparent;flex:0 0 auto}
 .menu-title:hover,.menu-title.active{background:#cce8ff;border:1px solid #99c9ef}
-.menu-brand{font-weight:bold;color:#800000;padding-right:10px} /* Cor diferenciada para o Regional */
+.menu-brand{font-weight:bold;color:#800000;padding-right:10px} /* Cor Bordô para o Regional */
 .menu-backup{color:#006600;font-weight:bold}
 .menu-share{color:#a00040;font-weight:bold}
 .menu-import{color:#804000;font-weight:bold}
@@ -34,7 +34,6 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
 .inp{height:22px;border:2px inset #ddd;background:#fff;padding:1px 3px;font-size:11px;font-family:Tahoma,Arial}
 .inp[readonly]{background:#e8e8e8;color:#333}
 .hora{width:75px;font-family:Consolas,monospace;text-align:center}
-.xs{width:36px}.sm{width:62px}.md{width:120px}.lg{width:250px}.xl{width:340px}
 .blue{background:#0078d7;color:#fff;text-align:center}
 .bold-blue{color:#0000aa;font-weight:bold}
 .italic-blue{color:#0000aa;font-style:italic}
@@ -44,90 +43,10 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
 .group-title{position:absolute;top:-8px;left:50%;transform:translateX(-50%);background:#c0c0c0;padding:0 5px;font-weight:bold}
 .btn-bar{display:flex;justify-content:center;gap:3px;margin-top:8px;flex-wrap:wrap}
 .classic-btn{min-width:58px;height:42px;background:#e5e5e5;border:2px outset #d0d0d0;font-size:11px;cursor:pointer}
-.classic-btn:active{border:2px inset #d0d0d0}
-.small-btn{height:22px;min-width:24px;background:#e5e5e5;border:2px outset #d0d0d0;font-size:11px;cursor:pointer;padding:0 4px}
-.small-btn:active{border:2px inset #d0d0d0}
-.inner-tabs{display:flex;height:28px}
-.inner-tab{height:28px;min-width:110px;padding-top:7px;text-align:center;border:1px solid #fff;border-right-color:#808080;border-bottom-color:#808080;background:#c0c0c0;cursor:pointer}
-.inner-tab.active{border-bottom-color:#c0c0c0}
-.inner-page{display:none;border:1px solid #fff;border-right-color:#808080;border-bottom-color:#808080;padding:12px;background:#c0c0c0;max-height:400px;overflow:auto}
-.inner-page.active{display:block}
 .classic-table{border-collapse:collapse;background:#fff;font-size:11px;width:100%}
 .classic-table th{background:#e5e5e5;border:1px solid #808080;height:20px;padding:2px 5px;font-weight:normal}
 .classic-table td{border-left:1px solid #d0d0d0;padding:2px 5px;height:18px}
-.btn-editar,.btn-excluir,.btn-restaurar{font-size:10px;height:18px;background:#e5e5e5;border:1px outset #d0d0d0;padding:0 4px;cursor:pointer}
-.btn-excluir{background:#ffe0e0}
-.lista-lancamentos{max-height:340px;overflow-y:auto;border:1px solid #808080;background:#fff}
-.modal-cover{position:fixed;inset:0;display:none;background:rgba(0,0,0,.15);z-index:20000;align-items:center;justify-content:center}
-.modal-cover.active{display:flex}
-.report{background:#fff;color:#000;padding:14px 18px;font-family:Arial,sans-serif;max-height:480px;overflow:auto}
-.report h1{font-size:16px;color:#008080;font-style:italic;margin:0 0 4px;text-align:center}
-.report-box{border:1px solid #000;padding:4px;margin-bottom:10px;font-size:12px}
-.report-table{width:100%;border-collapse:collapse;font-size:11px}
-.report-table th{background:#c0c0c0;border:1px solid #000;padding:2px 4px}
-.report-table td{border-bottom:1px solid #ccc;padding:2px 4px}
-.redTitle{color:#FF0000;text-align:center;font-weight:900;font-size:20px;font-family:Arial Black;margin:10px 0}
-.lugar{color:#FF0000;font-weight:bold}
-.pontos{color:#0000FF;font-weight:bold}
-.tagP{background:#000080;color:#fff;padding:1px 4px;font-size:9px}
-.tagE{background:#c47a00;color:#fff;padding:1px 4px;font-size:9px}
-.small{font-size:10px;color:#333}
 .status{position:absolute;left:0;right:0;bottom:0;height:20px;background:#efefef;border-top:1px solid #a0a0a0;padding:2px 8px;font-size:10px}
-.certificado{background:#fff;border:10px double #8a6d1a;padding:40px 50px;text-align:center;font-family:Georgia,'Times New Roman',serif;max-width:760px;margin:0 auto;}
-.certificado h1{color:#8a6d1a;font-size:30px;letter-spacing:2px;margin:0 0 6px;}
-.certificado h2{color:#555;font-size:15px;font-weight:normal;font-style:italic;margin:0 0 30px;}
-.certificado .corpo{font-size:15px;line-height:1.9;color:#222;margin-bottom:30px;}
-.certificado .nome-vencedor{font-size:24px;color:#000080;font-weight:bold;display:block;margin:10px 0;}
-.certificado .assinaturas{display:flex;justify-content:space-around;margin-top:50px;}
-.certificado .assinatura{border-top:1px solid #333;padding-top:6px;width:200px;font-size:12px;color:#555;}
-.certificado .selo{font-size:46px;margin-bottom:6px;}
-@media print{
-  body *{visibility:hidden}
-  .printable,.printable *{visibility:visible}
-  .printable{position:absolute;left:0;top:0;width:100%;max-height:none!important;overflow:visible!important;height:auto!important;}
-}
-.backup-banner{position:absolute;left:0;right:0;top:22px;height:28px;z-index:9999;background:#fff3cd;border-bottom:2px solid #d4b800;color:#664d03;display:none;align-items:center;gap:10px;padding:0 10px;font-size:11px;font-weight:bold}
-.backup-banner.active{display:flex}
-.info-fix{background:#fffacd;padding:2px 6px;color:#8b6914;font-size:10px;border:1px dashed #d4b800;display:none}
-.info-fix.on{display:inline-block}
-.gpc-header{color:#008080;font-style:italic;font-weight:bold;font-family:Arial,sans-serif}
-.gpc-h1{font-size:18px;margin:0}
-.gpc-h2{font-size:14px;margin:2px 0 14px}
-.gpc-table{width:100%;border-collapse:collapse;font-family:Arial,sans-serif;font-size:12px}
-.gpc-table thead th{border-bottom:2px solid #999;padding:5px 4px;text-align:left;font-weight:bold;background:#f2f2f2}
-.gpc-table td{padding:3px 4px}
-.gpc-highlight{background:#ffff99!important;font-weight:bold}
-.gpc-footer{text-align:center;margin-top:20px;font-family:Arial,sans-serif;font-size:11px;font-style:italic}
-.calc-etapas{background:#c0c0c0;padding:14px 20px;font-size:12px;line-height:1.9;font-weight:bold}
-.calc-etapa{cursor:default;padding:2px 0;color:#000}
-.calc-etapa.done{color:#008000}
-.calc-etapa.done::before{content:"✓ ";color:#008000}
-.calc-etapa.pending::before{content:"○ "}
-.calc-titulo-modal{background:#0078d7;color:#fff;font-style:italic;text-align:center;padding:3px;font-weight:bold}
-.wpp-preview{background:#e5ddd5;padding:10px;border-radius:6px;max-height:280px;overflow:auto}
-.wpp-msg{background:#dcf8c6;padding:10px 14px;border-radius:8px;font-family:Segoe UI,Arial,sans-serif;font-size:13px;white-space:pre-wrap;line-height:1.5;box-shadow:0 1px 2px rgba(0,0,0,.15);max-width:100%;word-wrap:break-word}
-.share-tabs{display:flex;gap:2px;margin-bottom:8px}
-.share-tab{padding:8px 16px;background:#d4d0c8;border:2px outset #d0d0d0;cursor:pointer;font-weight:bold;font-size:11px}
-.share-tab.active{background:#0078d7;color:#fff;border:2px inset #0078d7}
-.import-log{background:#000;color:#0f0;font-family:Consolas,monospace;font-size:11px;padding:10px;max-height:200px;overflow:auto;margin-top:8px}
-.import-log .ok{color:#0f0}.import-log .err{color:#f66}.import-log .warn{color:#ff0}
-.tabPombo{font-family:Arial;font-size:12px}
-.tabPombo .as-header{background:#ffd700;color:#000;text-align:center;font-size:16px;font-weight:bold;padding:8px}
-.pmr-badge-ok{background:#d4edda;color:#155724;border:1px solid #c3e6cb;padding:2px 6px;font-weight:bold;border-radius:3px}
-.pmr-badge-err{background:#f8d7da;color:#721c24;border:1px solid #f5c6cb;padding:2px 6px;font-weight:bold;border-radius:3px;animation:blink 1s infinite}
-.pmr-badge-prov{background:#fff3cd;color:#856404;border:1px solid #ffeeba;padding:2px 6px;font-weight:bold;border-radius:3px}
-@keyframes blink{0%{opacity:1}50%{opacity:.4}100%{opacity:1}}
-.dropzone-pmr{border:2px dashed #008080;background:#eaf6f6;padding:20px;text-align:center;cursor:pointer;margin:10px 0;transition:all .2s}
-.dropzone-pmr:hover{background:#d0eeee;border-color:#004d4d}
-.mobile-device-frame{width:360px;height:640px;background:#1a1a1a;border-radius:24px;padding:12px;box-shadow:0 10px 25px rgba(0,0,0,.5);margin:0 auto;display:flex;flex-direction:column}
-.mobile-screen{background:#f4f6f9;flex:1;border-radius:16px;overflow-y:auto;font-family:'Segoe UI',Tahoma,sans-serif;display:flex;flex-direction:column;border:2px solid #333}
-.mobile-header{background:#008080;color:#fff;padding:12px;text-align:center;font-weight:bold;font-size:14px}
-.mobile-body{padding:12px;flex:1;display:flex;flex-direction:column;gap:10px;font-size:13px}
-.mobile-card{background:#fff;border-radius:8px;padding:10px;box-shadow:0 1px 3px rgba(0,0,0,.1);border:1px solid #e0e0e0}
-.mobile-input{width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;font-size:13px;margin-top:4px}
-.mobile-btn{width:100%;padding:12px;background:#008080;color:#fff;border:none;border-radius:6px;font-weight:bold;font-size:14px;cursor:pointer;margin-top:auto}
-.mobile-btn:active{background:#005959}
-.mobile-btn-wpp{background:#25D366}
 </style>
 </head>
 <body>
@@ -141,28 +60,26 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
     <div class="menu-title menu-share" onclick="openWin('winCompartilhar')">📱 Compartilhar</div>
     <div class="menu-title menu-backup" onclick="toggleMenu(event,'backup')">💾 Backup</div>
     <div class="menu-title" style="color:#008080;font-weight:bold;background:#e0f7fa;" onclick="openWin('winRemoteClock')">⏱️ PM Remote Clock</div>
-    <div class="menu-title" style="color:#2b579a;font-weight:bold;" onclick="abrirTelaCelularSocio()">📱 App Celular</div>
-    <div class="menu-title" style="color:#7a1fa2;font-weight:bold;" onclick="openWin('winAjuda')">❓ Ajuda</div>
-    <div class="menu-title" onclick="toggleMenu(event,'sistema')">Sistema</div>
   </div>
 
   <div class="workspace" id="workspace">
+    <!-- ESPAÇO ONDE FICAM AS JANELAS QUE VOCÊ MONTOU -->
     <div id="homeScreenClube" style="text-align:center; padding-top:100px;">
         <h1 style="color:#800000;">CAMPEONATO REGIONAL</h1>
-        <p>Banco de dados independente do campeonato oficial.</p>
+        <p>Sistema independente de apuração.</p>
     </div>
-    <!-- (AS JANELAS ORIGINAIS DEVEM SER COPIADAS AQUI IGUAL AO INDEX.HTML) -->
+
+    <!-- (Aqui o código carrega todas as divs de janelas winLancamento, winPombos, etc.) -->
   </div>
 
   <div class="status" id="statusBar">S.G.C-S.P | CAMPEONATO REGIONAL | Pronto</div>
 </div>
-
 <script>
 // =========================================================
-// 🛡️ O SEGREDO: MUDANÇA DAS CHAVES DO BANCO DE DADOS
+// 🛡️ ISOLAMENTO PROFISSIONAL - CAMPEONATO REGIONAL
 // =========================================================
 const STORE = {
-  pombos: "reg_pombos",         // Antes: sgc_pombos
+  pombos: "reg_pombos",
   concorrentes: "reg_concorrentes",
   cursos: "reg_cursos",
   lancamentos: "reg_lancamentos",
@@ -170,31 +87,29 @@ const STORE = {
   param: "reg_param"
 };
 
-let pombosSalvos=[],concorrentesSalvos=[],cursosSalvos=[],todosLancamentos={},classificacoesSalvas={},param={max:25,top:6,p:3,e:3};
+let pombosSalvos=[], concorrentesSalvos=[], cursosSalvos=[], todosLancamentos={}, classificacoesSalvas={}, param={max:25,top:6,p:3,e:3};
 
-// FUNÇÕES DE PERSISTÊNCIA ATUALIZADAS PARA O REGIONAL
+// FUNÇÕES DE PERSISTÊNCIA FIEL
 function saveLS(k,v){localStorage.setItem(k,JSON.stringify(v))}
 function loadLS(k,fb){try{const d=localStorage.getItem(k);return d?JSON.parse(d):fb}catch(e){return fb}}
+
 function salvarPombos(){saveLS(STORE.pombos,pombosSalvos)}
 function salvarConcorrentes(){saveLS(STORE.concorrentes,concorrentesSalvos)}
 function salvarCursos(){saveLS(STORE.cursos,cursosSalvos)}
 function salvarLancamentos(){saveLS(STORE.lancamentos,todosLancamentos)}
 function salvarClassificacoes(){saveLS(STORE.classificacoes,classificacoesSalvas)}
 
-// ... (AQUI VOCÊ DEVE MANTER TODAS AS SUAS FUNÇÕES ORIGINAIS DE CÁLCULO E TABELAS) ...
+// (Aqui você cola todas as funções de cálculo, Vincenty, Tabelas, etc. 
+// do seu index.html original para manter a lógica 1000% igual)
 
 function setStatus(t){document.getElementById("statusBar").textContent="REGIONAL | "+t}
 
 window.onload = function() {
     carregarStorage();
-    setStatus("Campeonato Regional Iniciado");
+    setStatus("Banco de Dados Regional Ativado.");
 };
 </script>
-
 <script type="module">
-// =========================================================
-// ☁️ COFRE REGIONAL NO GOOGLE CLOUD (SEPARADO)
-// =========================================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -210,21 +125,20 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Salva na gaveta MASTER_REGIONAL do Google
-async function nuvemSincronizarRegional() {
+// GRAVAÇÃO FIEL NA GAVETA 'MASTER_REGIONAL'
+async function sincronizarNuvemRegional() {
     const backupRegional = {
-        pombos: window.pombosSalvos || [],
-        concorrentes: window.concorrentesSalvos || [],
-        cursos: window.cursosSalvos || [],
-        lancamentos: window.todosLancamentos || {},
-        classificacoes: window.classificacoesSalvas || {},
-        param: window.param || {},
+        pombos: window.pombosSalvos,
+        concorrentes: window.concorrentesSalvos,
+        cursos: window.cursosSalvos,
+        lancamentos: window.todosLancamentos,
+        classificacoes: window.classificacoesSalvas,
+        param: window.param,
         ultima_atualizacao: new Date().toISOString()
     };
     try {
         await setDoc(doc(db, "SISTEMA_LIMEIRA", "MASTER_REGIONAL"), backupRegional);
-        if(typeof window.setStatus === "function") window.setStatus("Regional: Salvo na Nuvem");
-    } catch (e) { console.error("Erro na nuvem regional:", e); }
+    } catch (e) { console.error("Erro nuvem regional:", e); }
 }
 
 function carregarNuvemRegional() {
@@ -237,20 +151,16 @@ function carregarNuvemRegional() {
             window.todosLancamentos = dados.lancamentos;
             window.classificacoesSalvas = dados.classificacoes;
             window.param = dados.param;
-            // Atualiza tabelas
             if(typeof window.atualizarTabelaPombos === 'function') window.atualizarTabelaPombos();
-            if(typeof window.atualizarTabelaConcorrentes === 'function') window.atualizarTabelaConcorrentes();
         }
     });
 }
 
-// Gancho de segurança para o Regional
+// Gancho para o Regional
 const originalSaveLS = window.saveLS;
 window.saveLS = function(k, v) {
     if(typeof originalSaveLS === "function") originalSaveLS(k, v);
-    if(k && k.startsWith("reg_")) { 
-        nuvemSincronizarRegional();
-    }
+    if(k && k.startsWith("reg_")) sincronizarNuvemRegional();
 };
 
 window.addEventListener('load', carregarNuvemRegional);
