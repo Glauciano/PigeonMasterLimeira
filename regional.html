@@ -1,0 +1,52 @@
+<!-- CÓDIGO DO CAMPEONATO REGIONAL - INDEPENDENTE -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- MUDANÇA 1: Título da Aba -->
+<title>S.G.C-S.P v2.1 - CAMPEONATO REGIONAL (Limeira)</title>
+
+<!-- COLE TODO O SEU CSS (STYLE) AQUI IGUAL AO ORIGINAL -->
+<style>
+/* ... (Aqui você cola todo o CSS que você já tem no seu index.html) ... */
+/* Eu mantive o visual exatamente igual para você não estranhar nada */
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="menu-strip" id="menuStrip">
+    <!-- MUDANÇA 2: Nome no Menu para você não se confundir -->
+    <div class="menu-title menu-brand" style="color: #a00040;">S.G.C-S.P (REGIONAL)</div>
+    <!-- O restante do menu é igual -->
+  </div>
+
+  <!-- O RESTANTE DO SEU HTML (janelas, etc.) IGUAL AO ORIGINAL -->
+
+  <div class="status" id="statusBar">S.G.C-S.P | CAMPEONATO REGIONAL | Pronto</div>
+</div>
+
+<script>
+// =========================================================
+// MUDANÇA 3: O COFRE DE DADOS (INDIVIDUAL PARA O REGIONAL)
+// =========================================================
+const STORE = {
+  pombos: "reg_pombos",         // Antes era sgc_pombos
+  concorrentes: "reg_concorrentes",
+  cursos: "reg_cursos",
+  lancamentos: "reg_lancamentos",
+  classificacoes: "reg_classificacoes",
+  param: "reg_param"
+};
+
+// DAQUI PARA BAIXO, TODO O SEU JAVASCRIPT IGUAL AO ORIGINAL
+// (Todas as suas funções de Vincenty, Cálculo de Média, etc.)
+
+let pombosSalvos=[], concorrentesSalvos=[], cursosSalvos=[], todosLancamentos={}, classificacoesSalvas={}, param={max:25,top:6,p:3,e:3};
+
+// ... cole aqui todas as suas funções originais ...
+
+function setStatus(t){document.getElementById("statusBar").textContent="S.G.C-S.P REGIONAL | "+t}
+</script>
+</body>
+</html>
