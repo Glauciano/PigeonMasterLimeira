@@ -825,9 +825,9 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
           </div>
           <div class="row">
             <span class="lbl-left">Sócio :</span>
-            <input class="inp sm" id="pmrSocioID" value="81">
+            <input class="inp sm" id="pmrSocioID" value="">
             <button class="small-btn" onclick="selecionarSocioPMR()">🔍</button>
-            <input class="inp xl italic-blue" id="pmrSocioNome" value="VILMAR ALMEIDA PORTA DO SOL" readonly>
+            <input class="inp xl italic-blue" id="pmrSocioNome" value="" readonly>
           </div>
           
           <div class="group" style="margin-top:12px;">
@@ -951,23 +951,23 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
         <div class="mobile-screen">
           <div class="mobile-header">
             PigeonMaster - Remote Clock<br>
-            <span style="font-size:11px;font-weight:normal;color:#cce8ff;" id="mobNomeConcurso">Conc 1/2026 - Prova Igarapava</span>
+            <span style="font-size:11px;font-weight:normal;color:#cce8ff;" id="mobNomeConcurso">—</span>
           </div>
           <div class="mobile-body">
             <div class="mobile-card" style="background:#e0f7fa;border-color:#b2ebf2;">
-              <b>👤 Sócio:</b> <span id="mobNomeSocio">81 - VILMAR ALMEIDA PORTA DO SOL</span><br>
-              <b>⌚ Relógio:</b> <span id="mobTipoRelogio">Benzing</span><br>
+              <b>👤 Sócio:</b> <span id="mobNomeSocio">—</span><br>
+              <b>⌚ Relógio:</b> <span id="mobTipoRelogio">—</span><br>
               <span style="font-size:11px;color:#00796b;" id="mobStatusGps">📍 GPS: Capturando localização...</span>
             </div>
 
             <div class="mobile-card">
               <label style="font-weight:bold;color:#333;">Número da Anilha:</label>
-              <input type="text" class="mobile-input" id="mobAnilhaInput" placeholder="Ex: 2335027/23" value="2335027/23">
+              <input type="text" class="mobile-input" id="mobAnilhaInput" placeholder="Ex: 2335027/23" value="">
               <span id="mobAnilhaAviso" style="display:none;color:#a67c00;font-size:11px;font-weight:bold;">⚠️ confira o número da anilha, parece incompleto</span>
               
               <label style="font-weight:bold;color:#333;margin-top:8px;display:block;">Hora da Constatação:</label>
               <div style="display:flex;gap:4px;">
-                <input type="text" class="mobile-input" id="mobHoraInput" placeholder="HH:MM:SS" style="font-family:Consolas;text-align:center;font-weight:bold;font-size:15px;" value="11:34:58">
+                <input type="text" class="mobile-input" id="mobHoraInput" placeholder="HH:MM:SS" style="font-family:Consolas;text-align:center;font-weight:bold;font-size:15px;" value="">
                 <button class="small-btn" style="margin-top:4px;height:34px;background:#d4edda;" onclick="capturarHoraAtualCelular()" title="Hora Exata Agora">⏰ Exata</button>
               </div>
 
@@ -4164,8 +4164,9 @@ function cobrarPendentesPMR(){
   setStatus("Cobrança montada para "+lista.length+" pendente(s).");
 }
 async function gerarLinkPMR(){
-  const concNum=document.getElementById("pmrSocioID").value||"81";
-  const socioNome=document.getElementById("pmrSocioNome").value||"";
+  const concNum=document.getElementById("pmrSocioID").value.trim();
+  const socioNome=document.getElementById("pmrSocioNome").value.trim();
+  if(!concNum||!socioNome)return alert("Selecione o Sócio (botão 🔍) antes de gerar o link.");
   const ano=document.getElementById("pmrAno").value||"2026";
   const num=document.getElementById("pmrNum").value||"1";
   const relogio=document.getElementById("pmrTipoRelogio").value||"Benzing";
@@ -4360,6 +4361,8 @@ function abrirTelaCelularSocio(){
 
 async function gerarEBaixarArquivoPMR(){
   if(!pmrAnilhasMobile.length)return alert("Adicione pelo menos 1 pombo na lista!");
+  if(!(document.getElementById("pmrSocioID").value||"").trim()||!(document.getElementById("pmrSocioNome").value||"").trim())
+    return alert("Selecione o Sócio na tela do PM Remote Clock antes de gerar o arquivo .PMR.");
   /* NOVO: antes de gerar o arquivo final, mostra a lista inteira pra
      conferência — pensado especialmente pra quem tem menos prática com
      celular, pra dar uma última chance de corrigir antes de enviar. */
@@ -4369,8 +4372,8 @@ async function gerarEBaixarArquivoPMR(){
   }
   const ano=document.getElementById("pmrAno").value||"2026";
   const num=document.getElementById("pmrNum").value||"1";
-  const socioNum=document.getElementById("pmrSocioID").value||"81";
-  const socioNome=document.getElementById("pmrSocioNome").value||"Carlos Silva";
+  const socioNum=document.getElementById("pmrSocioID").value.trim();
+  const socioNome=document.getElementById("pmrSocioNome").value.trim();
   const relogio=document.getElementById("mobTipoRelogio").textContent||"Benzing";
   const gpsEl=document.getElementById("mobStatusGps");
   const lat=gpsEl?.dataset?.lat||"-22.564100";
@@ -4396,7 +4399,9 @@ async function gerarEBaixarArquivoPMR(){
 }
 
 function enviarPmrDiretoWhatsApp(){
-  const socioNum=document.getElementById("pmrSocioID").value||"81";
+  const socioNum=document.getElementById("pmrSocioID").value.trim();
+  const socioNomeResumo=document.getElementById("pmrSocioNome").value.trim();
+  if(!socioNum||!socioNomeResumo)return alert("Selecione o Sócio na tela do PM Remote Clock antes de enviar o resumo.");
   const qtd=pmrAnilhasMobile.length;
   let resumo="";
   pmrAnilhasMobile.forEach(p=>resumo+=`\n🕊️ *${p.anilha}* - ⏰ ${p.hora}`);
@@ -4970,6 +4975,6 @@ window.addEventListener("load",function(){cloudIniciar(iniciarAplicativo)});
   });
 })();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2b203befd90a4e4',t:'MTc4NjczMjA1Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"1954b47c125f43f8b4338b3c4f804e4f"}' crossorigin="anonymous"></script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2b29230fc1a181d',t:'MTc4NjczNzg5MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"1954b47c125f43f8b4338b3c4f804e4f"}' crossorigin="anonymous"></script>
 </body>
 </html>
