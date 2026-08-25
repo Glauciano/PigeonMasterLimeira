@@ -825,9 +825,9 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
           </div>
           <div class="row">
             <span class="lbl-left">Sócio :</span>
-            <input class="inp sm" id="pmrSocioID" value="">
+            <input class="inp sm" id="pmrSocioID" value="81">
             <button class="small-btn" onclick="selecionarSocioPMR()">🔍</button>
-            <input class="inp xl italic-blue" id="pmrSocioNome" value="" readonly>
+            <input class="inp xl italic-blue" id="pmrSocioNome" value="VILMAR ALMEIDA PORTA DO SOL" readonly>
           </div>
           
           <div class="group" style="margin-top:12px;">
@@ -951,23 +951,23 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
         <div class="mobile-screen">
           <div class="mobile-header">
             PigeonMaster - Remote Clock<br>
-            <span style="font-size:11px;font-weight:normal;color:#cce8ff;" id="mobNomeConcurso">—</span>
+            <span style="font-size:11px;font-weight:normal;color:#cce8ff;" id="mobNomeConcurso">Conc 1/2026 - Prova Igarapava</span>
           </div>
           <div class="mobile-body">
             <div class="mobile-card" style="background:#e0f7fa;border-color:#b2ebf2;">
-              <b>👤 Sócio:</b> <span id="mobNomeSocio">—</span><br>
-              <b>⌚ Relógio:</b> <span id="mobTipoRelogio">—</span><br>
+              <b>👤 Sócio:</b> <span id="mobNomeSocio">81 - VILMAR ALMEIDA PORTA DO SOL</span><br>
+              <b>⌚ Relógio:</b> <span id="mobTipoRelogio">Benzing</span><br>
               <span style="font-size:11px;color:#00796b;" id="mobStatusGps">📍 GPS: Capturando localização...</span>
             </div>
 
             <div class="mobile-card">
               <label style="font-weight:bold;color:#333;">Número da Anilha:</label>
-              <input type="text" class="mobile-input" id="mobAnilhaInput" placeholder="Ex: 2335027/23" value="">
+              <input type="text" class="mobile-input" id="mobAnilhaInput" placeholder="Ex: 2335027/23" value="2335027/23">
               <span id="mobAnilhaAviso" style="display:none;color:#a67c00;font-size:11px;font-weight:bold;">⚠️ confira o número da anilha, parece incompleto</span>
               
               <label style="font-weight:bold;color:#333;margin-top:8px;display:block;">Hora da Constatação:</label>
               <div style="display:flex;gap:4px;">
-                <input type="text" class="mobile-input" id="mobHoraInput" placeholder="HH:MM:SS" style="font-family:Consolas;text-align:center;font-weight:bold;font-size:15px;" value="">
+                <input type="text" class="mobile-input" id="mobHoraInput" placeholder="HH:MM:SS" style="font-family:Consolas;text-align:center;font-weight:bold;font-size:15px;" value="11:34:58">
                 <button class="small-btn" style="margin-top:4px;height:34px;background:#d4edda;" onclick="capturarHoraAtualCelular()" title="Hora Exata Agora">⏰ Exata</button>
               </div>
 
@@ -1363,10 +1363,8 @@ const CLOUD_CFG_KEY = CLOUD_APP_ID + "_cloud_config";
 const CLOUD_META_KEY = CLOUD_APP_ID + "_cloud_meta";
 const CLOUD_DEVICE_KEY = CLOUD_APP_ID + "_cloud_device";
 let cloudClient = null, cloudInscricao = null, cloudOnline = false, cloudAppIniciado = false;
-let cloudTempoRealOk = false, cloudPollingTimer = null;
 let cloudTimers = {}, cloudPendentes = {}, cloudUltimoSync = null;
 let cloudRemotoAguardando = {};
-let cloudUltimoErro = null;
 
 function cloudCfg() { return loadLS(CLOUD_CFG_KEY, null); }
 function cloudSalvarCfg(c) { saveLS(CLOUD_CFG_KEY, c); }
@@ -1387,66 +1385,12 @@ function cloudGetClient() {
   if (!cloudHabilitada()) return null;
   if (!cloudClient) {
     const c = cloudCfg();
-    try { cloudClient = window.supabase.createClient(cloudNormalizarUrl(c.url), c.key); }
+    try { cloudClient = window.supabase.createClient(c.url, c.key); }
     catch (e) { console.warn("Nuvem: falha ao iniciar cliente", e); return null; }
   }
   return cloudClient;
 }
 function cloudTs(s) { const n = Date.parse(s || ""); return isNaN(n) ? 0 : n; }
-/* Aceita a URL mesmo se colarem com barra ou /rest/v1 no final */
-function cloudNormalizarUrl(u) {
-  return String(u || "").trim().replace(/\/+$/, "").replace(/\/rest\/v1$/i, "");
-}
-
-/* Traduz os erros mais comuns do Supabase para um pt-br que ajuda a resolver */
-function cloudTraduzirErro(e) {
-  const m = String((e && (e.message || e.error_description || e.hint || e.details)) || e || "");
-  const ml = m.toLowerCase();
-  if (ml.indexOf("could not find the table") >= 0 || (ml.indexOf("sgc_store") >= 0 && ml.indexOf("does not exist") >= 0))
-    return "A tabela ainda nao foi criada no Supabase. Faca a ETAPA 3 do guia: SQL Editor, colar o arquivo supabase-setup.sql, botao Run (tem que aparecer Success em verde).";
-  if (ml.indexOf("row-level security") >= 0 || ml.indexOf("row level security") >= 0)
-    return "As permissoes da tabela nao foram criadas. Rode o arquivo supabase-setup.sql COMPLETO de novo (ETAPA 3 do guia).";
-  if (ml.indexOf("invalid") >= 0 || ml.indexOf("jwt") >= 0 || ml.indexOf("401") >= 0 || ml.indexOf("api key") >= 0)
-    return "A URL ou a chave colada parece errada. Copie de novo em: engrenagem (Project Settings), API, no site SUPABASE.COM. A chave certa e a Publishable (sb_publishable_...) ou a anon public (eyJ...) — NAO a sb_secret e NAO as do Firebase!";
-  if (ml.indexOf("failed to fetch") >= 0 || ml.indexOf("network") >= 0 || ml.indexOf("name or service") >= 0)
-    return "Sem contato com o Supabase. Confira a internet do computador e se a URL colada e do tipo https://...supabase.co (nada de endereco do Firebase).";
-  return m;
-}
-/* Botão 🔎 Testar conexão — diagnóstico guiado, sem precisar abrir console */
-async function cloudTestarConexao() {
-  const url = cloudNormalizarUrl(document.getElementById("cloudCfgUrl").value);
-  const key = document.getElementById("cloudCfgKey").value.trim();
-  const out = document.getElementById("cloudTesteResultado");
-  if (!/^https:\/\/.+/.test(url) || key.length < 10) { out.innerHTML = "<div style='margin-top:6px'>Preencha a URL e a chave primeiro.</div>"; return; }
-  const H = { "apikey": key, "Authorization": "Bearer " + key };
-  const linha = function (ok2, txt) { return "<div style='margin-top:6px'>" + (ok2 ? "✅ " : "❌ ") + txt + "</div>"; };
-  out.innerHTML = "<div style='margin-top:6px'>⏳ Testando...</div>";
-  let html = "";
-  try {
-    const r1 = await fetch(url + "/rest/v1/", { headers: H });
-    if (r1.status === 401) {
-      out.innerHTML = linha(false, "<b>Chave rejeitada</b> pelo Supabase. Copie de novo a chave <b>Publishable</b> (sb_publishable_...) ou <b>anon public</b> (eyJ...). NÃO use a sb_secret nem a do Firebase.");
-      return;
-    }
-    html += linha(true, "Chave aceita pelo Supabase.");
-  } catch (e1) {
-    out.innerHTML = linha(false, "<b>Sem contato com o Supabase.</b> Confira a internet e se a URL é do tipo https://....supabase.co (sem espaços).");
-    return;
-  }
-  try {
-    const r2 = await fetch(url + "/rest/v1/sgc_store?select=chave&limit=1", { headers: H });
-    if (r2.status === 404) {
-      html += linha(false, "<b>A tabela ainda não foi criada no Supabase.</b> Rode o arquivo supabase-setup.sql no SQL Editor (ETAPA 3 do guia) e clique em Testar de novo.");
-    } else if (r2.status === 200) {
-      html += linha(true, "Tabela sgc_store existe e responde.");
-      html += "<div style='margin-top:6px'>🎉 <b>Tudo certo!</b> Agora clique em <b>Salvar e conectar</b>.</div>";
-    } else {
-      const t2 = await r2.text();
-      html += linha(false, "Resposta inesperada (" + r2.status + "): " + t2.slice(0, 120));
-    }
-  } catch (e2) { html += linha(false, "Falha ao consultar a tabela: " + (e2.message || e2)); }
-  out.innerHTML = html;
-}
 
 /* Chamado automaticamente por saveLS sempre que algo é gravado. */
 function cloudAoSalvar(k, v) {
@@ -1482,7 +1426,7 @@ async function cloudEnviarChave(k) {
     cloudOnline = true; cloudAtualizarIndicador("ok");
   } catch (e) {
     console.warn("Nuvem: erro ao enviar", k, e);
-    cloudUltimoErro = cloudTraduzirErro(e); cloudOnline = false; cloudAtualizarIndicador("offline");
+    cloudOnline = false; cloudAtualizarIndicador("offline");
     cloudTimers[k] = setTimeout(function () { cloudEnviarChave(k); }, 15000); /* tenta de novo sozinho */
   }
 }
@@ -1511,9 +1455,9 @@ async function cloudEnviarTudo(silencioso) {
     if (!silencioso) alert("✅ Enviado! " + regs.length + " gaveta(s) de dados estão na nuvem.");
     setStatus("☁️ Dados enviados para a nuvem");
   } catch (e) {
-    cloudUltimoErro = cloudTraduzirErro(e); cloudOnline = false; cloudAtualizarIndicador("offline");
+    cloudOnline = false; cloudAtualizarIndicador("offline");
     console.warn("Nuvem: erro ao enviar tudo", e);
-    if (!silencioso) alert("⚠️ Não consegui enviar agora:\n\n" + cloudUltimoErro + "\n\nO sistema segue salvando aqui e tentará de novo sozinho.");
+    if (!silencioso) alert("⚠️ Não consegui enviar agora:\n" + (e.message || e) + "\nO sistema tentará de novo sozinho.");
   }
 }
 
@@ -1584,7 +1528,7 @@ async function cloudSincronizarNoBoot() {
     cloudAtualizarIndicador(aplicou ? "recebeu" : "ok");
   } catch (e) {
     console.warn("Nuvem: sem contato no boot (seguindo com dados locais)", e);
-    cloudUltimoErro = cloudTraduzirErro(e); cloudOnline = false; cloudAtualizarIndicador("offline");
+    cloudOnline = false; cloudAtualizarIndicador("offline");
   }
 }
 
@@ -1600,32 +1544,10 @@ function cloudAssinarTempoReal() {
         cloudReceberAtualizacao(row.chave, row.valor, row.updated_at);
       })
       .subscribe(function (st) {
-        if (st === "SUBSCRIBED") { cloudTempoRealOk = true; cloudPararPolling(); }
-        if (st === "CHANNEL_ERROR" || st === "TIMED_OUT" || st === "CLOSED") { cloudTempoRealOk = false; cloudIniciarPolling(); }
+        if (st === "SUBSCRIBED") { cloudOnline = true; cloudAtualizarIndicador("ok"); }
+        if (st === "CHANNEL_ERROR" || st === "TIMED_OUT" || st === "CLOSED") { cloudOnline = false; cloudAtualizarIndicador("offline"); }
       });
   } catch (e) { console.warn("Nuvem: realtime indisponível", e); }
-}
-
-/* Fallback: sem Realtime, busca as novidades a cada 20s (efeito prático igual) */
-function cloudIniciarPolling() {
-  if (cloudPollingTimer) return;
-  cloudPollingTimer = setInterval(cloudChecarNovidades, 20000);
-}
-function cloudPararPolling() {
-  if (cloudPollingTimer) { clearInterval(cloudPollingTimer); cloudPollingTimer = null; }
-}
-async function cloudChecarNovidades() {
-  if (!cloudHabilitada() || !cloudAppIniciado) return;
-  if (cloudTempoRealOk) { cloudPararPolling(); return; }
-  const cli = cloudGetClient(); if (!cli) return;
-  try {
-    const r2 = await cli.from(CLOUD_TABELA).select("chave,valor,updated_at,origem").eq("app_id", CLOUD_APP_ID);
-    if (r2.error) throw r2.error;
-    (r2.data || []).forEach(function (row) {
-      if (row.origem !== cloudDeviceId()) cloudReceberAtualizacao(row.chave, row.valor, row.updated_at);
-    });
-    if (!cloudOnline) { cloudOnline = true; cloudAtualizarIndicador("ok"); }
-  } catch (e2) { console.warn("Nuvem: verificação periódica sem contato", e2); }
 }
 
 function cloudReceberAtualizacao(k, valor, ts) {
@@ -1710,7 +1632,6 @@ function cloudMostrarStatus() {
     "Estado: " + ((c && c.url) ? (cloudOnline ? "conectado" : "configurado, sem contato agora") : "não configurado (modo local)") + "\n" +
     ((c && c.url) ? ("Projeto: " + c.url + "\nBanco: " + (CLOUD_APP_ID === "sgc" ? "Clube (sgc)" : "Regional (reg)") + "\n") : "") +
     "Último envio confirmado: " + (cloudUltimoSync ? new Date(cloudUltimoSync).toLocaleString() : "-") + "\n" +
-    "Último erro: " + (cloudUltimoErro || "-") + "\n" +
     "Alterações locais pendentes: " + sujas.length + (sujas.length ? " (" + sujas.join(", ") + ")" : "") + "\n" +
     "ID deste computador: " + cloudDeviceId() + "\n\n" +
     "Configure em: ☁️ Nuvem → Configurar conexão...");
@@ -1734,13 +1655,12 @@ function cloudAbrirConfig() {
       '<div class="cloud-modal">' +
       '<div class="cloud-modal-title"><span>☁️ Configurar conexão com a nuvem (Supabase)</span><span style="cursor:pointer" onclick="cloudFecharConfig()">✖</span></div>' +
       '<div class="cloud-modal-body">' +
-      '<div style="margin-bottom:8px">Cole os dados do projeto Supabase do clube (painel do Supabase → ⚙️ Project Settings → API).<br>Use a chave <b>Publishable</b> (sb_publishable_...) ou a legada <b>anon public</b> (eyJ...).<br><b style="color:#a00">NUNCA</b> use a chave sb_secret_... — ela é o acesso mestre do banco.<br>Passo a passo completo no arquivo <b>README-NUVEM.md</b>.</div>' +
-      '<div id="cloudTesteResultado" style="border-top:1px solid #bbb;margin-top:8px;padding-top:4px;color:#222"></div>' +
+      '<div style="margin-bottom:8px">Cole os dados do projeto Supabase do clube<br>(painel do Supabase → Project Settings → API).<br>Passo a passo completo no arquivo <b>README-NUVEM.md</b>.</div>' +
       '<b>Project URL</b><br><input id="cloudCfgUrl" placeholder="https://abcd1234.supabase.co">' +
-      '<b>Chave pública (Publishable ou anon public)</b><br><input id="cloudCfgKey" placeholder="sb_publishable_... ou eyJhbGci...">' +
+      '<b>Chave "anon public"</b><br><input id="cloudCfgKey" placeholder="eyJhbGciOi...">' +
       '<div style="color:#555">• No 1º computador configurado, os dados locais <b>sobem</b> para a nuvem.<br>• Nos demais computadores, os dados da nuvem <b>descem</b> sozinhos.<br>• Nada é enviado para nenhum outro servidor além do Supabase do clube.</div>' +
       '</div>' +
-      '<div class="cloud-modal-btns"><button class="classic-btn" style="min-width:110px;height:30px" onclick="cloudTestarConexao()">🔎 Testar conexão</button><button class="classic-btn" style="min-width:120px;height:30px" onclick="cloudSalvarConfigDoModal()">💾 Salvar e conectar</button><button class="classic-btn" style="height:30px" onclick="cloudFecharConfig()">Cancelar</button></div>' +
+      '<div class="cloud-modal-btns"><button class="classic-btn" style="min-width:120px;height:30px" onclick="cloudSalvarConfigDoModal()">💾 Salvar e conectar</button><button class="classic-btn" style="height:30px" onclick="cloudFecharConfig()">Cancelar</button></div>' +
       '</div>';
     document.body.appendChild(ov);
   }
@@ -1752,10 +1672,9 @@ function cloudAbrirConfig() {
 function cloudFecharConfig() { const ov = document.getElementById("cloudModalOverlay"); if (ov) ov.style.display = "none"; }
 
 async function cloudSalvarConfigDoModal() {
-  const url = cloudNormalizarUrl(document.getElementById("cloudCfgUrl").value);
+  const url = document.getElementById("cloudCfgUrl").value.trim();
   const key = document.getElementById("cloudCfgKey").value.trim();
-  if (key.indexOf("sb_secret") === 0) { alert("⚠️ ESSA É A CHAVE SECRETA (sb_secret_...).\nEla dá acesso TOTAL ao banco e não pode ficar no sistema.\n\nUse a chave \"Publishable\" (sb_publishable_...) ou a \"anon public\" (eyJ...), que ficam na mesma tela."); return; }
-  if (!/^https:\/\/.+/.test(url) || key.length < 20) { alert("Confira os dados:\n• URL começa com https://\n• A chave é bem longa (sb_publishable_... ou eyJ...)"); return; }
+  if (!/^https:\/\/.+/.test(url) || key.length < 20) { alert("Confira os dados:\n• URL começa com https://\n• A chave é bem longa (começa com eyJ...)"); return; }
   cloudSalvarCfg({ url: url, key: key, avisado: true });
   cloudClient = null; cloudInscricao = null;
   cloudFecharConfig();
@@ -1766,12 +1685,11 @@ async function cloudSalvarConfigDoModal() {
   cloudAtualizarIndicador();
   alert(cloudOnline
     ? "✅ Conectado! Os dados foram sincronizados com a nuvem.\n\nA partir de agora tudo é salvo na nuvem automaticamente."
-    : "⚠️ Configuração salva, mas não consegui contatar a nuvem agora.\nO sistema segue no modo local e tentará de novo sozinho.\n\nMotivo: " + (cloudUltimoErro || "desconhecido"));
+    : "⚠️ Configuração salva, mas não consegui contatar a nuvem agora.\nO sistema segue no modo local e tentará de novo sozinho.");
 }
 
 function cloudDesconectar() {
   if (!confirm("Desconectar DESTE computador da nuvem?\n\nOs dados continuam salvos aqui (modo local).\nA nuvem do clube NÃO é apagada.")) return;
-  cloudPararPolling(); cloudTempoRealOk = false;
   try { if (cloudClient && cloudInscricao) cloudClient.removeChannel(cloudInscricao); } catch (e) { }
   cloudInscricao = null; cloudClient = null; cloudOnline = false;
   localStorage.removeItem(CLOUD_CFG_KEY);
@@ -1798,7 +1716,6 @@ function cloudIniciar(callback) {
     cloudAppIniciado = true;
     cloudAtualizarIndicador();
     cloudAssinarTempoReal();
-    cloudIniciarPolling();
     cloudOferecerConfigInicial();
   };
   if (!cloudHabilitada()) { fim(); return Promise.resolve(); }
@@ -4164,9 +4081,8 @@ function cobrarPendentesPMR(){
   setStatus("Cobrança montada para "+lista.length+" pendente(s).");
 }
 async function gerarLinkPMR(){
-  const concNum=document.getElementById("pmrSocioID").value.trim();
-  const socioNome=document.getElementById("pmrSocioNome").value.trim();
-  if(!concNum||!socioNome)return alert("Selecione o Sócio (botão 🔍) antes de gerar o link.");
+  const concNum=document.getElementById("pmrSocioID").value||"81";
+  const socioNome=document.getElementById("pmrSocioNome").value||"";
   const ano=document.getElementById("pmrAno").value||"2026";
   const num=document.getElementById("pmrNum").value||"1";
   const relogio=document.getElementById("pmrTipoRelogio").value||"Benzing";
@@ -4361,8 +4277,6 @@ function abrirTelaCelularSocio(){
 
 async function gerarEBaixarArquivoPMR(){
   if(!pmrAnilhasMobile.length)return alert("Adicione pelo menos 1 pombo na lista!");
-  if(!(document.getElementById("pmrSocioID").value||"").trim()||!(document.getElementById("pmrSocioNome").value||"").trim())
-    return alert("Selecione o Sócio na tela do PM Remote Clock antes de gerar o arquivo .PMR.");
   /* NOVO: antes de gerar o arquivo final, mostra a lista inteira pra
      conferência — pensado especialmente pra quem tem menos prática com
      celular, pra dar uma última chance de corrigir antes de enviar. */
@@ -4372,8 +4286,8 @@ async function gerarEBaixarArquivoPMR(){
   }
   const ano=document.getElementById("pmrAno").value||"2026";
   const num=document.getElementById("pmrNum").value||"1";
-  const socioNum=document.getElementById("pmrSocioID").value.trim();
-  const socioNome=document.getElementById("pmrSocioNome").value.trim();
+  const socioNum=document.getElementById("pmrSocioID").value||"81";
+  const socioNome=document.getElementById("pmrSocioNome").value||"Carlos Silva";
   const relogio=document.getElementById("mobTipoRelogio").textContent||"Benzing";
   const gpsEl=document.getElementById("mobStatusGps");
   const lat=gpsEl?.dataset?.lat||"-22.564100";
@@ -4399,9 +4313,7 @@ async function gerarEBaixarArquivoPMR(){
 }
 
 function enviarPmrDiretoWhatsApp(){
-  const socioNum=document.getElementById("pmrSocioID").value.trim();
-  const socioNomeResumo=document.getElementById("pmrSocioNome").value.trim();
-  if(!socioNum||!socioNomeResumo)return alert("Selecione o Sócio na tela do PM Remote Clock antes de enviar o resumo.");
+  const socioNum=document.getElementById("pmrSocioID").value||"81";
   const qtd=pmrAnilhasMobile.length;
   let resumo="";
   pmrAnilhasMobile.forEach(p=>resumo+=`\n🕊️ *${p.anilha}* - ⏰ ${p.hora}`);
@@ -4975,6 +4887,5 @@ window.addEventListener("load",function(){cloudIniciar(iniciarAplicativo)});
   });
 })();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2b29230fc1a181d',t:'MTc4NjczNzg5MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"1954b47c125f43f8b4338b3c4f804e4f"}' crossorigin="anonymous"></script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2af6a992e7e00fd',t:'MTc4NjcwNDgxMg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
