@@ -7,6 +7,19 @@
 <style>
 *{box-sizing:border-box}html,body{margin:0;padding:0;width:100%;height:100%}
 body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;background:#bfbfbf;color:#000;overflow:hidden}
+/* MODO CELULAR DO SÓCIO (PMR remoto via ?pmr=1): quando o sócio abre o link
+   no celular, escondemos a interface desktop do clube (menus, janelas,
+   lembrete de backup) pra ele ver só a telinha de constatação — sem pedir
+   chave de banco nem nada que ele não tenha acesso. */
+body.pmr-mobile-mode{background:#e0f2f1;overflow:hidden}
+body.pmr-mobile-mode .app{display:none!important}
+body.pmr-mobile-mode .backup-banner{display:none!important}
+body.pmr-mobile-mode .status-bar{display:none!important}
+body.pmr-mobile-mode .child-window:not(#winMobileApp){display:none!important}
+body.pmr-mobile-mode #winMobileApp{position:fixed!important;left:0!important;top:0!important;width:100vw!important;height:100vh!important;margin:0!important;box-shadow:none!important;border:none!important;border-radius:0!important;background:#e0f2f1!important;z-index:99999!important}
+body.pmr-mobile-mode #winMobileApp .mobile-device-frame{position:absolute;left:0;top:0;width:100%;height:100%;max-width:100%;max-height:100%;border:none!important;border-radius:0!important;box-shadow:none!important;margin:0!important;background:#e0f2f1}
+body.pmr-mobile-mode #winMobileApp .mobile-screen{border-radius:0!important;height:calc(100% - 24px)!important}
+body.pmr-mobile-mode #winMobileApp .mobile-body{height:calc(100% - 70px)!important;overflow-y:auto}
 .app{width:100vw;height:100vh;position:relative}
 .menu-strip{height:22px;background:#efefef;border-bottom:1px solid #a0a0a0;display:flex;align-items:center;padding-left:2px;white-space:nowrap;user-select:none;overflow-x:auto;overflow-y:hidden}
 .menu-strip::-webkit-scrollbar{height:6px}
@@ -946,7 +959,7 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
     <div class="child-window" id="winMobileApp" style="left:460px;top:10px;width:390px;height:670px;background:transparent;border:none;box-shadow:none;">
       <div class="mobile-device-frame">
         <div style="color:#fff;font-size:11px;display:flex;justify-content:space-between;padding:0 8px 6px;">
-          <span>11:34 📶</span><span>🔒 PigeonMaster Mobile</span><span style="cursor:pointer;background:#ff4444;padding:0 6px;border-radius:4px;" onclick="closeWin('winMobileApp')">X</span>
+          <span>📶</span><span>🔒 PigeonMaster Mobile</span><span style="cursor:pointer;background:#ff4444;color:#fff;padding:0 6px;border-radius:4px;" onclick="fecharPmrCelular()">✖</span>
         </div>
         <div class="mobile-screen">
           <div class="mobile-header">
@@ -1699,6 +1712,11 @@ function cloudDesconectar() {
 }
 
 function cloudOferecerConfigInicial() {
+  /* MUDANÇA: se o usuário abriu o link PMR no celular do sócio, NÃO
+     oferece nem pergunta nada sobre nuvem (o sócio não tem as chaves do
+     clube e nem precisa disso pra registrar constatações). */
+  const params=new URLSearchParams(window.location.search);
+  if(params.get("pmr")==="1")return;
   const cfg = cloudCfg();
   if (cfg && (cfg.url || cfg.avisado)) return;
   cloudSalvarCfg({ avisado: true, url: "", key: "" });
@@ -3191,6 +3209,13 @@ async function executarCalculo(){
     tr.innerHTML='<td class="lugar">'+l.lugar+"</td><td>"+esc(l.anilha)+"</td><td>"+esc(l.concNum)+"</td><td>"+esc(nome)+"</td><td>"+esc(l.chegada||"")+"</td><td>"+esc(l.distancia||"")+"</td><td>"+esc(l.media||"")+'</td><td class="pontos">'+l.pontos+"</td><td>"+(l.marca==="P"?'<span class="tagP">P</span>':'<span class="tagE">E</span>')+"</td><td>"+statusHtml+"</td>";
     tb.appendChild(tr);
   });
+  /* CORREÇÃO: o cálculo alterava a distância e a média dos lançamentos em
+     memória mas NÃO salvava no localStorage — se o operador fechasse o
+     app ou trocasse de concurso depois da apuração, as médias e distâncias
+     calculadas se perdiam (e a auditoria PMR podia parecer inconsistente).
+     Agora persistimos tudo em disco logo após calcular, pra que os dados
+     fiquem disponíveis para homologação na semana seguinte. */
+  salvarLancamentos();
   setStatus("Concluído: "+filtrado.length+" pombos");
   if(avisosCalculo.length){
     const unicos=[...new Set(avisosCalculo)];
@@ -4560,36 +4585,63 @@ function registrarHoraFisicaPMR(){
   const anilha=document.getElementById("pmrAuditAnilha").value.trim();
   const horaFisica=document.getElementById("pmrAuditHoraFisica").value.trim();
   if(!anilha||!horaFisica)return alert("Preencha a anilha e a hora lida no relógio físico.");
-  const item=lancamentos.find(l=>l.anilha===anilha&&(l.pmrProvisorio||l.horaFisicaOficial!=null));
-  if(!item)return alert("Nenhuma constatação remota (PMR) pendente encontrada para essa anilha nesta prova.");
+  /* Procura a anilha no array CORRETO da prova do PMR (não na variável
+     global "lancamentos", que pode estar apontando pra outra prova se o
+     operador trocou de concurso na tela de Lançamento). */
+  const ano=document.getElementById("pmrAno").value;
+  const num=document.getElementById("pmrNum").value;
+  const chavePMR=ano+"/"+num;
+  const arr=todosLancamentos[chavePMR]||[];
+  const item=arr.find(l=>l.anilha===anilha&&(l.pmrProvisorio||l.horaFisicaOficial!=null||l.homologado));
+  if(!item)return alert("Nenhuma constatação remota (PMR) pendente encontrada para a anilha "+anilha+" na prova "+chavePMR+".");
   item.horaFisicaOficial=horaFisica;
-  salvarLancamentosProvaAtual();
+  todosLancamentos[chavePMR]=arr;
+  salvarLancamentos();
+  /* Se a prova atualmente carregada em Lançamento for a mesma, mantemos
+     a memória sincronizada pra lista da tela de lançamento também refletir. */
+  if(provaAtual&&provaAtual.ano===ano&&provaAtual.num===num){
+    const mem=lancamentos.find(l=>l.anilha===anilha);
+    if(mem)mem.horaFisicaOficial=horaFisica;
+  }
   document.getElementById("pmrAuditAnilha").value="";
   document.getElementById("pmrAuditHoraFisica").value="";
   atualizarTabelaAuditoriaPMR();
-  setStatus("Hora física registrada para "+anilha);
+  atualizarListaLancamentos();
+  setStatus("Hora física registrada para "+anilha+" na prova "+chavePMR+".");
 }
 
 function atualizarTabelaAuditoriaPMR(){
   const tbAud=document.querySelector("#tabelaPmrAuditoria tbody");if(!tbAud)return;
   tbAud.innerHTML="";
-  /* BUG CORRIGIDO: o filtro antigo (l.pmrProvisorio||l.horaFisicaOficial) fazia
-     o item sumir da lista assim que era homologado (pmrProvisorio vira false
-     e horaFisicaOficial nunca existia). Agora também mantemos quem já foi
-     homologado, para a linha continuar visível marcada como "Oficial".
-     Isso também garante que TODOS os pombos lançados pelo PMR continuam
-     aparecendo aqui (mesmo depois de calcular/apurar a prova) até serem
-     conferidos e homologados na semana seguinte. */
-  const provisorios=lancamentos.filter(l=>l.pmrProvisorio||l.horaFisicaOficial!=null||l.homologado);
+  /* CORREÇÃO IMPORTANTE (persistência até a homologação): antes, esta tabela
+     usava a variável global "lancamentos" (que reflete a prova CARREGADA NA
+     TELA DE LANÇAMENTO no momento). Se o operador trocasse de concurso na
+     tela de Lançamento, ou fechasse/abrisse janelas após a apuração, a
+     lista de pombos PMR parecia "sumir" — mas os dados ainda estavam lá,
+     só que a auditoria estava olhando para a prova errada.
+     Agora a auditoria sempre busca os lançamentos DIRETAMENTE pelo
+     ano/num selecionados na tela do PMR (todosLancamentos[chavePMR]),
+     independente do que esteja aberto em outras janelas. Os dados ficam
+     disponíveis para conferência por dias/semanas, até a homologação
+     oficial da prova. */
+  const ano=document.getElementById("pmrAno").value;
+  const num=document.getElementById("pmrNum").value;
+  const chavePMR=ano+"/"+num;
+  const lancsDaProva=todosLancamentos[chavePMR]||[];
+  /* Filtra todos os pombos que entraram por PMR (provisórios, com hora
+     física registrada, ou já homologados) — nunca some até que o operador
+     clique em Limpar ou mude explicitamente de concurso/apague. */
+  const provisorios=lancsDaProva.filter(l=>l.pmrProvisorio||l.horaFisicaOficial!=null||l.homologado);
   const contadorEl=document.getElementById("pmrAuditContador");
   if(contadorEl){
     const pendentes=provisorios.filter(l=>!l.homologado).length;
+    const homologados=provisorios.filter(l=>l.homologado).length;
     contadorEl.textContent=provisorios.length
-      ?("🕊️ "+provisorios.length+" pombo(s) do PMR nesta prova — "+pendentes+" ainda pendente(s) de conferência.")
+      ?("🕊️ "+provisorios.length+" pombo(s) do PMR na prova "+chavePMR+" — "+pendentes+" pendente(s)"+(homologados?(", "+homologados+" homologado(s)"):"")+". Esta lista fica salva para conferência até a homologação.")
       :"";
   }
   if(!provisorios.length){
-    tbAud.innerHTML='<tr><td colspan="7" style="text-align:center;padding:15px;color:#666">Nenhuma constatação remota provisória pendente para esta prova.</td></tr>';
+    tbAud.innerHTML='<tr><td colspan="7" style="text-align:center;padding:15px;color:#666">Nenhuma constatação remota provisória para a prova '+esc(chavePMR)+'.<br><span style="font-size:11px;color:#888">Importe um arquivo .PMR na aba 2 para começar, ou selecione o concurso correto acima.</span></td></tr>';
     return;
   }
   provisorios.forEach((l,idx)=>{
@@ -4632,20 +4684,38 @@ function selecionarAnilhaAuditoria(anilha){
 }
 
 function homologarConstatacaoIndividual(idx){
-  const provisorios=lancamentos.filter(l=>l.pmrProvisorio||l.horaFisicaOficial!=null||l.homologado);
+  /* Busca a lista de pombos PMR da prova selecionada na tela do PMR (não
+     da variável global "lancamentos" — evita homologar o pombo errado se
+     outra prova estiver aberta em outra janela). */
+  const ano=document.getElementById("pmrAno").value;
+  const num=document.getElementById("pmrNum").value;
+  const chavePMR=ano+"/"+num;
+  const arr=todosLancamentos[chavePMR]||[];
+  const provisorios=arr.filter(l=>l.pmrProvisorio||l.horaFisicaOficial!=null||l.homologado);
   const item=provisorios[idx];
   if(item){
     item.homologado=true;
     item.pmrProvisorio=false;
-    salvarLancamentosProvaAtual();
+    todosLancamentos[chavePMR]=arr;
+    salvarLancamentos();
+    /* Sincroniza memória da tela de Lançamento se for a mesma prova. */
+    if(provaAtual&&provaAtual.ano===ano&&provaAtual.num===num){
+      const mem=lancamentos.find(l=>l.anilha===item.anilha);
+      if(mem){mem.homologado=true;mem.pmrProvisorio=false}
+      salvarLancamentosProvaAtual();
+    }
     atualizarTabelaAuditoriaPMR();
     atualizarListaLancamentos();
-    setStatus("Homologado com sucesso: "+item.anilha);
+    setStatus("Homologado com sucesso: "+item.anilha+" ("+chavePMR+").");
   }
 }
 function homologarTodosExatos(){
   let cont=0;
-  lancamentos.forEach(l=>{
+  const ano=document.getElementById("pmrAno").value;
+  const num=document.getElementById("pmrNum").value;
+  const chavePMR=ano+"/"+num;
+  const arr=todosLancamentos[chavePMR]||[];
+  arr.forEach(l=>{
     if(l.pmrProvisorio&&l.horaFisicaOficial!=null){
       const pCel=parseHora(l.chegada||"00:00:00"),pFis=parseHora(l.horaFisicaOficial);
       const diffSegs=(pFis[0]*3600+pFis[1]*60+pFis[2])-(pCel[0]*3600+pCel[1]*60+pCel[2]);
@@ -4656,15 +4726,83 @@ function homologarTodosExatos(){
       }
     }
   });
-  salvarLancamentosProvaAtual();
+  todosLancamentos[chavePMR]=arr;
+  salvarLancamentos();
+  if(provaAtual&&provaAtual.ano===ano&&provaAtual.num===num)salvarLancamentosProvaAtual();
   atualizarTabelaAuditoriaPMR();
   atualizarListaLancamentos();
-  alert(`✔ Auditoria Concluída! ${cont} pombos com hora física exatamente igual à remota foram homologados. Os demais (sem leitura física ainda, ou com divergência) precisam ser revisados manualmente.`);
+  if(cont>0){
+    setStatus("✔ "+cont+" pombo(s) homologado(s) de uma vez (hora exata entre PMR e relógio físico).");
+    alert(`✔ Auditoria Concluída! ${cont} pombo(s) com hora física exatamente igual à remota foram homologados. Os demais (sem leitura física ainda, ou com divergência) precisam ser revisados manualmente.`);
+  }else{
+    alert("Nenhum pombo pôde ser homologado em lote — lembre-se de registrar primeiro a hora do relógio físico (ou confira se todas as horas divergem de 0s).");
+  }
 }
 
+function fecharPmrCelular(){
+  if(document.body.classList.contains("pmr-mobile-mode")){
+    /* Celular do sócio: o X tenta fechar a aba (se foi aberto pelo
+       WhatsApp em nova aba, funciona); se não der, mostra mensagem. */
+    if(confirm("Fechar o constatação?\n\nSe ainda não gerou o .PMR e enviou ao clube, você perderá o que estiver digitando.")){
+      try{window.close()}catch(e){}
+      setTimeout(function(){document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;background:#e0f2f1;color:#00695c;font-size:18px;text-align:center;padding:20px">✅ Constatação encerrada.<br><small style="font-size:13px;color:#444;margin-top:10px;display:block">Você pode fechar esta aba/janela agora.</small></div>'},200);
+    }
+  }else{
+    closeWin('winMobileApp');
+  }
+}
+function entrarModoPmrCelular(){
+  /* MODO CELULAR DO SÓCIO: quando alguém abre o link ?pmr=1 (no WhatsApp,
+     no celular), não tem por que ver a interface desktop do clube (menus,
+     cadastros, banco, nuvem). O sócio só precisa da telinha de constatação.
+     Esconder tudo e deixar a tela limpa, cheia, sem perguntar nada sobre
+     chaves de Supabase/banco de dados. */
+  document.body.classList.add("pmr-mobile-mode");
+  const app=document.querySelector(".app");
+  if(app)app.style.display="none";
+  /* Esconde lembrete de backup também */
+  const bb=document.getElementById("backupBanner");
+  if(bb)bb.style.display="none";
+  /* Reposiciona o "celular" para ocupar a tela toda, centralizado, sem a
+     moldura de celular fake (que faz sentido só dentro da simulação desktop). */
+  const win=document.getElementById("winMobileApp");
+  if(win){
+    win.style.position="fixed";
+    win.style.left="0";win.style.top="0";
+    win.style.width="100vw";win.style.height="100vh";
+    win.style.background="#e0f2f1";
+    win.style.zIndex="99999";
+    win.classList.add("active");
+    const frame=win.querySelector(".mobile-device-frame");
+    if(frame){frame.style.width="100%";frame.style.height="100%";frame.style.maxWidth="100%";frame.style.border="none";frame.style.borderRadius="0";frame.style.boxShadow="none";frame.style.margin="0"}
+    const screen=win.querySelector(".mobile-screen");
+    if(screen){screen.style.borderRadius="0";screen.style.height="100%"}
+    const body_=win.querySelector(".mobile-body");
+    if(body_)body_.style.height="calc(100% - 90px)";
+  }
+  /* Troca o título da aba do navegador para algo mais amigável pro sócio. */
+  document.title="PigeonMaster - Constatação Remota";
+  /* Atualiza o reloginho do topo com a hora REAL do dispositivo do sócio
+     (estava hardcoded "11:34" de exemplo, o que causava estranhamento). */
+  const elRel=win?win.querySelector(".mobile-device-frame > div > span:first-child"):null;
+  if(elRel){
+    function atuRel(){
+      const d=new Date();
+      const hh=String(d.getHours()).padStart(2,"0");
+      const mm=String(d.getMinutes()).padStart(2,"0");
+      elRel.textContent=hh+":"+mm+" 📶";
+    }
+    atuRel();
+    setInterval(atuRel,30000);
+  }
+}
 function initPMRFromUrl(){
   const params=new URLSearchParams(window.location.search);
   if(params.get("pmr")!=="1")return;
+
+  /* Entra em modo "celular do sócio": esconde a interface desktop do
+     clube e não pede chave de banco/Supabase (o sócio não tem isso). */
+  entrarModoPmrCelular();
 
   const ano=params.get("ano")||"2026";
   const num=params.get("num")||"1";
