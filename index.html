@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>S.G.C-S.P v2.2 - CLUBE COLUMBÓFILO LIMEIRENSE (PigeonMaster)</title>
+<title>S.G.C-S.P v2.3 - CLUBE COLUMBÓFILO LIMEIRENSE (PigeonMaster)</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;padding:0;width:100%;height:100%}
 body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;background:#bfbfbf;color:#000;overflow:hidden}
@@ -951,26 +951,27 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
         <div class="mobile-screen">
           <div class="mobile-header">
             PigeonMaster - Remote Clock<br>
-            <span style="font-size:11px;font-weight:normal;color:#cce8ff;" id="mobNomeConcurso">Conc 1/2026 - Prova Igarapava</span>
+            <span style="font-size:11px;font-weight:normal;color:#cce8ff;" id="mobNomeConcurso">—</span>
           </div>
           <div class="mobile-body">
             <div class="mobile-card" style="background:#e0f7fa;border-color:#b2ebf2;">
-              <b>👤 Sócio:</b> <span id="mobNomeSocio">81 - VILMAR ALMEIDA PORTA DO SOL</span><br>
-              <b>⌚ Relógio:</b> <span id="mobTipoRelogio">Benzing</span><br>
+              <b>👤 Sócio:</b> <span id="mobNomeSocio">—</span><br>
+              <b>⌚ Relógio:</b> <span id="mobTipoRelogio">—</span><br>
               <span style="font-size:11px;color:#00796b;" id="mobStatusGps">📍 GPS: Capturando localização...</span>
             </div>
 
             <div class="mobile-card">
               <label style="font-weight:bold;color:#333;">Número da Anilha:</label>
-              <input type="text" class="mobile-input" id="mobAnilhaInput" placeholder="Ex: 2335027/23" value="2335027/23">
+              <input type="text" class="mobile-input" id="mobAnilhaInput" placeholder="Ex: 2335027/23" value="">
               <span id="mobAnilhaAviso" style="display:none;color:#a67c00;font-size:11px;font-weight:bold;">⚠️ confira o número da anilha, parece incompleto</span>
               
               <label style="font-weight:bold;color:#333;margin-top:8px;display:block;">Hora da Constatação:</label>
               <div style="display:flex;gap:4px;">
-                <input type="text" class="mobile-input" id="mobHoraInput" placeholder="HH:MM:SS" style="font-family:Consolas;text-align:center;font-weight:bold;font-size:15px;" value="11:34:58">
+                <input type="text" class="mobile-input" id="mobHoraInput" placeholder="HH:MM:SS" style="font-family:Consolas;text-align:center;font-weight:bold;font-size:15px;" value="">
                 <button class="small-btn" style="margin-top:4px;height:34px;background:#d4edda;" onclick="capturarHoraAtualCelular()" title="Hora Exata Agora">⏰ Exata</button>
               </div>
 
+              <div style="background:#fff3cd;border:1px dashed #d4b800;padding:6px;font-size:11px;color:#664d03;margin-top:8px;">💡 <b>Dica:</b> se algum pombo chegar só no dia seguinte (madrugada), marque isso nas Observações (ex: "chegou dia seguinte 06:30") — o operador do clube ajustará o tempo no lançamento.</div>
               <label style="font-weight:bold;color:#333;margin-top:8px;display:block;">Observações (Opcional):</label>
               <input type="text" class="mobile-input" id="mobObsInput" placeholder="Ex: Pombo chegou normal">
 
@@ -1054,7 +1055,7 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
 
   </div>
 
-  <div class="status" id="statusBar">S.G.C-S.P v2.2 | Importa GPC | Pombo Ás | Distância nos relatórios | PM Remote Clock Ativado</div>
+  <div class="status" id="statusBar">S.G.C-S.P v2.3 | Importa GPC | Pombo Ás | Distância nos relatórios | PM Remote Clock Ativado</div>
 </div>
 <script>
 const STORE={pombos:"sgc_pombos",concorrentes:"sgc_concorrentes",cursos:"sgc_cursos",lancamentos:"sgc_lancamentos",classificacoes:"sgc_classificacoes",param:"sgc_param"};
@@ -1108,7 +1109,7 @@ function distM(lat1_dec,lon1_dec,lat2_dec,lon2_dec){
 function esc(t){return String(t??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
 function setRadio(n,v){const el=document.querySelector(`input[name="${n}"][value="${v}"]`);if(el)el.checked=true}
 function getRadio(n,f=""){return document.querySelector(`input[name="${n}"]:checked`)?.value||f}
-function setStatus(t){document.getElementById("statusBar").textContent="S.G.C-S.P v2.1 | "+t}
+function setStatus(t){document.getElementById("statusBar").textContent="S.G.C-S.P v2.3 | "+t}
 function calcPts(pos,ini,dec,min){return Math.max(min,Math.round(ini-(pos-1)*dec))}
 function setPtsMod(tipo){const ini=document.getElementById("cursoIni"),dec=document.getElementById("cursoDec");if(tipo==="Filhotes"||tipo==="Velocidade Adulto"){ini.value="1000";dec.value="1"}else{ini.value="1000";dec.value="5"}}
 function padNum(n,w){return String(n||"").padStart(w," ")}
@@ -1240,7 +1241,7 @@ const menuData={
   gpc:[{t:"📥 Importar Concorrentes (GPC)",win:"winImportar",tab:"conc"},{t:"📥 Importar Pombos (GPC)",win:"winImportar",tab:"pomb"},{t:"📥 Importar Movimentos (ZDWMOV_T.TXT)",win:"winImportar",tab:"mov"},"sep",{t:"📤 Exportar Movimentos pro GPC",win:"winExportar"}],
   backup:[{t:"💾 Exportar tudo (backup)",action:fazerBackupAgora},{t:"📂 Importar backup",action:importarBackup},"sep",{t:"📊 Exportar Concorrentes (CSV)",action:()=>exportCSV("concorrentes")},{t:"📊 Exportar Pombos (CSV)",action:()=>exportCSV("pombos")},"sep",{t:"🩺 Checar Saúde dos Dados",win:"winSaude"},"sep",{t:"⚠️ APAGAR TUDO",action:limparTudo}],
   nuvem:[{t:"🔧 Configurar conexão...",action:cloudAbrirConfig},{t:"📶 Status da sincronização",action:cloudMostrarStatus},"sep",{t:"⬆️ Enviar tudo para a nuvem agora",action:()=>cloudEnviarTudo(false)},{t:"⬇️ Baixar tudo da nuvem agora",action:cloudBaixarTudo},"sep",{t:"🔌 Desconectar este computador",action:cloudDesconectar}],
-  sistema:[{t:"Sobre",action:()=>alert('S.G.C-S.P v2.2\nCLUBE COLUMBÓFILO LIMEIRENSE\n⏱️ PigeonMaster Remote Clock .PMR\n📥 Importa GPC\n🏆 Pombo Ás\n📋 Palmarés\n📏 Distância nos relatórios\n☁️ Nuvem (Supabase)')},"sep",{t:"Sair",action:()=>{if(confirm('Sair?'))window.close()}}]
+  sistema:[{t:"Sobre",action:()=>alert('S.G.C-S.P v2.3\nCLUBE COLUMBÓFILO LIMEIRENSE\n⏱️ PigeonMaster Remote Clock .PMR\n📥 Importa GPC\n🏆 Pombo Ás\n📋 Palmarés\n📏 Distância nos relatórios\n☁️ Nuvem (Supabase)')},"sep",{t:"Sair",action:()=>{if(confirm('Sair?'))window.close()}}]
 };
 
 function toggleMenu(e,key){
@@ -2595,8 +2596,14 @@ function carregarLancamentosProva(ano,num,nome){
     document.getElementById("lancDataIni").value=curso.data||"";
     document.getElementById("lancHoraIni").value=curso.horaSolta||"";
     document.getElementById("lancPartida").value=curso.horaSolta||"";
-    document.getElementById("lancTMorto").value=curso.tm1||"00:00:00";
-    document.getElementById("lancTMortoCalc").value=curso.tm1||"00:00:00";
+    /* BUG CORRIGIDO: em vez de copiar tm1 cegamente para TODO lançamento
+       (inclusive pombos do mesmo dia, o que causava tempo negativo), calcula o
+       tempo morto padrão pelo nº de dias atual (dias=1 -> 00:00, dias=2 -> tm1,
+       dias=3 -> tm1+tm2, dias=4+ -> tm1+tm2+tm3). */
+    tMortoEditadoManualmente=false;
+    const _tmPadrao=tempoMortoAutoParaDias(curso,parseInt(document.getElementById("lancDias").value)||1);
+    document.getElementById("lancTMorto").value=_tmPadrao;
+    document.getElementById("lancTMortoCalc").value=_tmPadrao;
   }
   lancamentos=todosLancamentos[ano+"/"+num]||[];
   atualizarListaLancamentos();
@@ -2634,6 +2641,7 @@ function limparLancamento(limparConcurso=false,manterSocio=false){
     document.getElementById("lancDataIni").value="";
     document.getElementById("lancHoraIni").value="";
     document.getElementById("lancPartida").value="";
+    tMortoEditadoManualmente=false;
     document.getElementById("lancTMorto").value="00:00:00";
     document.getElementById("lancTMortoCalc").value="00:00:00";
   }
@@ -2694,6 +2702,37 @@ function atualizarDistanciaLancamento(){
   atualizarListaLancamentos();
 }
 function parseHora(t){if(!t)return[0,0,0];const p=t.split(":");return[parseInt(p[0])||0,parseInt(p[1])||0,parseInt(p[2])||0]}
+
+function somaHoras(){
+  /* Soma várias horas no formato HH:MM:SS (aceita ultrapassar 24h).
+     Usada pra calcular o tempo morto total do concurso conforme o nº de noites:
+     1 noite = tm1; 2 noites = tm1+tm2; 3 noites = tm1+tm2+tm3. */
+  let th=0,tm=0,ts=0;
+  for(let i=0;i<arguments.length;i++){
+    const p=parseHora(arguments[i]||"00:00:00");
+    th+=p[0];tm+=p[1];ts+=p[2];
+  }
+  tm+=Math.floor(ts/60);ts=ts%60;
+  th+=Math.floor(tm/60);tm=tm%60;
+  return String(th).padStart(2,"0")+":"+String(tm).padStart(2,"0")+":"+String(Math.round(ts)).padStart(2,"0");
+}
+function tempoMortoAutoParaDias(curso,dias){
+  /* Calcula o tempo morto CORRETO conforme o nº real de noites (dias-1).
+     Isso resolve o bug em que um pombo do mesmo dia (dias=1) recebia o tempo
+     morto da 1ª noite mesmo sem ter passado noite nenhuma, dando tempo de voo
+     negativo/zerado. */
+  if(!curso)return "00:00:00";
+  const n=Math.max(1,parseInt(dias)||1);
+  const noites=n-1;
+  if(noites<=0)return "00:00:00";
+  const partes=[];
+  if(noites>=1)partes.push(curso.tm1||"00:00:00");
+  if(noites>=2)partes.push(curso.tm2||"00:00:00");
+  if(noites>=3)partes.push(curso.tm3||"00:00:00");
+  return somaHoras.apply(null,partes);
+}
+let tMortoEditadoManualmente=false; /* flag: operador sobrepôs o TM automático */
+
 /* NOVO: calcula quantos dias realmente se passaram entre a data de soltura e
    a data de chegada, em vez de confiar cegamente no campo "Dias +" (que em
    arquivos importados do GPC às vezes vem sempre "1", mesmo quando a prova
@@ -2725,14 +2764,41 @@ function calcularTempoVoo(){
   }
   const chegada=parseHora(document.getElementById("lancChegada").value||document.getElementById("lancHoraFim").value||"00:00:00");
   const partida=parseHora(document.getElementById("lancPartida").value||document.getElementById("lancHoraIni").value||"00:00:00");
+  /* BUG CORRIGIDO (tempo morto negativo): antes, o campo lancTMorto recebia
+     cegamente o tm1 do concurso ao selecionar a prova, e esse valor era
+     descontado em TODO lançamento — inclusive pombos que chegaram no mesmo
+     dia (dias=1, sem passar nenhuma noite). Se tm1 era 12h e o pombo voou 4h,
+     o tempo dava negativo e era zerado, e a média saía 0. Agora:
+       1) Se o operador ainda NÃO editou o tempo morto manualmente, o sistema
+          recalcula automaticamente conforme o nº de noites (dias-1) que o
+          pombo levou (0/1/2/3 noites → 0/tm1/tm1+tm2/tm1+tm2+tm3).
+       2) Se o operador editou manualmente (clicou no campo e digitou),
+          respeita o valor digitado (o que o clube já fazia como workaround). */
+  const _cursoAuto=getCursoAtual();
+  if(!tMortoEditadoManualmente && _cursoAuto){
+    const tmAuto=tempoMortoAutoParaDias(_cursoAuto,dias);
+    const elTM=document.getElementById("lancTMorto");
+    if(elTM.value!==tmAuto){elTM.value=tmAuto;}
+  }
   const morto=parseHora(document.getElementById("lancTMorto").value||"00:00:00");
   document.getElementById("lancTMortoCalc").value=document.getElementById("lancTMorto").value||"00:00:00";
   const correcao=brN(document.getElementById("lancCorrecao").value);
   document.getElementById("lancCorrCalc").value=correcao;
+  /* Cálculo em minutos desde a partida: chegada considera (dias-1)*24h,
+     pois partida é sempre a hora de solta (relativa ao dia 0). */
   const minChegada=(((dias-1)*24)+chegada[0])*60+chegada[1]+chegada[2]/60;
   const minPartida=partida[0]*60+partida[1]+partida[2]/60;
   const minMorto=morto[0]*60+morto[1]+morto[2]/60;
-  let totalMin=minChegada-minPartida-minMorto+correcao;if(totalMin<0)totalMin=0;
+  let totalMin=minChegada-minPartida-minMorto+correcao;
+  if(totalMin<0){
+    /* Se ainda der negativo (ex: operador digitou horário de chegada antes da
+       partida com dias=1), avisa visualmente em vez de silenciosamente
+       zerar — pra ficar claro que tem algo a conferir (chegada ou dias). */
+    document.getElementById("lancTempoVoo").style.color="#aa0000";
+    totalMin=0;
+  }else{
+    document.getElementById("lancTempoVoo").style.color="#0000aa";
+  }
   const totalSeg=Math.round(totalMin*60);
   const h=Math.floor(totalSeg/3600),m=Math.floor((totalSeg%3600)/60),s=totalSeg%60;
   document.getElementById("lancTempoVoo").value=String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
@@ -3032,7 +3098,28 @@ async function executarCalculo(){
     const dias=diasCalc!=null?diasCalc:Math.max(1,parseInt(l.dias)||1);
     const cheg=parseHora(l.chegada||"00:00:00");
     const part=parseHora(l.partida||"00:00:00");
-    const mort=parseHora(l.tMorto||"00:00:00");
+    /* BUG CORRIGIDO: se o lançamento tem um tMorto que é claramente o tm1 do
+       concurso mas o pombo é do mesmo dia (dias=1), zeramos o tempo morto.
+       Isso corrige na hora do CÁLCULO OFICIAL qualquer lançamento antigo que
+       tenha sido salvo com tMorto indevido (anterior a esta correção), sem
+       exigir que o operador reabra um por um. */
+    let tMortStr=l.tMorto||"00:00:00";
+    if(dias===1){
+      /* Pombos do mesmo dia: tempo morto deve ser zero (não houve noite).
+         Se o operador tiver digitado uma correção manual (diferente de
+         tm1/tm2/tm3), nós preservamos. Heurística: se o valor for
+         exatamente tm1/tm2/tm3 do concurso e o pombo é do mesmo dia,
+         era o bug — zera. */
+      const tm1DoCurso=cursoSel?(cursoSel.tm1||"00:00:00"):"00:00:00";
+      const tm2DoCurso=cursoSel?(cursoSel.tm2||"00:00:00"):"00:00:00";
+      const tm3DoCurso=cursoSel?(cursoSel.tm3||"00:00:00"):"00:00:00";
+      const tm12=somaHoras(tm1DoCurso,tm2DoCurso);
+      const tm123=somaHoras(tm1DoCurso,tm2DoCurso,tm3DoCurso);
+      if(tMortStr===tm1DoCurso||tMortStr===tm2DoCurso||tMortStr===tm12||tMortStr===tm123){
+        tMortStr="00:00:00";
+      }
+    }
+    const mort=parseHora(tMortStr);
     const corr=brN(l.correcao||0);
     const mCheg=(((dias-1)*24)+cheg[0])*60+cheg[1]+cheg[2]/60;
     const mPart=part[0]*60+part[1]+part[2]/60;
@@ -3558,7 +3645,7 @@ function importarMovimentos(){
             concorrentesAvisados.add(concNum);
           }
         }
-        novosLanc.push({anilha,assoc:"11",colec:"33",concNum,sexo,dataIni,horaIni,dataFim,horaFim,dias,chegada,partida:curso.horaSolta,tMorto:curso.tm1||"00:00:00",correcao,distancia:"0",media:"0",tempoVoo:""});
+        novosLanc.push({anilha,assoc:"11",colec:"33",concNum,sexo,dataIni,horaIni,dataFim,horaFim,dias,chegada,partida:curso.horaSolta,tMorto:tempoMortoAutoParaDias(curso,parseInt(dias)||1) /* corrige bug: era sempre tm1 mesmo em pombos do mesmo dia */,correcao,distancia:"0",media:"0",tempoVoo:""});
         logImp("impLogMov","✓ "+anilha+" ("+concNum+") "+chegada);
       }catch(err){logImp("impLogMov","❌ "+err.message,"err");erros++}
     });
@@ -4267,12 +4354,22 @@ function abrirTelaCelularSocio(){
   if(!win)return;
   win.classList.add("active");
   win.style.zIndex=++zCounter;
-  /* BUG CORRIGIDO: a tela sempre mostrava um pombo de exemplo já "salvo"
-     (2335027/23), mesmo sem o sócio ter adicionado nada. Agora a lista é
-     sempre redesenhada a partir do estado real (que começa vazio). */
+  /* CORREÇÃO: a tela do PMR estava vindo com valores de demonstração
+     preenchidos (anilha 2335027/23 e hora 11:34:58 hardcoded no HTML),
+     o que dava a impressão que já existia um pombo cadastrado. Agora
+     os campos SEMPRE abrem VAZIOS, prontos para o sócio digitar.
+     O sócio pode clicar em ⏰ Exata para usar a hora do celular, ou
+     digitar a hora copiada do relógio (Benzing etc). */
+  document.getElementById("mobAnilhaInput").value="";
+  document.getElementById("mobHoraInput").value="";
+  document.getElementById("mobObsInput").value="";
+  /* Carrega rascunho (se o sócio já tinha digitado algo e fechou sem
+     querer) e redesenha a lista real de pombos adicionados. */
+  pmrAnilhasMobile=[];
   carregarRascunhoPMR();
   renderizarListaAnilhasMobile();
   capturarGpsMobile();
+  setTimeout(()=>document.getElementById("mobAnilhaInput").focus(),150);
 }
 
 async function gerarEBaixarArquivoPMR(){
@@ -4427,11 +4524,15 @@ function importarParaLancamentoProvisorio(){
         dataIni:curso?(curso.data||""):"",
         horaIni:curso?(curso.horaSolta||""):"",
         partida:curso?(curso.horaSolta||""):"",
-        dataFim:curso?(curso.data||""):"",
+        /* Data fim fica em branco para o operador conferir — pombos de fundo
+           que chegam no dia seguinte precisam ter a data/dias ajustados
+           manualmente (o app do sócio não tem como saber se foi no mesmo dia
+           ou no dia seguinte). O tempo morto é calculado pelos dias. */
+        dataFim:"",
         horaFim:p.hora,
         chegada:p.hora,
         dias:"1",
-        tMorto:curso?(curso.tm1||"00:00:00"):"00:00:00",
+        tMorto:"00:00:00" /* com dias=1 (mesmo dia), tempo morto é zero; operador ajusta ao corrigir dias dos pombos de dia seguinte */,
         correcao:"0",
         distancia:"0,0",
         media:"0,0000",
@@ -4619,7 +4720,13 @@ document.getElementById("btnAnularLanc").onclick=anularLancamento;
 document.getElementById("btnBuscarPombo").onclick=buscarPombo;
 document.getElementById("lancAnilha").addEventListener("blur",buscarPombo);
 document.getElementById("lancNumConc").addEventListener("blur",atualizarDistanciaLancamento);
-["lancDias","lancChegada","lancPartida","lancTMorto","lancCorrecao"].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener("input",calcularTempoVoo)});
+["lancDias","lancChegada","lancPartida","lancTMorto","lancCorrecao","lancDataIni","lancDataFim","lancHoraFim"].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener("input",calcularTempoVoo)});
+  /* Ao digitar no campo de Tempo Morto, marcamos que o operador quer
+     sobrescrever o valor automático (respeitamos o que ele digitar). */
+  const _elTM=document.getElementById("lancTMorto");
+  if(_elTM)_elTM.addEventListener("input",()=>{tMortoEditadoManualmente=true});
+  /* Trocar de pombo/novo lançamento reseta o flag, pra voltar ao automático. */
+  document.getElementById("lancAnilha").addEventListener("blur",()=>{tMortoEditadoManualmente=false});
 
 document.getElementById("btnBuscarConcurso").onclick=()=>abrirModalConcurso("lanc");
 document.getElementById("btnBuscarConcursoCalc").onclick=()=>abrirModalConcurso("calc");
@@ -4769,7 +4876,7 @@ function iniciarAplicativo(){
   resetarRelatorio();
   const alt=document.getElementById("edtAltText");if(alt)alt.hidden=true;
   const altC=document.getElementById("cursoAlteracaoText");if(altC)altC.hidden=true;
-  setStatus("Pronto | v2.2 | PigeonMaster Remote Clock (.PMR) Ativo");
+  setStatus("Pronto | v2.3 | PigeonMaster Remote Clock (.PMR) Ativo");
   
   initPMRFromUrl();
   verificarLembreteBackup();
@@ -4857,7 +4964,7 @@ window.addEventListener("load",function(){cloudIniciar(iniciarAplicativo)});
              onerror="this.style.display='none';document.getElementById('homeFallbackClube').style.display='flex';">
         <div id="homeFallbackClube">🕊️</div>
         <div id="homeTitleClube">CLUBE COLUMBÓFILO LIMEIRENSE</div>
-        <div id="homeSubClube">S.G.C-S.P v2.2 - PigeonMaster</div>
+        <div id="homeSubClube">S.G.C-S.P v2.3 - PigeonMaster</div>
         <div id="homeInfoClube">
           Bem-vindo ao sistema.<br>
           Selecione uma opção no menu superior para iniciar.
