@@ -10,13 +10,18 @@ body{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:11px;backgrou
 /* MODO CELULAR DO SÓCIO (PMR remoto via ?pmr=1): quando o sócio abre o link
    no celular, escondemos a interface desktop do clube (menus, janelas,
    lembrete de backup) pra ele ver só a telinha de constatação — sem pedir
-   chave de banco nem nada que ele não tenha acesso. */
+   chave de banco nem nada que ele não tenha acesso.
+   IMPORTANTE: não escondemos .app diretamente porque o #winMobileApp fica
+   dentro dele; em vez disso escondemos todos os filhos do .app EXCETO
+   o #winMobileApp, e reposicionamos a telinha via JS (entrarModoPmrCelular). */
 body.pmr-mobile-mode{background:#e0f2f1;overflow:hidden}
-body.pmr-mobile-mode .app{display:none!important}
+body.pmr-mobile-mode .menu-strip{display:none!important}
 body.pmr-mobile-mode .backup-banner{display:none!important}
-body.pmr-mobile-mode .status-bar{display:none!important}
+body.pmr-mobile-mode #statusBar,.status{display:none!important}
+body.pmr-mobile-mode .dropdown{display:none!important}
+body.pmr-mobile-mode .workspace{background:#e0f2f1!important;overflow:visible!important;top:0!important;bottom:0!important;left:0!important;right:0!important}
 body.pmr-mobile-mode .child-window:not(#winMobileApp){display:none!important}
-body.pmr-mobile-mode #winMobileApp{position:fixed!important;left:0!important;top:0!important;width:100vw!important;height:100vh!important;margin:0!important;box-shadow:none!important;border:none!important;border-radius:0!important;background:#e0f2f1!important;z-index:99999!important}
+body.pmr-mobile-mode #winMobileApp{position:fixed!important;left:0!important;top:0!important;width:100vw!important;height:100vh!important;margin:0!important;box-shadow:none!important;border:none!important;border-radius:0!important;background:#e0f2f1!important;z-index:99999!important;display:block!important}
 body.pmr-mobile-mode #winMobileApp .mobile-device-frame{position:absolute;left:0;top:0;width:100%;height:100%;max-width:100%;max-height:100%;border:none!important;border-radius:0!important;box-shadow:none!important;margin:0!important;background:#e0f2f1}
 body.pmr-mobile-mode #winMobileApp .mobile-screen{border-radius:0!important;height:calc(100% - 24px)!important}
 body.pmr-mobile-mode #winMobileApp .mobile-body{height:calc(100% - 70px)!important;overflow-y:auto}
@@ -4752,19 +4757,14 @@ function fecharPmrCelular(){
   }
 }
 function entrarModoPmrCelular(){
-  /* MODO CELULAR DO SÓCIO: quando alguém abre o link ?pmr=1 (no WhatsApp,
-     no celular), não tem por que ver a interface desktop do clube (menus,
-     cadastros, banco, nuvem). O sócio só precisa da telinha de constatação.
-     Esconder tudo e deixar a tela limpa, cheia, sem perguntar nada sobre
-     chaves de Supabase/banco de dados. */
+  /* MODO CELULAR DO SÓCIO: esconde a interface desktop do clube e deixa
+     apenas a telinha do PMR visível em tela cheia. NÃO aplicamos
+     display:none no .app porque o #winMobileApp fica DENTRO dele — usar
+     CSS (body.pmr-mobile-mode) que esconde cada item individualmente. */
   document.body.classList.add("pmr-mobile-mode");
-  const app=document.querySelector(".app");
-  if(app)app.style.display="none";
-  /* Esconde lembrete de backup também */
+  /* Esconde lembrete de backup via JS também por garantia */
   const bb=document.getElementById("backupBanner");
   if(bb)bb.style.display="none";
-  /* Reposiciona o "celular" para ocupar a tela toda, centralizado, sem a
-     moldura de celular fake (que faz sentido só dentro da simulação desktop). */
   const win=document.getElementById("winMobileApp");
   if(win){
     win.style.position="fixed";
@@ -4772,11 +4772,12 @@ function entrarModoPmrCelular(){
     win.style.width="100vw";win.style.height="100vh";
     win.style.background="#e0f2f1";
     win.style.zIndex="99999";
+    win.style.display="block";
     win.classList.add("active");
     const frame=win.querySelector(".mobile-device-frame");
-    if(frame){frame.style.width="100%";frame.style.height="100%";frame.style.maxWidth="100%";frame.style.border="none";frame.style.borderRadius="0";frame.style.boxShadow="none";frame.style.margin="0"}
+    if(frame){frame.style.width="100%";frame.style.height="100%";frame.style.maxWidth="100%";frame.style.border="none";frame.style.borderRadius="0";frame.style.boxShadow="none";frame.style.margin="0";frame.style.background="#e0f2f1"}
     const screen=win.querySelector(".mobile-screen");
-    if(screen){screen.style.borderRadius="0";screen.style.height="100%"}
+    if(screen)screen.style.borderRadius="0";
     const body_=win.querySelector(".mobile-body");
     if(body_)body_.style.height="calc(100% - 90px)";
   }
