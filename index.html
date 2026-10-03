@@ -168,7 +168,31 @@ body.pmr-mobile-mode #winMobileApp .mobile-body{height:calc(100% - 70px)!importa
 .cloud-modal-body input{width:100%;height:24px;margin:2px 0 8px;padding:2px 4px;font-size:11px;border:2px inset #ddd;box-sizing:border-box}
 .cloud-modal-btns{display:flex;gap:6px;justify-content:flex-end;padding:0 10px 10px}
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* Carregamento do Supabase com MÚLTIPLOS CDNs (fallback) — evita que a nuvem
+   pare de funcionar se um CDN estiver bloqueado/lento na rede do clube. */
+(function(){
+  var cdns = [
+    "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2",
+    "https://unpkg.com/@supabase/supabase-js@2",
+    "https://cdnjs.cloudflare.com/ajax/libs/supabase-js/2.45.4/supabase.umd.min.js",
+    "https://esm.sh/@supabase/supabase-js@2"
+  ];
+  function tenta(i){
+    if(i>=cdns.length){
+      console.warn("Nuvem: biblioteca Supabase não carregou de nenhum CDN (modo local forçado).");
+      window.__SUPABASE_LOAD_ERROR = true;
+      return;
+    }
+    var s = document.createElement("script");
+    s.src = cdns[i];
+    s.onerror = function(){ tenta(i+1); };
+    s.onload = function(){ if(!window.supabase){ tenta(i+1); } };
+    document.head.appendChild(s);
+  }
+  tenta(0);
+})();
+</script>
 </head>
 <body>
 <div class="app">
@@ -1399,15 +1423,48 @@ function cloudChavesSincronizadas() {
   if (typeof STORE_PMR_LINKS !== "undefined" && ks.indexOf(STORE_PMR_LINKS) < 0) ks.push(STORE_PMR_LINKS);
   return ks;
 }
+let cloudUltimoErro = "";
+function cloudAguardarSupabase(ms) {
+  /* Espera a biblioteca carregar (o loader tem múltiplos CDNs de fallback). */
+  return new Promise(function(resolve){
+    if(window.supabase){resolve(true);return;}
+    if(window.__SUPABASE_LOAD_ERROR){resolve(false);return;}
+    const t0 = Date.now();
+    function checa(){
+      if(window.supabase){resolve(true);return;}
+      if(window.__SUPABASE_LOAD_ERROR){resolve(false);return;}
+      if(Date.now()-t0 > (ms||5000)){resolve(false);return;}
+      setTimeout(checa,100);
+    }
+    checa();
+  });
+}
 function cloudHabilitada() { const c = cloudCfg(); return !!(c && c.url && c.key && window.supabase); }
 function cloudGetClient() {
   if (!cloudHabilitada()) return null;
   if (!cloudClient) {
     const c = cloudCfg();
-    try { cloudClient = window.supabase.createClient(c.url, c.key); }
-    catch (e) { console.warn("Nuvem: falha ao iniciar cliente", e); return null; }
+    try {
+      cloudClient = window.supabase.createClient(c.url, c.key, {
+        auth: { persistSession: false, autoRefreshToken: false },
+        realtime: { params: { eventsPerSecond: 2 } }
+      });
+    }
+    catch (e) { console.warn("Nuvem: falha ao iniciar cliente", e); cloudUltimoErro = "Erro interno: " + (e.message||e); return null; }
   }
   return cloudClient;
+}
+function cloudClassificarErro(e) {
+  const msg = (e && (e.message || e.msg || String(e))) || "";
+  cloudUltimoErro = msg;
+  if (!msg) return "Sem resposta do servidor (sem internet ou projeto hibernado).";
+  if (/Failed to fetch|NetworkError|network/i.test(msg)) return "Sem conexão com o Supabase (verifique a internet, ou o projeto pode estar hibernado por inatividade — entre no painel do Supabase para reativar).";
+  if (/invalid.*key|invalid.*jwt|JWT/i.test(msg)) return "Chave 'anon' inválida ou expirada — confira no painel do Supabase (Project Settings → API → anon public key).";
+  if (/404|not found/i.test(msg)) return "Project URL não encontrada — confira a URL (ela termina com .supabase.co).";
+  if (/relation.*does not exist|42P01/i.test(msg)) return "Tabela 'sgc_store' não existe no banco — execute o arquivo supabase-setup.sql no SQL Editor do Supabase.";
+  if (/permission denied|row level security|42501|PGRST/i.test(msg)) return "Permissão negada (RLS) — confira as políticas de segurança no SQL do supabase-setup.sql.";
+  if (/timed out|timeout/i.test(msg)) return "Timeout na conexão (rede lenta ou projeto hibernando).";
+  return msg;
 }
 function cloudTs(s) { const n = Date.parse(s || ""); return isNaN(n) ? 0 : n; }
 
@@ -1444,9 +1501,10 @@ async function cloudEnviarChave(k) {
     cloudUltimoSync = new Date().toISOString();
     cloudOnline = true; cloudAtualizarIndicador("ok");
   } catch (e) {
-    console.warn("Nuvem: erro ao enviar", k, e);
+    cloudClassificarErro(e);
+    console.warn("Nuvem: erro ao enviar", k, cloudUltimoErro);
     cloudOnline = false; cloudAtualizarIndicador("offline");
-    cloudTimers[k] = setTimeout(function () { cloudEnviarChave(k); }, 15000); /* tenta de novo sozinho */
+    cloudTimers[k] = setTimeout(function () { cloudEnviarChave(k); }, 30000); /* tenta de novo em 30s */
   }
 }
 
@@ -1546,7 +1604,8 @@ async function cloudSincronizarNoBoot() {
     cloudSalvarMeta(meta);
     cloudAtualizarIndicador(aplicou ? "recebeu" : "ok");
   } catch (e) {
-    console.warn("Nuvem: sem contato no boot (seguindo com dados locais)", e);
+    const motivo = cloudClassificarErro(e);
+    console.warn("Nuvem: sem contato no boot — " + motivo, e);
     cloudOnline = false; cloudAtualizarIndicador("offline");
   }
 }
@@ -1647,12 +1706,25 @@ function cloudMostrarStatus() {
   const c = cloudCfg();
   const meta = cloudMeta();
   const sujas = Object.keys(meta.chaves).filter(function (k) { return meta.chaves[k] && meta.chaves[k].sujo; });
+  const bibOk = !!window.supabase;
+  const bibErro = !!window.__SUPABASE_LOAD_ERROR;
+  let estado;
+  if (!c || !c.url) estado = "não configurado (modo local)";
+  else if (bibErro) estado = "ERRO: biblioteca não carregou (rede/CDN bloqueado)";
+  else if (!bibOk) estado = "carregando biblioteca...";
+  else if (cloudOnline) estado = "✅ conectado";
+  else estado = "⚠️ configurado, sem contato agora";
+  let erros = "";
+  if (bibErro) erros += "\n⚠️ A biblioteca do Supabase não carregou de nenhum CDN. Verifique a internet ou se há antivírus/firewall bloqueando jsdelivr.net, unpkg.com ou cdnjs.cloudflare.com.";
+  if (cloudUltimoErro && !cloudOnline && c && c.url) erros += "\n⚠️ Último erro: " + cloudUltimoErro;
   alert("☁️ SINCRONIZAÇÃO COM A NUVEM\n\n" +
-    "Estado: " + ((c && c.url) ? (cloudOnline ? "conectado" : "configurado, sem contato agora") : "não configurado (modo local)") + "\n" +
+    "Estado: " + estado + "\n" +
+    "Biblioteca: " + (bibOk ? "ok" : (bibErro ? "FALHOU" : "carregando...")) + "\n" +
     ((c && c.url) ? ("Projeto: " + c.url + "\nBanco: " + (CLOUD_APP_ID === "sgc" ? "Clube (sgc)" : "Regional (reg)") + "\n") : "") +
     "Último envio confirmado: " + (cloudUltimoSync ? new Date(cloudUltimoSync).toLocaleString() : "-") + "\n" +
     "Alterações locais pendentes: " + sujas.length + (sujas.length ? " (" + sujas.join(", ") + ")" : "") + "\n" +
-    "ID deste computador: " + cloudDeviceId() + "\n\n" +
+    "ID deste computador: " + cloudDeviceId() +
+    erros + "\n\n" +
     "Configure em: ☁️ Nuvem → Configurar conexão...");
 }
 
@@ -1730,25 +1802,31 @@ function cloudOferecerConfigInicial() {
   }, 600);
 }
 
+/* Espera a biblioteca carregar e tenta sincronizar. */
+async function cloudEsperarESincronizar() {
+  const ok = await cloudAguardarSupabase(6000);
+  if(!ok){
+    cloudUltimoErro = "Não foi possível carregar a biblioteca do Supabase (CDNs bloqueados ou sem internet).";
+    return;
+  }
+  try { await cloudSincronizarNoBoot(); }
+  catch(e){ console.warn("Nuvem: erro na sincronização inicial", e); }
+}
+
 /* Ponto de entrada: roda ANTES do sistema montar as telas.
    Retorna uma Promise que resolve quando a sincronização inicial terminar. */
-function cloudIniciar(callback) {
+async function cloudIniciar(callback) {
   cloudMostrarCarregando(true);
-  const fim = function () {
-    cloudMostrarCarregando(false);
-    callback();
-    cloudAppIniciado = true;
-    cloudAtualizarIndicador();
+  const cfg = cloudCfg();
+  if (cfg && cfg.url && cfg.key) {
+    await cloudEsperarESincronizar();
     cloudAssinarTempoReal();
-    cloudOferecerConfigInicial();
-  };
-  if (!cloudHabilitada()) { fim(); return Promise.resolve(); }
-  let feito = false;
-  const finaliza = function () { if (!feito) { feito = true; clearTimeout(guarda); fim(); } };
-  const guarda = setTimeout(function () { console.warn("Nuvem: tempo esgotado no boot"); finaliza(); }, 8000);
-  return cloudSincronizarNoBoot()
-    .then(finaliza)
-    .catch(finaliza);
+  }
+  cloudMostrarCarregando(false);
+  callback();
+  cloudAppIniciado = true;
+  cloudAtualizarIndicador();
+  cloudOferecerConfigInicial();
 }
 function salvarPombos(){saveLS(STORE.pombos,pombosSalvos)}
 function salvarConcorrentes(){saveLS(STORE.concorrentes,concorrentesSalvos)}
